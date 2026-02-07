@@ -140,11 +140,6 @@ PVOID KphReserveRingBuffer(
 
         WriteULong64Release(&headerPointer->Value, header.Value);
 
-        if (Ring->Event)
-        {
-            KeSetEvent(Ring->Event, EVENT_INCREMENT, FALSE);
-        }
-
         producerPos = 0;
     }
 
@@ -204,13 +199,7 @@ VOID KphpCommitRingBuffer(
 
     if (Ring->Event)
     {
-        ULONG consumerPos;
-
-        consumerPos = ReadULongAcquire(Ring->ConsumerPos);
-        if (Add2Ptr(Ring->Buffer, consumerPos) == headerPointer)
-        {
-            KeSetEvent(Ring->Event, EVENT_INCREMENT, FALSE);
-        }
+        KeSetEvent(Ring->Event, EVENT_INCREMENT, FALSE);
     }
 }
 
