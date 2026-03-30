@@ -1906,6 +1906,8 @@ PPH_STRING PhpInformerFormatDetailsText(
         switch (majorFunction)
         {
         case IRP_MJ_CREATE:
+        case IRP_MJ_CREATE_NAMED_PIPE:
+        case IRP_MJ_CREATE_MAILSLOT:
             {
                 static const PH_STRINGREF shareNames[] =
                 {
@@ -1967,14 +1969,34 @@ PPH_STRING PhpInformerFormatDetailsText(
                 };
 #undef PH_FILE_ATTR
 
-                ULONG options = Message->Kernel.File.Parameters.Create.Options;
-                ULONG disposition = options >> 24;
-                ULONG createOptions = options & 0x00FFFFFF;
-                USHORT shareAccess = Message->Kernel.File.Parameters.Create.ShareAccess;
-                USHORT fileAttributes = Message->Kernel.File.Parameters.Create.FileAttributes;
+                ULONG options;
+                ULONG disposition;
+                ULONG createOptions;
+                USHORT shareAccess;
+                ACCESS_MASK desiredAccess;
                 PH_STRING_BUILDER createSb;
-                PPH_STRING optionsStr;
-                PPH_STRING attribStr;
+
+                if (majorFunction == IRP_MJ_CREATE)
+                {
+                    options = Message->Kernel.File.Parameters.Create.Options;
+                    shareAccess = Message->Kernel.File.Parameters.Create.ShareAccess;
+                    desiredAccess = Message->Kernel.File.Pre.Create.SecurityContext.DesiredAccess;
+                }
+                else if (majorFunction == IRP_MJ_CREATE_NAMED_PIPE)
+                {
+                    options = Message->Kernel.File.Parameters.CreateNamedPipe.Options;
+                    shareAccess = Message->Kernel.File.Parameters.CreateNamedPipe.ShareAccess;
+                    desiredAccess = Message->Kernel.File.Pre.CreateNamedPipe.SecurityContext.DesiredAccess;
+                }
+                else
+                {
+                    options = Message->Kernel.File.Parameters.CreateMailslot.Options;
+                    shareAccess = Message->Kernel.File.Parameters.CreateMailslot.ShareAccess;
+                    desiredAccess = Message->Kernel.File.Pre.CreateMailslot.SecurityContext.DesiredAccess;
+                }
+
+                disposition = options >> 24;
+                createOptions = options & 0x00FFFFFF;
 
                 PhInitializeStringBuilder(&createSb, 120);
 
@@ -1992,6 +2014,7 @@ PPH_STRING PhpInformerFormatDetailsText(
                 if (createOptions)
                 {
                     PH_FORMAT hexFmt[4];
+                    PPH_STRING optionsStr;
 
                     static const PH_STRINGREF optSep = PH_STRINGREF_INIT(L", Options: ");
                     PhAppendStringBuilder(&createSb, &optSep);
@@ -2019,26 +2042,45 @@ PPH_STRING PhpInformerFormatDetailsText(
                 }
 
                 //
-                // FileAttributes — symbolicated.
+                // FileAttributes — only meaningful for IRP_MJ_CREATE.
                 //
 
-                if (fileAttributes && fileAttributes != FILE_ATTRIBUTE_NORMAL)
+                if (majorFunction == IRP_MJ_CREATE)
                 {
-                    PH_FORMAT hexFmt[4];
+                    USHORT fileAttributes = Message->Kernel.File.Parameters.Create.FileAttributes;
 
-                    static const PH_STRINGREF attrSep = PH_STRINGREF_INIT(L", Attributes: ");
-                    PhAppendStringBuilder(&createSb, &attrSep);
-                    attribStr = PhGetAccessString(fileAttributes, (PPH_ACCESS_ENTRY)fileAttributeEntries, RTL_NUMBER_OF(fileAttributeEntries));
+                    if (fileAttributes)
+                    {
+                        PH_FORMAT hexFmt[4];
+                        PPH_STRING attribStr;
 
-                    PhInitFormatSR(&hexFmt[0], attribStr->sr);
-                    PhInitFormatS(&hexFmt[1], L" (0x");
-                    PhInitFormatI64XWithWidth(&hexFmt[2], (ULONG64)fileAttributes, 4);
-                    PhInitFormatC(&hexFmt[3], L')');
-                    PhDereferenceObject(attribStr);
-                    attribStr = PhFormat(hexFmt, 4, 30);
+                        static const PH_STRINGREF attrSep = PH_STRINGREF_INIT(L", Attributes: ");
+                        PhAppendStringBuilder(&createSb, &attrSep);
+                        attribStr = PhGetAccessString(fileAttributes, (PPH_ACCESS_ENTRY)fileAttributeEntries, RTL_NUMBER_OF(fileAttributeEntries));
 
-                    PhAppendStringBuilder(&createSb, &attribStr->sr);
-                    PhDereferenceObject(attribStr);
+                        PhInitFormatSR(&hexFmt[0], attribStr->sr);
+                        PhInitFormatS(&hexFmt[1], L" (0x");
+                        PhInitFormatI64XWithWidth(&hexFmt[2], (ULONG64)fileAttributes, 4);
+                        PhInitFormatC(&hexFmt[3], L')');
+                        PhDereferenceObject(attribStr);
+                        attribStr = PhFormat(hexFmt, 4, 30);
+
+                        PhAppendStringBuilder(&createSb, &attribStr->sr);
+                        PhDereferenceObject(attribStr);
+                    }
+                }
+
+                //
+                // DesiredAccess — from IO_SECURITY_CONTEXT
+                //
+
+                if (desiredAccess)
+                {
+                    PPH_STRING accessStr = PhpInformerFormatAccessMask(L"File", desiredAccess);
+                    static const PH_STRINGREF accessSep = PH_STRINGREF_INIT(L", Access: ");
+                    PhAppendStringBuilder(&createSb, &accessSep);
+                    PhAppendStringBuilder(&createSb, &accessStr->sr);
+                    PhDereferenceObject(accessStr);
                 }
 
                 perOpDetails = PhFinalStringBuilderString(&createSb);
@@ -2996,24 +3038,49 @@ VOID PhpInformerUpdateDetailsFromPostOp(
         {
             ULONG_PTR information = PostMsg->Kernel.File.Post.IoStatus.Information;
             PCPH_STRINGREF resultName = PhpInformerGetOpenResultName(information);
+            ACCESS_MASK granted;
+            PPH_STRING accessStr = NULL;
+            PH_FORMAT format[8];
+            ULONG count = 0;
+
+            if (msgId == KphMsgFilePostCreate)
+                granted = PostMsg->Kernel.File.Post.Create.SecurityContext.PreviouslyGrantedAccess;
+            else if (msgId == KphMsgFilePostCreateNamedPipe)
+                granted = PostMsg->Kernel.File.Post.CreateNamedPipe.SecurityContext.PreviouslyGrantedAccess;
+            else
+                granted = PostMsg->Kernel.File.Post.CreateMailslot.SecurityContext.PreviouslyGrantedAccess;
+
+            if (!resultName && !granted)
+                break;
+
+            if (!PhIsNullOrEmptyString(PreNode->DetailsText))
+            {
+                PhInitFormatSR(&format[count++], PreNode->DetailsText->sr);
+                PhInitFormatSR(&format[count++], separator);
+            }
 
             if (resultName)
             {
-                PH_FORMAT format[4];
-                ULONG count = 0;
-
-                if (!PhIsNullOrEmptyString(PreNode->DetailsText))
-                {
-                    PhInitFormatSR(&format[count++], PreNode->DetailsText->sr);
-                    PhInitFormatSR(&format[count++], separator);
-                }
-
                 PhInitFormatSR(&format[count++], openResultPrefix);
                 PhInitFormatSR(&format[count++], *resultName);
-
-                PhMoveReference(&PreNode->DetailsText, PhFormat(format, count, 100));
-                PhClearReference(&PreNode->TooltipText);
             }
+
+            if (granted)
+            {
+                accessStr = PhpInformerFormatAccessMask(L"File", granted);
+
+                if (resultName)
+                    PhInitFormatSR(&format[count++], separator);
+
+                PhInitFormatSR(&format[count++], grantedPrefix);
+                PhInitFormatSR(&format[count++], accessStr->sr);
+            }
+
+            PhMoveReference(&PreNode->DetailsText, PhFormat(format, count, 100));
+            PhClearReference(&PreNode->TooltipText);
+
+            if (accessStr)
+                PhDereferenceObject(accessStr);
         }
         break;
     }
