@@ -1188,6 +1188,17 @@ typedef struct _KPHM_COPY_INFORMATION
     ULONG64 SourceFileOffset;
 } KPHM_COPY_INFORMATION, *PKPHM_COPY_INFORMATION;
 
+//
+// IO_SECURITY_CONTEXT
+//
+typedef struct _KPHM_IO_SECURITY_CONTEXT
+{
+    ACCESS_MASK DesiredAccess;
+    ACCESS_MASK OriginalDesiredAccess;
+    ACCESS_MASK PreviouslyGrantedAccess;
+    ACCESS_MASK RemainingDesiredAccess;
+} KPHM_IO_SECURITY_CONTEXT, *PKPHM_IO_SECURITY_CONTEXT;
+
 typedef struct _KPHM_FILE
 {
     CLIENT_ID ClientId;
@@ -1260,11 +1271,13 @@ typedef struct _KPHM_FILE
             {
                 struct
                 {
+                    KPHM_IO_SECURITY_CONTEXT SecurityContext;
                     BOOLEAN MaybeTunneledFileName;
                 } Create;
 
                 struct
                 {
+                    KPHM_IO_SECURITY_CONTEXT SecurityContext;
                     NAMED_PIPE_CREATE_PARAMETERS Parameters;
                 } CreateNamedPipe;
 
@@ -1281,6 +1294,7 @@ typedef struct _KPHM_FILE
 
                 struct
                 {
+                    KPHM_IO_SECURITY_CONTEXT SecurityContext;
                     MAILSLOT_CREATE_PARAMETERS Parameters;
                 } CreateMailslot;
 
@@ -1305,14 +1319,25 @@ typedef struct _KPHM_FILE
             {
                 struct
                 {
+                    KPHM_IO_SECURITY_CONTEXT SecurityContext;
                     BOOLEAN TunneledFileName;
                 } Create;
+
+                struct
+                {
+                    KPHM_IO_SECURITY_CONTEXT SecurityContext;
+                } CreateNamedPipe;
 
                 struct
                 {
                     BOOLEAN TunneledFileName;
                     BOOLEAN TunneledDestinationFileName;
                 } SetInformation;
+
+                struct
+                {
+                    KPHM_IO_SECURITY_CONTEXT SecurityContext;
+                } CreateMailslot;
             };
         } Post;
     };
