@@ -85,6 +85,7 @@
 #define KPH_TAG_OB_CALL_CONTEXT                 '9IpK'
 #define KPH_TAG_INFORMER_STATE                  'SIpK'
 #define KPH_TAG_INFORMER_SETTINGS               'sIpK'
+#define KPH_TAG_SILO_NAME                       'aIpK'
 
 // cid_tracking
 

@@ -502,7 +502,7 @@ typedef const KPH_RATE_LIMIT_POLICY* PCKPH_RATE_LIMIT_POLICY;
 #define KPH_RATE_LIMIT_PER_HOUR(rate, burst) { rate, 3600, burst }
 #define KPH_RATE_LIMIT_PER_DAY(rate, burst)  { rate, 86400, burst }
 
-#define KPH_INFORMER_COUNT       153
+#define KPH_INFORMER_COUNT       155
 #define KPH_INFORMER_INDEX(name) (KphMsg##name - (MaxKphMsgClientAllowed + 1))
 
 typedef union _KPH_INFORMER_OPTIONS

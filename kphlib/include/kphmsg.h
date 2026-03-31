@@ -233,6 +233,8 @@ typedef enum _KPH_MESSAGE_ID
     KphMsgRegPreSaveMergedKey,
     KphMsgRegPostSaveMergedKey,
     KphMsgImageVerify,
+    KphMsgSiloCreate,
+    KphMsgSiloTerminate,
 
     MaxKphMsg,
 
@@ -384,6 +386,8 @@ typedef struct _KPH_MESSAGE
             KPHM_FILE File;
             KPHM_REGISTRY Reg;
             KPHM_IMAGE_VERIFY ImageVerify;
+            KPHM_SILO_CREATE SiloCreate;
+            KPHM_SILO_TERMINATE SiloTerminate;
         } Kernel;
 
         //

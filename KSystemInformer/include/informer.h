@@ -186,3 +186,16 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID KphDebugInformerStop(
     VOID
     );
+
+// silo informer
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSTATUS KphSiloInformerStart(
+    VOID
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID KphSiloInformerStop(
+    VOID
+    );

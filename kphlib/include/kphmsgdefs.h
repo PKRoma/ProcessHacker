@@ -1783,4 +1783,45 @@ typedef struct _KPHM_IMAGE_VERIFY
     //
 } KPHM_IMAGE_VERIFY, *PKPHM_IMAGE_VERIFY;
 
+typedef struct _KPHM_SILO_INFORMATION
+{
+    BOOLEAN IsHostSilo;
+    ULONG SiloIdentifier;
+    ULONG ServiceSessionId;
+    ULONG ActiveConsoleId;
+    GUID ContainerId;
+} KPHM_SILO_INFORMATION, *PKPHM_SILO_INFORMATION;
+
+typedef struct _KPHM_SILO_CREATE
+{
+    CLIENT_ID ClientId;
+    ULONG64 ProcessStartKey;
+    PVOID ThreadSubProcessTag;
+    KPHM_SILO_INFORMATION Silo;
+    KPHM_SILO_INFORMATION ServerSilo;
+
+    //
+    // Dynamic
+    //
+    // id: KphMsgFieldObjectName              type: KphMsgTypeUnicodeString
+    // id: KphMsgFieldOtherObjectName         type: KphMsgTypeUnicodeString
+    //
+} KPHM_SILO_CREATE, *PKPHM_SILO_CREATE;
+
+typedef struct _KPHM_SILO_TERMINATE
+{
+    CLIENT_ID ClientId;
+    ULONG64 ProcessStartKey;
+    PVOID ThreadSubProcessTag;
+    KPHM_SILO_INFORMATION Silo;
+    KPHM_SILO_INFORMATION ServerSilo;
+
+    //
+    // Dynamic
+    //
+    // id: KphMsgFieldObjectName              type: KphMsgTypeUnicodeString
+    // id: KphMsgFieldOtherObjectName         type: KphMsgTypeUnicodeString
+    //
+} KPHM_SILO_TERMINATE, *PKPHM_SILO_TERMINATE;
+
 #pragma warning(pop)
