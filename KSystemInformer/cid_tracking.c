@@ -2192,34 +2192,34 @@ KPH_PROCESS_STATE KphGetProcessState(
 
     if (FlagOn(protectionState, KPH_PROTECTION_TCB))
     {
-        processState |= KPH_PROCESS_SECURELY_CREATED;
+        SetFlag(processState, KPH_PROCESS_SECURELY_CREATED);
     }
 
     if (FlagOn(protectionState, KPH_PROTECTION_VERIFIED))
     {
-        processState |= KPH_PROCESS_VERIFIED_PROCESS;
+        SetFlag(processState, KPH_PROCESS_VERIFIED_PROCESS);
     }
 
     if (FlagOn(protectionState, KPH_PROTECTION_ACTIVE))
     {
-        processState |= KPH_PROCESS_PROTECTED_PROCESS;
+        SetFlag(processState, KPH_PROCESS_PROTECTED_PROCESS);
     }
 
     if (Process->CreateNotification)
     {
-        processState |= KPH_PROCESS_CREATE_NOTIFICATION;
+        SetFlag(processState, KPH_PROCESS_CREATE_NOTIFICATION);
     }
 
     if (ReadSizeTAcquire(&Process->NumberOfUntrustedImageLoads) == 0)
     {
-        processState |= KPH_PROCESS_NO_UNTRUSTED_IMAGES;
+        SetFlag(processState, KPH_PROCESS_NO_UNTRUSTED_IMAGES);
     }
 
     if (!Process->StateTracking.Debugged)
     {
         if (!PsIsProcessBeingDebugged(Process->EProcess))
         {
-            processState |= KPH_PROCESS_NOT_BEING_DEBUGGED;
+            SetFlag(processState, KPH_PROCESS_NOT_BEING_DEBUGGED);
         }
         else
         {
@@ -2232,13 +2232,13 @@ KPH_PROCESS_STATE KphGetProcessState(
         return processState;
     }
 
-    processState |= KPH_PROCESS_HAS_FILE_OBJECT;
+    SetFlag(processState, KPH_PROCESS_HAS_FILE_OBJECT);
 
     if (!Process->StateTracking.FileObjectWritable)
     {
         if (!Process->FileObject->WriteAccess || !Process->FileObject->SharedWrite)
         {
-            processState |= KPH_PROCESS_NO_WRITABLE_FILE_OBJECT;
+            SetFlag(processState, KPH_PROCESS_NO_WRITABLE_FILE_OBJECT);
         }
         else
         {
@@ -2250,7 +2250,7 @@ KPH_PROCESS_STATE KphGetProcessState(
     {
         if (!IoGetTransactionParameterBlock(Process->FileObject))
         {
-            processState |= KPH_PROCESS_NO_FILE_TRANSACTION;
+            SetFlag(processState, KPH_PROCESS_NO_FILE_TRANSACTION);
         }
         else
         {
@@ -2263,13 +2263,13 @@ KPH_PROCESS_STATE KphGetProcessState(
         return processState;
     }
 
-    processState |= KPH_PROCESS_HAS_SECTION_OBJECT_POINTERS;
+    SetFlag(processState, KPH_PROCESS_HAS_SECTION_OBJECT_POINTERS);
 
     if (!Process->StateTracking.UserWritableReferences)
     {
         if (!MmDoesFileHaveUserWritableReferences(Process->FileObject->SectionObjectPointer))
         {
-            processState |= KPH_PROCESS_NO_USER_WRITABLE_REFERENCES;
+            SetFlag(processState, KPH_PROCESS_NO_USER_WRITABLE_REFERENCES);
         }
         else
         {
