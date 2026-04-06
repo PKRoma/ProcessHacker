@@ -1813,6 +1813,53 @@ VOID KphCidRundown(
                                     THREAD_SUSPEND_RESUME                     |\
                                     THREAD_RESUME)
 
+typedef enum _KPH_PROTECTION_STATE
+{
+    KPH_PROTECTION_NONE      = 0x00000000,
+    KPH_PROTECTION_PENDING   = 0x00000001,
+    KPH_PROTECTION_VERIFIED  = 0x00000002,
+    KPH_PROTECTION_UNTRUSTED = 0x00000004,
+    KPH_PROTECTION_ACTIVE    = 0x00000008,
+    KPH_PROTECTION_TCB       = 0x00000010,
+} KPH_PROTECTION_STATE, *PKPH_PROTECTION_STATE;
+C_ASSERT(sizeof(KPH_PROTECTION_STATE) == sizeof(LONG));
+
+typedef struct _KPH_PROTECTION
+{
+    KPH_PROTECTION_STATE State;
+    KPH_RWLOCK AllowedMaskLock;
+    ACCESS_MASK ProcessAllowedMask;
+    ACCESS_MASK ThreadAllowedMask;
+    SLIST_ENTRY ListEntry;
+    KEVENT CompletionEvent;
+} KPH_PROTECTION, *PKPH_PROTECTION;
+
+FORCEINLINE
+VOID KphProtectionSet(
+    _Inout_ PKPH_PROTECTION Protection,
+    _In_ KPH_PROTECTION_STATE Flag
+    )
+{
+    KPH_PROTECTION_STATE state;
+
+    state = InterlockedOrRelease((LONG*)&Protection->State, Flag);
+
+    NT_ASSERT(!FlagOn(state, KPH_PROTECTION_PENDING));
+}
+
+FORCEINLINE
+VOID KphProtectionClear(
+    _Inout_ PKPH_PROTECTION Protection,
+    _In_ KPH_PROTECTION_STATE Flag
+    )
+{
+    KPH_PROTECTION_STATE state;
+
+    state = InterlockedAndRelease((LONG*)&Protection->State, ~Flag);
+
+    NT_ASSERT(!FlagOn(state, KPH_PROTECTION_PENDING));
+}
+
 typedef union _KPH_SESSION_TOKEN_ATOMIC
 {
     struct _KPH_SESSION_TOKEN* Token;
@@ -1850,14 +1897,11 @@ typedef struct _KPH_PROCESS_CONTEXT
         {
             ULONG CreateNotification : 1;
             ULONG ExitNotification : 1;
-            ULONG VerifiedProcess : 1;
-            ULONG SecurelyCreated : 1;
-            ULONG Protected : 1;
             ULONG IsWow64 : 1;
             ULONG IsSubsystemProcess : 1;
             ULONG AllocatedImageName : 1;
             ULONG SystemAllocatedImageFileName : 1;
-            ULONG Reserved : 23;
+            ULONG Reserved : 26;
         };
     };
 
@@ -1867,12 +1911,7 @@ typedef struct _KPH_PROCESS_CONTEXT
     LIST_ENTRY ThreadListHead;
     SIZE_T NumberOfUnlinkedThreads;
 
-    //
-    // Masks are only valid if Protected flag is set.
-    //
-    KPH_RWLOCK ProtectionLock;
-    ACCESS_MASK ProcessAllowedMask;
-    ACCESS_MASK ThreadAllowedMask;
+    KPH_PROTECTION Protection;
 
     union
     {
@@ -2127,11 +2166,6 @@ NTSTATUS KphCheckProcessApcNoopRoutine(
     _In_ PKPH_PROCESS_CONTEXT ProcessContext
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-VOID KphVerifyProcessAndProtectIfAppropriate(
-    _In_ PKPH_PROCESS_CONTEXT Process
-    );
-
 _IRQL_requires_max_(APC_LEVEL)
 _Must_inspect_result_
 _Maybenull_
@@ -2171,20 +2205,12 @@ VOID KphInitializeProtection(
     VOID
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
-_Must_inspect_result_
-NTSTATUS KphStartProtectingProcess(
-    _In_ PKPH_PROCESS_CONTEXT Process,
-    _In_ ACCESS_MASK ProcessAllowedMask,
-    _In_ ACCESS_MASK ThreadAllowedMask
-    );
-
 _IRQL_requires_max_(APC_LEVEL)
-VOID KphStopProtectingProcess(
+KPH_PROTECTION_STATE KphGetProtectionState(
     _In_ PKPH_PROCESS_CONTEXT Process
     );
 
-_IRQL_requires_max_(PASSIVE_LEVEL)
+_IRQL_requires_max_(APC_LEVEL)
 BOOLEAN KphIsProtectedProcess(
     _In_ PKPH_PROCESS_CONTEXT Process
     );

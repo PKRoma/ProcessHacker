@@ -144,8 +144,6 @@ PKPH_PROCESS_CONTEXT KphpPerformProcessTracking(
                   &process->ImageName,
                   HandleToULong(process->ProcessId));
 
-    KphVerifyProcessAndProtectIfAppropriate(process);
-
     creatorProcess = KphGetCurrentProcessContext();
     if (!creatorProcess)
     {
@@ -159,7 +157,7 @@ PKPH_PROCESS_CONTEXT KphpPerformProcessTracking(
 
     if (KphTestProcessContextState(creatorProcess, KPH_PROCESS_STATE_MAXIMUM))
     {
-        process->SecurelyCreated = TRUE;
+        KphProtectionSet(&process->Protection, KPH_PROTECTION_TCB);
     }
     else
     {
@@ -171,7 +169,7 @@ PKPH_PROCESS_CONTEXT KphpPerformProcessTracking(
             ((processProtection.Signer == PsProtectedSignerWinTcb) ||
              (processProtection.Signer == PsProtectedSignerWinSystem)))
         {
-            process->SecurelyCreated = TRUE;
+            KphProtectionSet(&process->Protection, KPH_PROTECTION_TCB);
         }
     }
 
@@ -585,7 +583,7 @@ Exit:
 
     if (stopProtecting)
     {
-        KphStopProtectingProcess(Process);
+        KphProtectionClear(&Process->Protection, KPH_PROTECTION_ACTIVE);
     }
 }
 
