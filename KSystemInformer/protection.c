@@ -661,42 +661,72 @@ VOID KphpVerifyProcessAndProtect(
 
     NT_ASSERT(Process->Protection.State == KPH_PROTECTION_PENDING);
 
-    state = 0;
+    state = KPH_PROTECTION_UNTRUSTED;
 
-    if (!Process->ImageFileName ||
-        !Process->FileObject ||
-        !Process->FileObject->SectionObjectPointer ||
-        Process->FileObject->WriteAccess ||
-        Process->FileObject->SharedWrite ||
-        IoGetTransactionParameterBlock(Process->FileObject) ||
-        MmDoesFileHaveUserWritableReferences(Process->FileObject))
+    if (!Process->ImageFileName || !Process->FileObject)
     {
         KphTracePrint(TRACE_LEVEL_VERBOSE,
                       VERIFY,
-                      "Process %wZ (%lu) does not meet requirements for "
-                      "verification",
+                      "%wZ (%lu) missing file object or name",
                       &Process->ImageName,
                       HandleToULong(Process->ProcessId));
 
-        SetFlag(state, KPH_PROTECTION_UNTRUSTED);
+        goto Exit;
+    }
+
+    if (Process->FileObject->WriteAccess)
+    {
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
+                      PROTECTION,
+                      "%wZ (%lu) image \"%wZ\" is writable",
+                      &Process->ImageName,
+                      HandleToULong(Process->ProcessId),
+                      Process->ImageFileName);
+
+        goto Exit;
+    }
+
+    if (IoGetTransactionParameterBlock(Process->FileObject))
+    {
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
+                      PROTECTION,
+                      "%wZ (%lu) image \"%wZ\" is in a transaction",
+                      &Process->ImageName,
+                      HandleToULong(Process->ProcessId),
+                      Process->ImageFileName);
+
+        goto Exit;
+    }
+
+    if (!Process->FileObject->SectionObjectPointer ||
+        MmDoesFileHaveUserWritableReferences(Process->FileObject->SectionObjectPointer))
+    {
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
+                      PROTECTION,
+                      "%wZ (%lu) image \"%wZ\" has user writable references",
+                      &Process->ImageName,
+                      HandleToULong(Process->ProcessId),
+                      Process->ImageFileName);
+
         goto Exit;
     }
 
     status = KphVerifyFile(Process->ImageFileName, Process->FileObject);
 
     KphTracePrint(TRACE_LEVEL_VERBOSE,
-                  VERIFY,
-                  "KphVerifyFile: %lu \"%wZ\": %!STATUS!",
+                  PROTECTION,
+                  "%wZ (%lu) KphVerifyFile(\"%wZ\"): %!STATUS!",
+                  &Process->ImageName,
                   HandleToULong(Process->ProcessId),
                   Process->ImageFileName,
                   status);
 
     if (!NT_SUCCESS(status))
     {
-        SetFlag(state, KPH_PROTECTION_UNTRUSTED);
         goto Exit;
     }
 
+    ClearFlag(state, KPH_PROTECTION_UNTRUSTED);
     SetFlag(state, KPH_PROTECTION_VERIFIED);
 
     if (KphProtectionsSuppressed())
@@ -720,7 +750,9 @@ VOID KphpVerifyProcessAndProtect(
     {
         KphTracePrint(TRACE_LEVEL_VERBOSE,
                       PROTECTION,
-                      "KphStartProtectingProcess failed: %!STATUS!",
+                      "%wZ (%lu) KphStartProtectingProcess failed: %!STATUS!",
+                      &Process->ImageName,
+                      HandleToULong(Process->ProcessId),
                       status);
 
         goto Exit;
@@ -1835,7 +1867,7 @@ VOID KphpApplyImageProtections(
     {
         KphTracePrint(TRACE_LEVEL_VERBOSE,
                       PROTECTION,
-                      "KphpReOpenImageFile: %wZ (%lu) \"%wZ\": %!STATUS!",
+                      "%wZ (%lu) KphpReOpenImageFile(\"%wZ\"): %!STATUS!",
                       &Process->ImageName,
                       HandleToULong(Process->ProcessId),
                       &FileObject->FileName,
@@ -1848,7 +1880,7 @@ VOID KphpApplyImageProtections(
     {
         KphTracePrint(TRACE_LEVEL_VERBOSE,
                       PROTECTION,
-                      "KphIsSameFile failed: %wZ (%lu) \"%wZ\" \"%wZ\"",
+                      "%wZ (%lu) KphIsSameFile(\"%wZ\", \"%wZ\") failed",
                       &Process->ImageName,
                       HandleToULong(Process->ProcessId),
                       &FileObject->FileName,
@@ -1861,7 +1893,7 @@ VOID KphpApplyImageProtections(
 
     KphTracePrint(TRACE_LEVEL_VERBOSE,
                   PROTECTION,
-                  "KphpGetSigningLevel: %wZ (%lu) \"%wZ\": 0x%02x %!STATUS!",
+                  "%wZ (%lu) KphpGetSigningLevel(\"%wZ\"): 0x%02x %!STATUS!",
                   &Process->ImageName,
                   HandleToULong(Process->ProcessId),
                   fileName,
@@ -1897,7 +1929,7 @@ VOID KphpApplyImageProtections(
 
     KphTracePrint(TRACE_LEVEL_VERBOSE,
                   PROTECTION,
-                  "KphVerifyFileObject: %wZ (%lu) \"%wZ\": %!STATUS!",
+                  "%wZ (%lu) KphVerifyFileObject(\"%wZ\"): %!STATUS!",
                   &Process->ImageName,
                   HandleToULong(Process->ProcessId),
                   fileName,
@@ -1915,7 +1947,7 @@ CheckCoherency:
 
     KphTracePrint(TRACE_LEVEL_VERBOSE,
                   PROTECTION,
-                  "KphCheckImageCoherency: %wZ (%lu) \"%wZ\": %!STATUS!",
+                  "%wZ (%lu) KphCheckImageCoherency(\"%wZ\"): %!STATUS!",
                   &Process->ImageName,
                   HandleToULong(Process->ProcessId),
                   fileName,
