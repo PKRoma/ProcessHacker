@@ -590,6 +590,6 @@ VOID KphObjectInitialize(
     InitializeSListHead(&KphpDeferDeleteObjectList);
     KsiInitializeWorkItem(&KphpDeferDeleteObjectWorkItem,
                           KphDriverObject,
-                          &KphpDeferDeleteObjectWorker,
+                          KphpDeferDeleteObjectWorker,
                           NULL);
 }
