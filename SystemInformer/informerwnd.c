@@ -32,6 +32,7 @@
 #define PH_INFORMER_CATEGORY_HANDLE     0x10
 #define PH_INFORMER_CATEGORY_IMAGE      0x20
 #define PH_INFORMER_CATEGORY_OTHER      0x40
+#define PH_INFORMER_CATEGORY_SILO       0x80
 #define PH_INFORMER_CATEGORY_ALL        0xff
 
 typedef enum _PH_INFORMER_COLUMN_ID
@@ -227,6 +228,9 @@ ULONG PhpInformerGetCategory(
     case KphMsgDebugPrint:
     case KphMsgRequiredStateFailure:
         return PH_INFORMER_CATEGORY_OTHER;
+    case KphMsgSiloCreate:
+    case KphMsgSiloTerminate:
+        return PH_INFORMER_CATEGORY_SILO;
     default:
         break;
     }
@@ -451,6 +455,8 @@ VOID PhpInformerPopulateEventName(
     static const PH_STRINGREF imageVerify = PH_STRINGREF_INIT(L"Image Verify");
     static const PH_STRINGREF debugPrint = PH_STRINGREF_INIT(L"Debug Print");
     static const PH_STRINGREF requiredStateFailure = PH_STRINGREF_INIT(L"Required State Failure");
+    static const PH_STRINGREF siloCreate = PH_STRINGREF_INIT(L"Silo Create");
+    static const PH_STRINGREF siloTerminate = PH_STRINGREF_INIT(L"Silo Terminate");
     static const PH_STRINGREF handleCreateProcess = PH_STRINGREF_INIT(L"Handle Create (Process)");
     static const PH_STRINGREF handleDuplicateProcess = PH_STRINGREF_INIT(L"Handle Duplicate (Process)");
     static const PH_STRINGREF handleCreateThread = PH_STRINGREF_INIT(L"Handle Create (Thread)");
@@ -513,6 +519,12 @@ VOID PhpInformerPopulateEventName(
         break;
     case KphMsgRequiredStateFailure:
         name = &requiredStateFailure;
+        break;
+    case KphMsgSiloCreate:
+        name = &siloCreate;
+        break;
+    case KphMsgSiloTerminate:
+        name = &siloTerminate;
         break;
     //
     // Handle events — only pre-op cases; post-ops are consumed during
@@ -642,6 +654,7 @@ PCPH_STRINGREF PhpInformerGetCategoryName(
     static const PH_STRINGREF registry = PH_STRINGREF_INIT(L"Registry");
     static const PH_STRINGREF handle = PH_STRINGREF_INIT(L"Handle");
     static const PH_STRINGREF image = PH_STRINGREF_INIT(L"Image");
+    static const PH_STRINGREF silo = PH_STRINGREF_INIT(L"Silo");
     static const PH_STRINGREF other = PH_STRINGREF_INIT(L"Other");
 
     switch (Category)
@@ -658,6 +671,8 @@ PCPH_STRINGREF PhpInformerGetCategoryName(
         return &handle;
     case PH_INFORMER_CATEGORY_IMAGE:
         return &image;
+    case PH_INFORMER_CATEGORY_SILO:
+        return &silo;
     default:
         return &other;
     }
@@ -1890,6 +1905,97 @@ PPH_STRING PhpInformerFormatDetailsText(
             return result;
         }
 
+    //
+    // Silo events
+    //
+
+    case KphMsgSiloCreate:
+    case KphMsgSiloTerminate:
+        {
+            const KPHM_SILO_INFORMATION* siloInfo;
+            const KPHM_SILO_INFORMATION* serverInfo;
+            PPH_STRING containerId = NULL;
+            PPH_STRING serverContainerId = NULL;
+            UNICODE_STRING serverName;
+            PH_STRINGREF serverNameRef;
+            PH_FORMAT format[20];
+            ULONG count = 0;
+            PPH_STRING result;
+
+            if (msgId == KphMsgSiloCreate)
+            {
+                siloInfo = &Message->Kernel.SiloCreate.Silo;
+                serverInfo = &Message->Kernel.SiloCreate.ServerSilo;
+            }
+            else
+            {
+                siloInfo = &Message->Kernel.SiloTerminate.Silo;
+                serverInfo = &Message->Kernel.SiloTerminate.ServerSilo;
+            }
+
+            containerId = PhFormatGuid(&siloInfo->ContainerId);
+            PhInitFormatS(&format[count++], L"ContainerId: ");
+            PhInitFormatSR(&format[count++], containerId->sr);
+
+            if (siloInfo->IsHostSilo)
+                PhInitFormatS(&format[count++], L", HostSilo: Yes");
+
+            if (siloInfo->SiloIdentifier)
+            {
+                PhInitFormatS(&format[count++], L", SiloIdentifier: ");
+                PhInitFormatU(&format[count++], siloInfo->SiloIdentifier);
+            }
+
+            if (siloInfo->ServiceSessionId)
+            {
+                PhInitFormatS(&format[count++], L", ServiceSessionId: ");
+                PhInitFormatU(&format[count++], siloInfo->ServiceSessionId);
+            }
+
+            if (siloInfo->ActiveConsoleId)
+            {
+                PhInitFormatS(&format[count++], L", ActiveConsoleId: ");
+                PhInitFormatU(&format[count++], siloInfo->ActiveConsoleId);
+            }
+
+            serverContainerId = PhFormatGuid(&serverInfo->ContainerId);
+            PhInitFormatS(&format[count++], L", ServerContainerId: ");
+            PhInitFormatSR(&format[count++], serverContainerId->sr);
+
+            if (serverInfo->IsHostSilo)
+                PhInitFormatS(&format[count++], L", ServerHostSilo: Yes");
+
+            if (serverInfo->SiloIdentifier)
+            {
+                PhInitFormatS(&format[count++], L", ServerSiloIdentifier: ");
+                PhInitFormatU(&format[count++], serverInfo->SiloIdentifier);
+            }
+
+            if (serverInfo->ServiceSessionId)
+            {
+                PhInitFormatS(&format[count++], L", ServerServiceSessionId: ");
+                PhInitFormatU(&format[count++], serverInfo->ServiceSessionId);
+            }
+
+            if (serverInfo->ActiveConsoleId)
+            {
+                PhInitFormatS(&format[count++], L", ServerActiveConsoleId: ");
+                PhInitFormatU(&format[count++], siloInfo->ActiveConsoleId);
+            }
+
+            if (NT_SUCCESS(KphMsgDynGetUnicodeString(Message, KphMsgFieldOtherObjectName, &serverName)) && serverName.Length > 0)
+            {
+                PhUnicodeStringToStringRef(&serverName, &serverNameRef);
+                PhInitFormatS(&format[count++], L", ServerSiloName: ");
+                PhInitFormatSR(&format[count++], serverNameRef);
+            }
+
+            result = PhFormat(format, count, 200);
+            PhClearReference(&containerId);
+            PhClearReference(&serverContainerId);
+            return result;
+        }
+
     default:
         break;
     }
@@ -2296,6 +2402,14 @@ PPH_STRING PhpInformerGetProcessText(
         processId = Message->Kernel.ImageVerify.ClientId.UniqueProcess;
         processStartKey = Message->Kernel.ImageVerify.ProcessStartKey;
         break;
+    case KphMsgSiloCreate:
+        processId = Message->Kernel.SiloCreate.ClientId.UniqueProcess;
+        processStartKey = Message->Kernel.SiloCreate.ProcessStartKey;
+        break;
+    case KphMsgSiloTerminate:
+        processId = Message->Kernel.SiloTerminate.ClientId.UniqueProcess;
+        processStartKey = Message->Kernel.SiloTerminate.ProcessStartKey;
+        break;
     default:
         if (Message->Header.MessageId >= KphMsgHandlePreCreateProcess &&
             Message->Header.MessageId <= KphMsgHandlePostDuplicateDesktop)
@@ -2407,6 +2521,10 @@ HANDLE PhpInformerGetTid(
         return Message->Kernel.ImageLoad.LoadingClientId.UniqueThread;
     case KphMsgImageVerify:
         return Message->Kernel.ImageVerify.ClientId.UniqueThread;
+    case KphMsgSiloCreate:
+        return Message->Kernel.SiloCreate.ClientId.UniqueThread;
+    case KphMsgSiloTerminate:
+        return Message->Kernel.SiloTerminate.ClientId.UniqueThread;
     default:
         {
             if (Message->Header.MessageId >= KphMsgHandlePreCreateProcess &&
@@ -2453,6 +2571,10 @@ HANDLE PhpInformerGetPid(
         return Message->Kernel.ImageLoad.LoadingClientId.UniqueProcess;
     case KphMsgImageVerify:
         return Message->Kernel.ImageVerify.ClientId.UniqueProcess;
+    case KphMsgSiloCreate:
+        return Message->Kernel.SiloCreate.ClientId.UniqueProcess;
+    case KphMsgSiloTerminate:
+        return Message->Kernel.SiloTerminate.ClientId.UniqueProcess;
     default:
         {
             if (Message->Header.MessageId >= KphMsgHandlePreCreateProcess &&
@@ -3470,6 +3592,7 @@ VOID PhpInformerShowFilterMenu(
         { PH_INFORMER_CATEGORY_REGISTRY, L"Registry" },
         { PH_INFORMER_CATEGORY_HANDLE, L"Handle" },
         { PH_INFORMER_CATEGORY_IMAGE, L"Image" },
+        { PH_INFORMER_CATEGORY_SILO, L"Silo" },
         { PH_INFORMER_CATEGORY_OTHER, L"Other" },
     };
 
