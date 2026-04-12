@@ -171,10 +171,7 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
     }
 
     KphMsgInit(msg, KphMsgSiloCreate);
-    msg->Kernel.SiloCreate.ClientId.UniqueProcess = PsGetCurrentProcessId();
-    msg->Kernel.SiloCreate.ClientId.UniqueThread = PsGetCurrentThreadId();
-    msg->Kernel.SiloCreate.ProcessStartKey = KphGetCurrentProcessStartKey();
-    msg->Kernel.SiloCreate.ThreadSubProcessTag = KphGetCurrentThreadSubProcessTag();
+    KphCaptureCurrentContext(&msg->Kernel.SiloCreate.Context);
 
     KphpCopySiloInformation(Silo, &msg->Kernel.SiloCreate.Silo);
     KphpCopySiloName(msg, Silo, KphMsgFieldObjectName);
@@ -234,10 +231,7 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
     }
 
     KphMsgInit(msg, KphMsgSiloTerminate);
-    msg->Kernel.SiloTerminate.ClientId.UniqueProcess = PsGetCurrentProcessId();
-    msg->Kernel.SiloTerminate.ClientId.UniqueThread = PsGetCurrentThreadId();
-    msg->Kernel.SiloTerminate.ProcessStartKey = KphGetCurrentProcessStartKey();
-    msg->Kernel.SiloTerminate.ThreadSubProcessTag = KphGetCurrentThreadSubProcessTag();
+    KphCaptureCurrentContext(&msg->Kernel.SiloTerminate.Context);
 
     KphpCopySiloInformation(Silo, &msg->Kernel.SiloTerminate.Silo);
     KphpCopySiloName(msg, Silo, KphMsgFieldObjectName);

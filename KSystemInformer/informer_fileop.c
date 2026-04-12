@@ -1053,26 +1053,24 @@ VOID KphpFltFillCommonMessage(
     _In_ PFLT_CALLBACK_DATA Data
     )
 {
+    BOOLEAN cacheOnly;
     COPY_INFORMATION copyInfo;
 
     KPH_NPAGED_CODE_DISPATCH_MAX();
 
+    cacheOnly = (FlagOn(Data->Iopb->IrpFlags, IRP_PAGING_IO) ||
+                 FlagOn(Data->Iopb->IrpFlags, IRP_SYNCHRONOUS_PAGING_IO));
+
     if (Data->Thread)
     {
-        PEPROCESS process;
-        BOOLEAN cacheOnly;
-
-        process = PsGetThreadProcess(Data->Thread);
-
-        Message->Kernel.File.ClientId.UniqueProcess = PsGetProcessId(process);
-        Message->Kernel.File.ClientId.UniqueThread = PsGetThreadId(Data->Thread);
-        Message->Kernel.File.ProcessStartKey = KphGetProcessStartKey(process);
-
-        cacheOnly = (FlagOn(Data->Iopb->IrpFlags, IRP_PAGING_IO) ||
-                     FlagOn(Data->Iopb->IrpFlags, IRP_SYNCHRONOUS_PAGING_IO));
-
-        Message->Kernel.File.ThreadSubProcessTag = KphGetThreadSubProcessTagEx(Data->Thread, cacheOnly);
+        KphCaptureThreadContext(&Message->Kernel.File.Thread, Data->Thread, cacheOnly);
     }
+    else
+    {
+        RtlZeroMemory(&Message->Kernel.File.Thread, sizeof(KPHM_CONTEXT));
+    }
+
+    KphCaptureCurrentContextEx(&Message->Kernel.File.Context, cacheOnly);
 
     if (KphDynFltGetCopyInformationFromCallbackData &&
         NT_SUCCESS(KphDynFltGetCopyInformationFromCallbackData(Data, &copyInfo)))

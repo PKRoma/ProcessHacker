@@ -51,6 +51,40 @@ static KQUEUE KphpMessageQueue;
 static PETHREAD* KphpMessageQueueThreads = NULL;
 static ULONG KphpMessageQueueThreadsCount = 0;
 
+VOID KphCaptureThreadContext(
+    _Out_ PKPHM_CONTEXT Context,
+    _In_ PETHREAD Thread,
+    _In_ BOOLEAN CacheOnly
+    )
+{
+    Context->ClientId.UniqueProcess = PsGetThreadProcessId(Thread);
+    Context->ClientId.UniqueThread = PsGetThreadId(Thread);
+    Context->ProcessStartKey = KphGetProcessStartKey(PsGetThreadProcess(Thread));
+    Context->ThreadSubProcessTag = KphGetThreadSubProcessTagEx(Thread, CacheOnly);
+    Context->AttachedProcessId = Context->ClientId.UniqueProcess;
+    Context->AttachedProcessStartKey = Context->ProcessStartKey;
+}
+
+VOID KphCaptureCurrentContextEx(
+    _Out_ PKPHM_CONTEXT Context,
+    _In_ BOOLEAN CacheOnly
+    )
+{
+    Context->ClientId.UniqueProcess = PsGetCurrentProcessId();
+    Context->ClientId.UniqueThread = PsGetCurrentThreadId();
+    Context->ProcessStartKey = KphGetCurrentProcessStartKey();
+    Context->ThreadSubProcessTag = KphGetThreadSubProcessTagEx(PsGetCurrentThread(), CacheOnly);
+    Context->AttachedProcessId = PsGetProcessId(PsGetCurrentProcess());
+    Context->AttachedProcessStartKey = KphGetProcessStartKey(PsGetCurrentProcess());
+}
+
+VOID KphCaptureCurrentContext(
+    _Out_ PKPHM_CONTEXT Context
+    )
+{
+    KphCaptureCurrentContextEx(Context, FALSE);
+}
+
 /**
  * \brief Gets the number of connected clients.
  *

@@ -171,3 +171,18 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphCaptureStackInMessage(
     _Inout_ PKPH_MESSAGE Message
     );
+
+VOID KphCaptureThreadContext(
+    _Out_ PKPHM_CONTEXT Context,
+    _In_ PETHREAD Thread,
+    _In_ BOOLEAN CacheOnly
+    );
+
+VOID KphCaptureCurrentContextEx(
+    _Out_ PKPHM_CONTEXT Context,
+    _In_ BOOLEAN CacheOnly
+    );
+
+VOID KphCaptureCurrentContext(
+    _Out_ PKPHM_CONTEXT Context
+    );

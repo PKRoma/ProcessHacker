@@ -97,10 +97,7 @@ VOID KphpLoadImageNotifyInformer(
 
     KphMsgInit(msg, KphMsgImageLoad);
 
-    msg->Kernel.ImageLoad.LoadingClientId.UniqueProcess = PsGetCurrentProcessId();
-    msg->Kernel.ImageLoad.LoadingClientId.UniqueThread = PsGetCurrentThreadId();
-    msg->Kernel.ImageLoad.LoadingProcessStartKey = KphGetCurrentProcessStartKey();
-    msg->Kernel.ImageLoad.LoadingThreadSubProcessTag = KphGetCurrentThreadSubProcessTag();
+    KphCaptureCurrentContext(&msg->Kernel.ImageLoad.Context);
     msg->Kernel.ImageLoad.TargetProcessId = ProcessId;
     msg->Kernel.ImageLoad.Properties = ImageInfo->ImageInfo.Properties;
     msg->Kernel.ImageLoad.ImageBase = ImageInfo->ImageInfo.ImageBase;
@@ -233,10 +230,7 @@ KphpImageVerificationCallback(
 
     KphMsgInit(msg, KphMsgImageVerify);
 
-    msg->Kernel.ImageVerify.ClientId.UniqueProcess = PsGetCurrentProcessId();
-    msg->Kernel.ImageVerify.ClientId.UniqueThread = PsGetCurrentThreadId();
-    msg->Kernel.ImageVerify.ProcessStartKey = KphGetCurrentProcessStartKey();
-    msg->Kernel.ImageVerify.ThreadSubProcessTag = KphGetCurrentThreadSubProcessTag();
+    KphCaptureCurrentContext(&msg->Kernel.ImageVerify.Context);
     msg->Kernel.ImageVerify.ImageType = ImageType;
     msg->Kernel.ImageVerify.Classification = ImageInformation->Classification;
     msg->Kernel.ImageVerify.ImageFlags = ImageInformation->ImageFlags;

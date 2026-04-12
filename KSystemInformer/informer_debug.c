@@ -20,7 +20,7 @@ typedef struct _KPH_DBG_PRINT_SLOT
 {
     KDPC Dpc;
     LARGE_INTEGER TimeStamp;
-    CLIENT_ID ContextClientId;
+    KPHM_CONTEXT Context;
     ULONG ComponentId;
     ULONG Level;
     USHORT Length;
@@ -58,7 +58,7 @@ VOID KphpDebugPrintFlush(
 
         slot = &KphpDbgPrintSlots[i];
 
-        process = KphGetProcessContext(slot->ContextClientId.UniqueProcess);
+        process = KphGetProcessContext(slot->Context.ClientId.UniqueProcess);
         enabled = KphInformerEnabled(DebugPrint, process);
         if (process)
         {
@@ -81,8 +81,7 @@ VOID KphpDebugPrintFlush(
 
         KphMsgInit(msg, KphMsgDebugPrint);
         msg->Header.TimeStamp.QuadPart = slot->TimeStamp.QuadPart;
-        msg->Kernel.DebugPrint.ContextClientId.UniqueProcess = slot->ContextClientId.UniqueProcess;
-        msg->Kernel.DebugPrint.ContextClientId.UniqueThread = slot->ContextClientId.UniqueThread;
+        msg->Kernel.DebugPrint.Context = slot->Context;
         msg->Kernel.DebugPrint.ComponentId = slot->ComponentId;
         msg->Kernel.DebugPrint.Level = slot->Level;
 
@@ -188,8 +187,7 @@ VOID KphpDebugPrintCallback(
     slot = &KphpDbgPrintSlots[KphpDbgPrintSlotNext++];
 
     KeQuerySystemTime(&slot->TimeStamp);
-    slot->ContextClientId.UniqueProcess = PsGetCurrentProcessId();
-    slot->ContextClientId.UniqueThread = PsGetCurrentThreadId();
+    KphCaptureCurrentContextEx(&slot->Context, TRUE);
     slot->ComponentId = ComponentId;
     slot->Level = Level;
     slot->Length = min(Output->Length, ARRAYSIZE(slot->Buffer));

@@ -186,9 +186,9 @@ Exit:
 /**
  * \brief Informs any clients of process notify routine invocations.
  *
- * \param[in,out] Process The process being created.
+ * \param[in,out] Process The created or exiting process.
  * \param[in,out] CreateInfo Information on the process being created, if the
- * process is being destroyed this is NULL.
+ * process is exiting this is NULL.
  *
  */
 _Function_class_(PCREATE_PROCESS_NOTIFY_ROUTINE_EX)
@@ -240,10 +240,7 @@ VOID KphpCreateProcessNotifyInformer(
         }
 
         KphMsgInit(msg, KphMsgProcessCreate);
-        msg->Kernel.ProcessCreate.CreatingClientId.UniqueProcess = PsGetCurrentProcessId();
-        msg->Kernel.ProcessCreate.CreatingClientId.UniqueThread = PsGetCurrentThreadId();
-        msg->Kernel.ProcessCreate.CreatingProcessStartKey = KphGetCurrentProcessStartKey();
-        msg->Kernel.ProcessCreate.CreatingThreadSubProcessTag = KphGetCurrentThreadSubProcessTag();
+        KphCaptureCurrentContext(&msg->Kernel.ProcessCreate.Context);
         msg->Kernel.ProcessCreate.TargetProcessId = Process->ProcessId;
         msg->Kernel.ProcessCreate.TargetProcessStartKey = KphGetProcessStartKey(Process->EProcess);
         msg->Kernel.ProcessCreate.Flags = CreateInfo->Flags;
@@ -343,9 +340,8 @@ VOID KphpCreateProcessNotifyInformer(
         }
 
         KphMsgInit(msg, KphMsgProcessExit);
-        msg->Kernel.ProcessExit.ClientId.UniqueProcess = PsGetCurrentProcessId();
-        msg->Kernel.ProcessExit.ClientId.UniqueThread = PsGetCurrentThreadId();
-        msg->Kernel.ProcessExit.ProcessStartKey = KphGetProcessStartKey(Process->EProcess);
+        NT_ASSERT(Process->EProcess == PsGetCurrentProcess());
+        KphCaptureCurrentContext(&msg->Kernel.ProcessExit.Context);
         msg->Kernel.ProcessExit.ExitStatus = PsGetProcessExitStatus(Process->EProcess);
 
         if (KphInformerOpts(actorProcess).EnableStackTraces)

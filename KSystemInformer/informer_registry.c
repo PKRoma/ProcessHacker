@@ -286,10 +286,7 @@ VOID KphpRegFillCommonMessage(
 {
     KPH_PAGED_CODE();
 
-    Message->Kernel.Reg.ClientId.UniqueProcess = PsGetCurrentProcessId();
-    Message->Kernel.Reg.ClientId.UniqueThread = PsGetCurrentThreadId();
-    Message->Kernel.Reg.ProcessStartKey = KphGetCurrentProcessStartKey();
-    Message->Kernel.Reg.ThreadSubProcessTag = KphGetCurrentThreadSubProcessTag();
+    KphCaptureCurrentContext(&Message->Kernel.Reg.Context);
     Message->Kernel.Reg.PreviousMode = (ExGetPreviousMode() != KernelMode);
 
 #define KPH_REG_COPY_PARAMETER(name, value)                                    \
