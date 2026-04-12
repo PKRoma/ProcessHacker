@@ -1971,7 +1971,7 @@ typedef struct _KPH_THREAD_CONTEXT
 
     union
     {
-        volatile ULONG Flags;
+        ULONG Flags;
         struct
         {
             ULONG CreateNotification : 1;
