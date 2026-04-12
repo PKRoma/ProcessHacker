@@ -118,6 +118,7 @@ C_ASSERT(ARRAYSIZE(KphpHashEaCacheInfo) == MaxKphHashAlgorithm);
 KPH_PROTECTED_DATA_SECTION_RO_POP();
 static BYTE KphpHashingEaList[KPH_HASH_EACACHE_MAX_LENGTH] = { 0 };
 static PAGED_LOOKASIDE_LIST KphpHashingLookaside = { 0 };
+static KPH_RUNDOWN KphpHashingRundown = { 0 };
 
 KPH_PAGED_FILE();
 
@@ -217,6 +218,8 @@ NTSTATUS KphInitializeHashing(
 
     KPH_PAGED_CODE_PASSIVE();
 
+    KphInitializeRundown(&KphpHashingRundown);
+
     //
     // Pre-populate the EA cache items into the buffer to be used when querying
     // for the cached EA values. We compile time assert that it will all fit in
@@ -267,6 +270,7 @@ VOID KphCleanupHashing(
 {
     KPH_PAGED_CODE_PASSIVE();
 
+    KphWaitForRundown(&KphpHashingRundown);
     KphDeletePagedLookaside(&KphpHashingLookaside);
 }
 
@@ -1433,6 +1437,13 @@ NTSTATUS KphpHashFile(
 
     KPH_PAGED_CODE_PASSIVE();
 
+    if (!KphAcquireRundown(&KphpHashingRundown))
+    {
+        KphTracePrint(TRACE_LEVEL_VERBOSE, HASH, "Failed to acquire rundown.");
+
+        return STATUS_TOO_LATE;
+    }
+
     mappedBase = NULL;
 
     context = KphpAllocateHashingContext();
@@ -1552,6 +1563,8 @@ Exit:
     {
         KphpFreeHashingContext(context);
     }
+
+    KphReleaseRundown(&KphpHashingRundown);
 
     return status;
 }
