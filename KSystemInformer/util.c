@@ -147,55 +147,18 @@ PVOID KphSearchMemory(
 }
 
 /**
- * \brief Acquires rundown. On successful return the caller should release
- * the rundown using KphReleaseRundown.
- *
- * \param[in,out] Rundown The rundown object to acquire.
- *
- * \return TRUE if rundown is acquired, FALSE if object is already ran down.
- */
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_Must_inspect_result_
-BOOLEAN KphAcquireRundown(
-    _Inout_ PKPH_RUNDOWN Rundown
-    )
-{
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
-    return ExAcquireRundownProtection(Rundown);
-}
-
-/**
- * \brief Releases rundown previously acquired by KphAcquireRundown.
- *
- * \param[in,out] Rundown The rundown object to release.
- */
-_IRQL_requires_max_(DISPATCH_LEVEL)
-VOID KphReleaseRundown(
-    _Inout_ PKPH_RUNDOWN Rundown
-    )
-{
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
-    ExReleaseRundownProtection(Rundown);
-}
-
-/**
  * \brief Retrieves the process sequence number for a given process.
  *
  * \param[in] Process The process to get the sequence number of.
  *
  * \return The sequence number key.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG64 KphGetProcessSequenceNumber(
     _In_ PEPROCESS Process
     )
 {
     ULONG64 sequence;
     PKPH_PROCESS_CONTEXT process;
-
-    KPH_NPAGED_CODE_DISPATCH_MAX();
 
     if (KphDynPsGetProcessSequenceNumber)
     {
@@ -227,15 +190,12 @@ ULONG64 KphGetProcessSequenceNumber(
  *
  * \return The process start key.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG64 KphGetProcessStartKey(
     _In_ PEPROCESS Process
     )
 {
     ULONG64 key;
     PKPH_PROCESS_CONTEXT process;
-
-    KPH_NPAGED_CODE_DISPATCH_MAX();
 
     if (KphDynPsGetProcessStartKey)
     {
@@ -272,7 +232,6 @@ ULONG64 KphGetProcessStartKey(
  *
  * \return The current thread's sub-process tag.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 PVOID KphGetCurrentThreadSubProcessTag(
     VOID
     )
@@ -281,17 +240,15 @@ PVOID KphGetCurrentThreadSubProcessTag(
     PVOID subProcessTag;
     PTEB teb;
 
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
     if (PsIsSystemThread(PsGetCurrentThread()))
     {
         return NULL;
     }
 
     //
-    // We support lookups at dispatch. To achieve this we cache the last lookup
-    // in the thread context. If we're at dispatch use the cache. Otherwise go
-    // do the lookup and cache the result in the thread context.
+    // We support lookups at any IRQL. To achieve this we cache the last lookup
+    // in the thread context. Above APC_LEVEL use the cache. Otherwise go do
+    // the lookup and cache the result in the thread context.
     //
 
     if (KeGetCurrentIrql() > APC_LEVEL)
@@ -344,7 +301,6 @@ PVOID KphGetCurrentThreadSubProcessTag(
  *
  * \return The thread's sub-process tag.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 PVOID KphGetThreadSubProcessTagEx(
     _In_ PETHREAD Thread,
     _In_ BOOLEAN CacheOnly
@@ -354,19 +310,18 @@ PVOID KphGetThreadSubProcessTagEx(
     PVOID subProcessTag;
     PTEB teb;
 
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
     if (PsIsSystemThread(Thread))
     {
         return NULL;
     }
 
     //
-    // We support lookups at dispatch and across process boundaries. To achieve
-    // this we cache the last lookup in the thread context. If we're at dispatch
-    // or across process boundaries use the cache. Otherwise go do the lookup
-    // and cache the result in the thread context. We choose not to attach to
-    // a process to retrieve the information to avoid performance penalties.
+    // We support lookups at any IRQL and across process boundaries. To achieve
+    // this we cache the last lookup in the thread context. When CacheOnly is
+    // set, above APC_LEVEL, or across process boundaries use the cache.
+    // Otherwise go do the lookup and cache the result in the thread context.
+    // We choose not to attach to a process to retrieve the information to avoid
+    // performance penalties.
     //
 
     if (CacheOnly ||
@@ -419,14 +374,45 @@ PVOID KphGetThreadSubProcessTagEx(
  *
  * \return The thread's sub-process tag.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 PVOID KphGetThreadSubProcessTag(
     _In_ PETHREAD Thread
     )
 {
+    return KphGetThreadSubProcessTagEx(Thread, FALSE);
+}
+
+/**
+ * \brief Acquires rundown. On successful return the caller should release
+ * the rundown using KphReleaseRundown.
+ *
+ * \param[in,out] Rundown The rundown object to acquire.
+ *
+ * \return TRUE if rundown is acquired, FALSE if object is already ran down.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_Must_inspect_result_
+BOOLEAN KphAcquireRundown(
+    _Inout_ PKPH_RUNDOWN Rundown
+    )
+{
     KPH_NPAGED_CODE_DISPATCH_MAX();
 
-    return KphGetThreadSubProcessTagEx(Thread, FALSE);
+    return ExAcquireRundownProtection(Rundown);
+}
+
+/**
+ * \brief Releases rundown previously acquired by KphAcquireRundown.
+ *
+ * \param[in,out] Rundown The rundown object to release.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID KphReleaseRundown(
+    _Inout_ PKPH_RUNDOWN Rundown
+    )
+{
+    KPH_NPAGED_CODE_DISPATCH_MAX();
+
+    ExReleaseRundownProtection(Rundown);
 }
 
 /**

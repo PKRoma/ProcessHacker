@@ -1415,12 +1415,10 @@ NTSTATUS KphDominationAndPrivilegeCheck(
     _In_ KPROCESSOR_MODE AccessMode
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG64 KphGetProcessSequenceNumber(
     _In_ PEPROCESS Process
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG64 KphGetProcessStartKey(
     _In_ PEPROCESS Process
     );
@@ -1428,18 +1426,15 @@ ULONG64 KphGetProcessStartKey(
 #define KphGetCurrentProcessStartKey() KphGetProcessStartKey(PsGetThreadProcess(PsGetCurrentThread()))
 #define KphGetThreadProcessStartKey(thread) KphGetProcessStartKey(PsGetThreadProcess(thread))
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 PVOID KphGetCurrentThreadSubProcessTag(
     VOID
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 PVOID KphGetThreadSubProcessTagEx(
     _In_ PETHREAD Thread,
     _In_ BOOLEAN CacheOnly
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 PVOID KphGetThreadSubProcessTag(
     _In_ PETHREAD Thread
     );
