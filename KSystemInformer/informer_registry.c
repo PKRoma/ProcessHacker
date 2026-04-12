@@ -112,28 +112,27 @@ KPH_REG_OPTIONS KphpRegGetOptions(
 {
     KPH_REG_OPTIONS options;
     PKPH_PROCESS_CONTEXT process;
+    PKPH_PROCESS_CONTEXT system;
 
     KPH_PAGED_CODE();
 
     options.Flags = 0;
+    process = KphGetCurrentProcessContext();
+    system = NULL;
 
-    if (ExGetPreviousMode() != KernelMode)
+    if (ExGetPreviousMode() != UserMode)
     {
-        process = KphGetCurrentProcessContext();
-    }
-    else
-    {
-        process = KphGetSystemProcessContext();
+        system = KphGetSystemProcessContext();
     }
 
 #define KPH_REG_SETTING2(reg, name)                                            \
     case RegNtPre##reg:                                                        \
     {                                                                          \
-        if (KphInformerEnabled(RegPre##name, process))                         \
+        if (KphInformerEnabled2(RegPre##name, process, system))                \
         {                                                                      \
             options.PreEnabled = TRUE;                                         \
         }                                                                      \
-        if (KphInformerEnabled(RegPost##name, process))                        \
+        if (KphInformerEnabled2(RegPost##name, process, system))               \
         {                                                                      \
             options.PostEnabled = TRUE;                                        \
         }                                                                      \
@@ -190,12 +189,17 @@ KPH_REG_OPTIONS KphpRegGetOptions(
     {
         KPH_INFORMER_OPTIONS opts;
 
-        opts = KphInformerOpts(process);
+        opts = KphInformerOpts2(process, system);
 
         options.EnableStackTraces = !!opts.EnableStackTraces;
         options.EnablePostObjectNames = !!opts.RegEnablePostObjectNames;
         options.EnablePostValueNames = !!opts.RegEnablePostValueNames;
         options.EnableValueBuffers = !!opts.RegEnableValueBuffers;
+    }
+
+    if (system)
+    {
+        KphDereferenceObject(system);
     }
 
     if (process)
