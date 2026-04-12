@@ -64,26 +64,25 @@ KPH_OB_OPTIONS KphpObGetOptions(
 {
     KPH_OB_OPTIONS options;
     PKPH_PROCESS_CONTEXT process;
+    PKPH_PROCESS_CONTEXT system;
 
     KPH_PAGED_CODE();
 
     options.Flags = 0;
+    process = KphGetCurrentProcessContext();
+    system = NULL;
 
-    if (Info->KernelHandle)
+    if (ExGetPreviousMode() != UserMode)
     {
-        process = KphGetSystemProcessContext();
-    }
-    else
-    {
-        process = KphGetCurrentProcessContext();
+        system = KphGetSystemProcessContext();
     }
 
 #define KPH_OB_SETTING(name)                                                   \
-    if (KphInformerEnabled(HandlePre##name, process))                          \
+    if (KphInformerEnabled2(HandlePre##name, process, system))                 \
     {                                                                          \
         options.PreEnabled = TRUE;                                             \
     }                                                                          \
-    if (KphInformerEnabled(HandlePost##name, process))                         \
+    if (KphInformerEnabled2(HandlePost##name, process, system))                \
     {                                                                          \
         options.PostEnabled = TRUE;                                            \
     }
@@ -98,10 +97,8 @@ KPH_OB_OPTIONS KphpObGetOptions(
         {
             KPH_OB_SETTING(CreateThread);
         }
-        else
+        else if (Info->ObjectType == *ExDesktopObjectType)
         {
-            NT_ASSERT(Info->ObjectType == *ExDesktopObjectType);
-
             KPH_OB_SETTING(CreateDesktop);
         }
     }
@@ -115,17 +112,23 @@ KPH_OB_OPTIONS KphpObGetOptions(
         {
             KPH_OB_SETTING(DuplicateThread);
         }
-        else
+        else if (Info->ObjectType == *ExDesktopObjectType)
         {
-            NT_ASSERT(Info->ObjectType == *ExDesktopObjectType);
-
             KPH_OB_SETTING(DuplicateDesktop);
         }
     }
 
     if (options.PreEnabled || options.PostEnabled)
     {
-        options.EnableStackTraces = !!KphInformerOpts(process).EnableStackTraces;
+        if (KphInformerOpts2(process, system).EnableStackTraces)
+        {
+            options.EnableStackTraces = TRUE;
+        }
+    }
+
+    if (system)
+    {
+        KphDereferenceObject(system);
     }
 
     if (process)
