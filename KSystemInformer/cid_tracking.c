@@ -52,7 +52,6 @@ static ULONG64 KphpProcessSequence = 0;
  * not of the expected type. The caller *must* dereference the object when
  * they are through with it.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PVOID KphpLookupContext(
     _In_ HANDLE Cid,
@@ -62,9 +61,7 @@ PVOID KphpLookupContext(
     PVOID object;
     PKPH_CID_TABLE_ENTRY entry;
 
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
-    entry = KphCidGetEntry(Cid, &KphpCidTable);
+    entry = KphCidLookupEntry(Cid, &KphpCidTable);
     if (!entry)
     {
         return NULL;
@@ -86,14 +83,11 @@ PVOID KphpLookupContext(
  * \return Pointer to the system process context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetSystemProcessContext(
     VOID
     )
 {
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
     if (KphpSystemProcessContext)
     {
         KphReferenceObject(KphpSystemProcessContext);
@@ -110,14 +104,11 @@ PKPH_PROCESS_CONTEXT KphGetSystemProcessContext(
  * \return Pointer to the process context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetProcessContext(
     _In_ HANDLE ProcessId
     )
 {
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
     return KphpLookupContext(ProcessId, KphProcessContextType);
 }
 
@@ -129,14 +120,11 @@ PKPH_PROCESS_CONTEXT KphGetProcessContext(
  * \return Pointer to the process context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetEProcessContext(
     _In_ PEPROCESS Process
     )
 {
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
     if (Process == PsInitialSystemProcess)
     {
         return KphGetSystemProcessContext();
@@ -153,14 +141,11 @@ PKPH_PROCESS_CONTEXT KphGetEProcessContext(
  * \return Pointer to the thread context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_THREAD_CONTEXT KphGetThreadContext(
     _In_ HANDLE ThreadId
     )
 {
-    KPH_NPAGED_CODE_DISPATCH_MAX();
-
     return KphpLookupContext(ThreadId, KphThreadContextType);
 }
 

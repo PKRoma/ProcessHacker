@@ -1729,6 +1729,17 @@ typedef struct _KPH_CID_TABLE
     ULONG_PTR Table;
 } KPH_CID_TABLE, *PKPH_CID_TABLE;
 
+_Must_inspect_result_
+PVOID KphCidReferenceObject(
+    _In_ PKPH_CID_TABLE_ENTRY Entry
+    );
+
+_Must_inspect_result_
+PKPH_CID_TABLE_ENTRY KphCidLookupEntry(
+    _In_ HANDLE Cid,
+    _In_ PKPH_CID_TABLE Table
+    );
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphCidTableCreate(
@@ -1744,12 +1755,6 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphCidAssignObject(
     _Inout_ PKPH_CID_TABLE_ENTRY Entry,
     _In_opt_ PVOID Object
-    );
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_Must_inspect_result_
-PVOID KphCidReferenceObject(
-    _In_ PKPH_CID_TABLE_ENTRY Entry
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -2045,19 +2050,16 @@ VOID KphCidMarkPopulated(
     VOID
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetSystemProcessContext(
     VOID
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetProcessContext(
     _In_ HANDLE ProcessId
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetEProcessContext(
     _In_ PEPROCESS Process
@@ -2065,7 +2067,6 @@ PKPH_PROCESS_CONTEXT KphGetEProcessContext(
 
 #define KphGetCurrentProcessContext() KphGetEProcessContext(PsGetCurrentProcess())
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 PKPH_THREAD_CONTEXT KphGetThreadContext(
     _In_ HANDLE ThreadId
