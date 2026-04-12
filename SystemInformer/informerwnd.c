@@ -830,6 +830,80 @@ PCPH_STRINGREF PhpInformerGetRegTypeName(
     }
 }
 
+PCPH_STRINGREF PhpInformerGetKeyInfoClassName(
+    _In_ KEY_INFORMATION_CLASS Class
+    )
+{
+    static const PH_STRINGREF keyBasicInformation = PH_STRINGREF_INIT(L"KeyBasicInformation");
+    static const PH_STRINGREF keyNodeInformation = PH_STRINGREF_INIT(L"KeyNodeInformation");
+    static const PH_STRINGREF keyFullInformation = PH_STRINGREF_INIT(L"KeyFullInformation");
+    static const PH_STRINGREF keyNameInformation = PH_STRINGREF_INIT(L"KeyNameInformation");
+    static const PH_STRINGREF keyCachedInformation = PH_STRINGREF_INIT(L"KeyCachedInformation");
+    static const PH_STRINGREF keyFlagsInformation = PH_STRINGREF_INIT(L"KeyFlagsInformation");
+    static const PH_STRINGREF keyVirtualizationInformation = PH_STRINGREF_INIT(L"KeyVirtualizationInformation");
+    static const PH_STRINGREF keyHandleTagsInformation = PH_STRINGREF_INIT(L"KeyHandleTagsInformation");
+    static const PH_STRINGREF keyTrustInformation = PH_STRINGREF_INIT(L"KeyTrustInformation");
+    static const PH_STRINGREF keyLayerInformation = PH_STRINGREF_INIT(L"KeyLayerInformation");
+    static const PH_STRINGREF unknown = PH_STRINGREF_INIT(L"Unknown");
+
+    switch (Class)
+    {
+    case KeyBasicInformation:
+        return &keyBasicInformation;
+    case KeyNodeInformation:
+        return &keyNodeInformation;
+    case KeyFullInformation:
+        return &keyFullInformation;
+    case KeyNameInformation:
+        return &keyNameInformation;
+    case KeyCachedInformation:
+        return &keyCachedInformation;
+    case KeyFlagsInformation:
+        return &keyFlagsInformation;
+    case KeyVirtualizationInformation:
+        return &keyVirtualizationInformation;
+    case KeyHandleTagsInformation:
+        return &keyHandleTagsInformation;
+    case KeyTrustInformation:
+        return &keyTrustInformation;
+    case KeyLayerInformation:
+        return &keyLayerInformation;
+    default:
+        return &unknown;
+    }
+}
+
+PCPH_STRINGREF PhpInformerGetKeyValueInfoClassName(
+    _In_ KEY_VALUE_INFORMATION_CLASS Class
+    )
+{
+    static const PH_STRINGREF keyValueBasicInformation = PH_STRINGREF_INIT(L"KeyValueBasicInformation");
+    static const PH_STRINGREF keyValueFullInformation = PH_STRINGREF_INIT(L"KeyValueFullInformation");
+    static const PH_STRINGREF keyValuePartialInformation = PH_STRINGREF_INIT(L"KeyValuePartialInformation");
+    static const PH_STRINGREF keyValueFullInformationAlign64 = PH_STRINGREF_INIT(L"KeyValueFullInformationAlign64");
+    static const PH_STRINGREF keyValuePartialInformationAlign64 = PH_STRINGREF_INIT(L"KeyValuePartialInformationAlign64");
+    static const PH_STRINGREF keyValueLayerInformation = PH_STRINGREF_INIT(L"KeyValueLayerInformation");
+    static const PH_STRINGREF unknown = PH_STRINGREF_INIT(L"Unknown");
+
+    switch (Class)
+    {
+    case KeyValueBasicInformation:
+        return &keyValueBasicInformation;
+    case KeyValueFullInformation:
+        return &keyValueFullInformation;
+    case KeyValuePartialInformation:
+        return &keyValuePartialInformation;
+    case KeyValueFullInformationAlign64:
+        return &keyValueFullInformationAlign64;
+    case KeyValuePartialInformationAlign64:
+        return &keyValuePartialInformationAlign64;
+    case KeyValueLayerInformation:
+        return &keyValueLayerInformation;
+    default:
+        return &unknown;
+    }
+}
+
 PCPH_STRINGREF PhpInformerGetFileInfoClassName(
     _In_ FILE_INFORMATION_CLASS Class
     )
@@ -1683,35 +1757,59 @@ PPH_STRING PhpInformerFormatDetailsText(
             return PhCreateStringFromUnicodeString(&str);
         break;
 
+    case KphMsgRegPreQueryKey:
+        {
+            PH_FORMAT format[4];
+
+            PhInitFormatS(&format[0], L"Query: ");
+            PhInitFormatSR(&format[1], *PhpInformerGetKeyInfoClassName(Message->Kernel.Reg.Parameters.QueryKey.KeyInformationClass));
+            PhInitFormatS(&format[2], L", Length: ");
+            PhInitFormatU(&format[3], Message->Kernel.Reg.Parameters.QueryKey.Length);
+
+            return PhFormat(format, 4, 60);
+        }
+
+    case KphMsgRegPreQueryValueKey:
+        {
+            PH_FORMAT format[4];
+
+            PhInitFormatS(&format[0], L"Query: ");
+            PhInitFormatSR(&format[1], *PhpInformerGetKeyValueInfoClassName(Message->Kernel.Reg.Parameters.QueryValueKey.KeyValueInformationClass));
+            PhInitFormatS(&format[2], L", Length: ");
+            PhInitFormatU(&format[3], Message->Kernel.Reg.Parameters.QueryValueKey.Length);
+
+            return PhFormat(format, 4, 60);
+        }
+
     case KphMsgRegPreCreateKey:
     case KphMsgRegPreOpenKey:
-    {
-        ACCESS_MASK desiredAccess;
-        ULONG attributes;
-        PPH_STRING accessStr;
-        PH_FORMAT format[3];
-        ULONG count = 0;
-
-        if (msgId == KphMsgRegPreCreateKey)
         {
-            desiredAccess = Message->Kernel.Reg.Parameters.CreateKey.DesiredAccess;
-            attributes = Message->Kernel.Reg.Parameters.CreateKey.Attributes;
+            ACCESS_MASK desiredAccess;
+            ULONG attributes;
+            PPH_STRING accessStr;
+            PH_FORMAT format[3];
+            ULONG count = 0;
+
+            if (msgId == KphMsgRegPreCreateKey)
+            {
+                desiredAccess = Message->Kernel.Reg.Parameters.CreateKey.DesiredAccess;
+                attributes = Message->Kernel.Reg.Parameters.CreateKey.Attributes;
+            }
+            else
+            {
+                desiredAccess = Message->Kernel.Reg.Parameters.OpenKey.DesiredAccess;
+                attributes = Message->Kernel.Reg.Parameters.OpenKey.Attributes;
+            }
+
+            accessStr = PhpInformerFormatAccessMask(L"Key", desiredAccess);
+            PhInitFormatS(&format[count++], L"Access: ");
+            PhInitFormatSR(&format[count++], accessStr->sr);
+
+            if (FlagOn(attributes, OBJ_KERNEL_HANDLE) || (Message->Kernel.Reg.ClientId.UniqueProcess == SYSTEM_PROCESS_ID))
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
+
+            return PhFormat(format, count, 20);
         }
-        else
-        {
-            desiredAccess = Message->Kernel.Reg.Parameters.OpenKey.DesiredAccess;
-            attributes = Message->Kernel.Reg.Parameters.OpenKey.Attributes;
-        }
-
-        accessStr = PhpInformerFormatAccessMask(L"Key", desiredAccess);
-        PhInitFormatS(&format[count++], L"Access: ");
-        PhInitFormatSR(&format[count++], accessStr->sr);
-
-        if (FlagOn(attributes, OBJ_KERNEL_HANDLE) || (Message->Kernel.Reg.ClientId.UniqueProcess == SYSTEM_PROCESS_ID))
-            PhInitFormatS(&format[count++], L", Kernel handle: Yes");
-
-        return PhFormat(format, count, 20);
-    }
 
     //
     // Handle events — process
@@ -3191,23 +3289,27 @@ VOID PhpInformerUpdateDetailsFromPostOp(
             else if (disposition == REG_OPENED_EXISTING_KEY)
                 dispText = &dispOpened;
             else
-                break;
+                dispText = NULL;
 
             if (!PhIsNullOrEmptyString(PreNode->DetailsText))
             {
                 PhInitFormatSR(&format[count++], PreNode->DetailsText->sr);
-                PhInitFormatSR(&format[count++], separator);
             }
 
-            if (NT_SUCCESS(PostMsg->Kernel.Reg.Post.Status))
+            if (NT_SUCCESS(PostMsg->Kernel.Reg.Post.Status) &&
+                (PostMsg->Kernel.Reg.Post.Status != STATUS_REPARSE))
             {
+                PhInitFormatSR(&format[count++], separator);
                 accessStr = PhpInformerFormatAccessMask(L"Key", granted);
                 PhInitFormatSR(&format[count++], grantedPrefix);
                 PhInitFormatSR(&format[count++], accessStr->sr);
-                PhInitFormatSR(&format[count++], separator);
             }
 
-            PhInitFormatSR(&format[count++], *dispText);
+            if (dispText)
+            {
+                PhInitFormatSR(&format[count++], separator);
+                PhInitFormatSR(&format[count++], *dispText);
+            }
 
             PhMoveReference(&PreNode->DetailsText, PhFormat(format, count, 80));
             PhClearReference(&PreNode->TooltipText);
