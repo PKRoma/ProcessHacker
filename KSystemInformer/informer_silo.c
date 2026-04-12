@@ -150,13 +150,13 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
     )
 {
     PKPH_MESSAGE msg;
-    PKPH_PROCESS_CONTEXT process;
+    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE_PASSIVE();
 
-    process = KphGetCurrentProcessContext();
+    KphInformerInit(&context);
 
-    if (!KphInformerEnabled(SiloCreate, process))
+    if (!KphInformerEnabled(SiloCreate, &context))
     {
         goto Exit;
     }
@@ -190,10 +190,7 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
 
 Exit:
 
-    if (process)
-    {
-        KphDereferenceObject(process);
-    }
+    KphInformerDelete(&context);
 
     return STATUS_SUCCESS;
 }
@@ -210,13 +207,13 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
     )
 {
     PKPH_MESSAGE msg;
-    PKPH_PROCESS_CONTEXT process;
+    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE_PASSIVE();
 
-    process = KphGetCurrentProcessContext();
+    KphInformerInit(&context);
 
-    if (!KphInformerEnabled(SiloTerminate, process))
+    if (!KphInformerEnabled(SiloTerminate, &context))
     {
         goto Exit;
     }
@@ -250,10 +247,7 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
 
 Exit:
 
-    if (process)
-    {
-        KphDereferenceObject(process);
-    }
+    KphInformerDelete(&context);
 }
 
 /**

@@ -24,30 +24,86 @@ NTSTATUS KphInitializeInformer(
     VOID
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+typedef struct _KPH_INFORMER_CONTEXT
+{
+    ULONG Count;
+    PKPH_PROCESS_CONTEXT Items[8];
+} KPH_INFORMER_CONTEXT, *PKPH_INFORMER_CONTEXT;
+
+FORCEINLINE
+VOID KphInformerAppend(
+    _Inout_ PKPH_INFORMER_CONTEXT Context,
+    _In_opt_ PKPH_PROCESS_CONTEXT Process
+    )
+{
+    if (!Process)
+    {
+        return;
+    }
+
+    for (ULONG i = 0; i < Context->Count; i++)
+    {
+        if (Context->Items[i] == Process)
+        {
+            return;
+        }
+    }
+
+    if (NT_VERIFY(Context->Count < ARRAYSIZE(Context->Items)))
+    {
+        Context->Items[Context->Count++] = Process;
+        KphReferenceObject(Process);
+    }
+}
+
+FORCEINLINE
+VOID KphInformerMove(
+    _Inout_ PKPH_INFORMER_CONTEXT Context,
+    _In_opt_ PKPH_PROCESS_CONTEXT Process
+    )
+{
+    KphInformerAppend(Context, Process);
+
+    if (Process)
+    {
+        KphDereferenceObject(Process);
+    }
+}
+
+FORCEINLINE
+VOID KphInformerInit(
+    _Out_ PKPH_INFORMER_CONTEXT Context
+    )
+{
+    RtlZeroMemory(Context, sizeof(KPH_INFORMER_CONTEXT));
+    KphInformerMove(Context, KphGetCurrentProcessContext());
+    KphInformerMove(Context, KphGetEProcessContext(PsGetThreadProcess(PsGetCurrentThread())));
+}
+
+FORCEINLINE
+VOID KphInformerDelete(
+    _In_ _Post_invalid_ PKPH_INFORMER_CONTEXT Context
+    )
+{
+    for (ULONG i = 0; i < Context->Count; i++)
+    {
+        KphDereferenceObject(Context->Items[i]);
+    }
+}
+
 BOOLEAN KphInformerAllowed(
     _In_ ULONG Index,
-    _In_opt_ PKPH_PROCESS_CONTEXT ActorProcess,
-    _In_opt_ PKPH_PROCESS_CONTEXT TargetProcess
+    _In_opt_ PKPH_INFORMER_CONTEXT Context
     );
 
-#define KphInformerEnabled(name, proc)                                         \
-    KphInformerAllowed(KPH_INFORMER_INDEX(name), proc, NULL)
+#define KphInformerEnabled(name, ctx)                                          \
+    KphInformerAllowed(KPH_INFORMER_INDEX(name), (ctx))
 
-#define KphInformerEnabled2(name, actor, target)                               \
-    KphInformerAllowed(KPH_INFORMER_INDEX(name), actor, target)
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
 KPH_INFORMER_OPTIONS KphInformerOptions(
-    _In_opt_ PKPH_PROCESS_CONTEXT ActorProcess,
-    _In_opt_ PKPH_PROCESS_CONTEXT TargetProcess
+    _In_opt_ PKPH_INFORMER_CONTEXT Context
     );
 
-#define KphInformerOpts(proc)                                                  \
-    KphInformerOptions(proc, NULL)
-
-#define KphInformerOpts2(proc, target)                                         \
-    KphInformerOptions(proc, target)
+#define KphInformerOpts(ctx)           KphInformerOptions((ctx))
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_

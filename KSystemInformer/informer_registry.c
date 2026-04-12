@@ -111,28 +111,26 @@ KPH_REG_OPTIONS KphpRegGetOptions(
     )
 {
     KPH_REG_OPTIONS options;
-    PKPH_PROCESS_CONTEXT process;
-    PKPH_PROCESS_CONTEXT system;
+    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE();
 
     options.Flags = 0;
-    process = KphGetCurrentProcessContext();
-    system = NULL;
+    KphInformerInit(&context);
 
     if (ExGetPreviousMode() != UserMode)
     {
-        system = KphGetSystemProcessContext();
+        KphInformerMove(&context, KphGetSystemProcessContext());
     }
 
 #define KPH_REG_SETTING2(reg, name)                                            \
     case RegNtPre##reg:                                                        \
     {                                                                          \
-        if (KphInformerEnabled2(RegPre##name, process, system))                \
+        if (KphInformerEnabled(RegPre##name, &context))                        \
         {                                                                      \
             options.PreEnabled = TRUE;                                         \
         }                                                                      \
-        if (KphInformerEnabled2(RegPost##name, process, system))               \
+        if (KphInformerEnabled(RegPost##name, &context))                       \
         {                                                                      \
             options.PostEnabled = TRUE;                                        \
         }                                                                      \
@@ -189,7 +187,7 @@ KPH_REG_OPTIONS KphpRegGetOptions(
     {
         KPH_INFORMER_OPTIONS opts;
 
-        opts = KphInformerOpts2(process, system);
+        opts = KphInformerOpts(&context);
 
         options.EnableStackTraces = !!opts.EnableStackTraces;
         options.EnablePostObjectNames = !!opts.RegEnablePostObjectNames;
@@ -197,15 +195,7 @@ KPH_REG_OPTIONS KphpRegGetOptions(
         options.EnableValueBuffers = !!opts.RegEnableValueBuffers;
     }
 
-    if (system)
-    {
-        KphDereferenceObject(system);
-    }
-
-    if (process)
-    {
-        KphDereferenceObject(process);
-    }
+    KphInformerDelete(&context);
 
     return options;
 }

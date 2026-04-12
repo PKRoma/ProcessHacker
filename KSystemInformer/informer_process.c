@@ -199,10 +199,10 @@ VOID KphpCreateProcessNotifyInformer(
     )
 {
     NTSTATUS status;
+    KPH_INFORMER_CONTEXT context;
     PKPH_MESSAGE msg;
     PKPH_MESSAGE reply;
     PEPROCESS parentProcess;
-    PKPH_PROCESS_CONTEXT actorProcess;
     KPH_INFORMER_OPTIONS opts;
 
     KPH_PAGED_CODE_PASSIVE();
@@ -210,11 +210,12 @@ VOID KphpCreateProcessNotifyInformer(
     msg = NULL;
     reply = NULL;
     parentProcess = NULL;
-    actorProcess = KphGetCurrentProcessContext();
+
+    KphInformerInit(&context);
 
     if (CreateInfo)
     {
-        if (!KphInformerEnabled(ProcessCreate, actorProcess))
+        if (!KphInformerEnabled(ProcessCreate, &context))
         {
             goto Exit;
         }
@@ -280,7 +281,7 @@ VOID KphpCreateProcessNotifyInformer(
             }
         }
 
-        opts = KphInformerOpts(actorProcess);
+        opts = KphInformerOpts(&context);
 
         if (opts.EnableStackTraces)
         {
@@ -325,7 +326,7 @@ VOID KphpCreateProcessNotifyInformer(
     }
     else
     {
-        if (!KphInformerEnabled(ProcessExit, actorProcess))
+        if (!KphInformerEnabled(ProcessExit, &context))
         {
             goto Exit;
         }
@@ -344,7 +345,7 @@ VOID KphpCreateProcessNotifyInformer(
         KphCaptureCurrentContext(&msg->Kernel.ProcessExit.Context);
         msg->Kernel.ProcessExit.ExitStatus = PsGetProcessExitStatus(Process->EProcess);
 
-        if (KphInformerOpts(actorProcess).EnableStackTraces)
+        if (KphInformerOpts(&context).EnableStackTraces)
         {
             KphCaptureStackInMessage(msg);
         }
@@ -370,10 +371,7 @@ Exit:
         ObDereferenceObject(parentProcess);
     }
 
-    if (actorProcess)
-    {
-        KphDereferenceObject(actorProcess);
-    }
+    KphInformerDelete(&context);
 }
 
 /**

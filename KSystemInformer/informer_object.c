@@ -63,26 +63,56 @@ KPH_OB_OPTIONS KphpObGetOptions(
     )
 {
     KPH_OB_OPTIONS options;
-    PKPH_PROCESS_CONTEXT process;
-    PKPH_PROCESS_CONTEXT system;
+    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE();
 
     options.Flags = 0;
-    process = KphGetCurrentProcessContext();
-    system = NULL;
+    KphInformerInit(&context);
 
     if (ExGetPreviousMode() != UserMode)
     {
-        system = KphGetSystemProcessContext();
+        KphInformerMove(&context, KphGetSystemProcessContext());
+    }
+
+    if (Info->Operation == OB_OPERATION_HANDLE_CREATE)
+    {
+        if (Info->ObjectType == *PsProcessType)
+        {
+            KphInformerMove(&context, KphGetEProcessContext(Info->Object));
+        }
+        else if (Info->ObjectType == *PsThreadType)
+        {
+            KphInformerMove(&context, KphGetEProcessContext(PsGetThreadProcess(Info->Object)));
+        }
+    }
+    else
+    {
+        POB_PRE_DUPLICATE_HANDLE_INFORMATION params;
+
+        NT_ASSERT(Info->Operation == OB_OPERATION_HANDLE_DUPLICATE);
+
+        params = &Info->Parameters->DuplicateHandleInformation;
+
+        KphInformerMove(&context, KphGetEProcessContext(params->SourceProcess));
+        KphInformerMove(&context, KphGetEProcessContext(params->TargetProcess));
+
+        if (Info->ObjectType == *PsProcessType)
+        {
+            KphInformerMove(&context, KphGetEProcessContext(Info->Object));
+        }
+        else if (Info->ObjectType == *PsThreadType)
+        {
+            KphInformerMove(&context, KphGetEProcessContext(PsGetThreadProcess(Info->Object)));
+        }
     }
 
 #define KPH_OB_SETTING(name)                                                   \
-    if (KphInformerEnabled2(HandlePre##name, process, system))                 \
+    if (KphInformerEnabled(HandlePre##name, &context))                         \
     {                                                                          \
         options.PreEnabled = TRUE;                                             \
     }                                                                          \
-    if (KphInformerEnabled2(HandlePost##name, process, system))                \
+    if (KphInformerEnabled(HandlePost##name, &context))                        \
     {                                                                          \
         options.PostEnabled = TRUE;                                            \
     }
@@ -120,21 +150,13 @@ KPH_OB_OPTIONS KphpObGetOptions(
 
     if (options.PreEnabled || options.PostEnabled)
     {
-        if (KphInformerOpts2(process, system).EnableStackTraces)
+        if (KphInformerOpts(&context).EnableStackTraces)
         {
             options.EnableStackTraces = TRUE;
         }
     }
 
-    if (system)
-    {
-        KphDereferenceObject(system);
-    }
-
-    if (process)
-    {
-        KphDereferenceObject(process);
-    }
+    KphInformerDelete(&context);
 
     return options;
 }

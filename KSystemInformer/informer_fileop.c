@@ -62,29 +62,30 @@ KPH_FLT_OPTIONS KphpFltGetOptions(
     )
 {
     KPH_FLT_OPTIONS options;
-    PKPH_PROCESS_CONTEXT process;
+    KPH_INFORMER_CONTEXT context;
 
     KPH_NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     options.Flags = 0;
+    KphInformerInit(&context);
 
     if (Data->Thread)
     {
-        process = KphGetEProcessContext(PsGetThreadProcess(Data->Thread));
+        KphInformerMove(&context, KphGetEProcessContext(PsGetThreadProcess(Data->Thread)));
     }
     else
     {
-        process = KphGetSystemProcessContext();
+        KphInformerMove(&context, KphGetSystemProcessContext());
     }
 
 #define KPH_FLT_SETTING(majorFunction, name)                                   \
     case majorFunction:                                                        \
     {                                                                          \
-        if (KphInformerEnabled(FilePre##name, process))                        \
+        if (KphInformerEnabled(FilePre##name, &context))                       \
         {                                                                      \
             options.PreEnabled = TRUE;                                         \
         }                                                                      \
-        if (KphInformerEnabled(FilePost##name, process))                       \
+        if (KphInformerEnabled(FilePost##name, &context))                      \
         {                                                                      \
             options.PostEnabled = TRUE;                                        \
         }                                                                      \
@@ -143,7 +144,7 @@ KPH_FLT_OPTIONS KphpFltGetOptions(
     {
         KPH_INFORMER_OPTIONS opts;
 
-        opts = KphInformerOpts(process);
+        opts = KphInformerOpts(&context);
 
         options.EnableStackTraces = !!opts.EnableStackTraces;
         options.EnablePostFileNames = !!opts.FileEnablePostFileNames;
@@ -156,10 +157,7 @@ KPH_FLT_OPTIONS KphpFltGetOptions(
         options.EnablePostCreateReply = !!opts.FileEnablePostCreateReply;
     }
 
-    if (process)
-    {
-        KphDereferenceObject(process);
-    }
+    KphInformerDelete(&context);
 
     return options;
 }

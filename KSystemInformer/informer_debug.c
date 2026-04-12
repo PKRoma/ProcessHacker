@@ -49,26 +49,12 @@ VOID KphpDebugPrintFlush(
     for (ULONG i = 0; i < KphpDbgPrintSlotNext; i++)
     {
         NTSTATUS status;
-        PKPH_PROCESS_CONTEXT process;
-        BOOLEAN enabled;
         USHORT remaining;
         ANSI_STRING output;
         PKPH_MESSAGE msg;
         PKPH_DBG_PRINT_SLOT slot;
 
         slot = &KphpDbgPrintSlots[i];
-
-        process = KphGetProcessContext(slot->Context.ClientId.UniqueProcess);
-        enabled = KphInformerEnabled(DebugPrint, process);
-        if (process)
-        {
-            KphDereferenceObjectDeferDelete(process);
-        }
-
-        if (!enabled)
-        {
-            continue;
-        }
 
         msg = KphAllocateNPagedMessage();
         if (!msg)
@@ -163,6 +149,8 @@ VOID KphpDebugPrintCallback(
     _In_ ULONG Level
     )
 {
+    BOOLEAN enabled;
+    KPH_INFORMER_CONTEXT context;
     PKPH_DBG_PRINT_SLOT slot;
 
     KPH_NPAGED_CODE_DISPATCH_MIN();
@@ -170,6 +158,14 @@ VOID KphpDebugPrintCallback(
     slot = NULL;
 
     if (!Output->Buffer || (Output->Length == 0))
+    {
+        return;
+    }
+
+    KphInformerInit(&context);
+    enabled = KphInformerEnabled(DebugPrint, &context);
+    KphInformerDelete(&context);
+    if (!enabled)
     {
         return;
     }

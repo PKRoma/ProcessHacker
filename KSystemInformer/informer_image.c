@@ -57,18 +57,18 @@ VOID KphpLoadImageNotifyInformer(
     )
 {
     NTSTATUS status;
+    KPH_INFORMER_CONTEXT context;
     PKPH_PROCESS_CONTEXT targetProcess;
-    PKPH_PROCESS_CONTEXT actorProcess;
     PKPH_MESSAGE msg;
     PUNICODE_STRING fileName;
     BOOLEAN freeFileName;
 
     KPH_PAGED_CODE_PASSIVE();
 
-    actorProcess = KphGetCurrentProcessContext();
+    KphInformerInit(&context);
     targetProcess = KphGetProcessContext(ProcessId);
-
-    if (!KphInformerEnabled2(ImageLoad, actorProcess, targetProcess))
+    KphInformerAppend(&context, targetProcess);
+    if (!KphInformerEnabled(ImageLoad, &context))
     {
         goto Exit;
     }
@@ -129,7 +129,7 @@ VOID KphpLoadImageNotifyInformer(
         }
     }
 
-    if (KphInformerOpts2(actorProcess, targetProcess).EnableStackTraces)
+    if (KphInformerOpts(&context).EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -143,10 +143,7 @@ Exit:
         KphDereferenceObject(targetProcess);
     }
 
-    if (actorProcess)
-    {
-        KphDereferenceObject(actorProcess);
-    }
+    KphInformerDelete(&context);
 }
 
 /**
@@ -204,7 +201,7 @@ KphpImageVerificationCallback(
     )
 {
     NTSTATUS status;
-    PKPH_PROCESS_CONTEXT actorProcess;
+    KPH_INFORMER_CONTEXT context;
     PKPH_MESSAGE msg;
     KPHM_SIZED_BUFFER buffer;
 
@@ -212,9 +209,9 @@ KphpImageVerificationCallback(
 
     UNREFERENCED_PARAMETER(CallbackContext);
 
-    actorProcess = KphGetCurrentProcessContext();
+    KphInformerInit(&context);
 
-    if (!KphInformerEnabled(ImageVerify, actorProcess))
+    if (!KphInformerEnabled(ImageVerify, &context))
     {
         goto Exit;
     }
@@ -307,7 +304,7 @@ KphpImageVerificationCallback(
                       status);
     }
 
-    if (KphInformerOpts(actorProcess).EnableStackTraces)
+    if (KphInformerOpts(&context).EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -316,10 +313,7 @@ KphpImageVerificationCallback(
 
 Exit:
 
-    if (actorProcess)
-    {
-        KphDereferenceObject(actorProcess);
-    }
+    KphInformerDelete(&context);
 }
 
 /**
