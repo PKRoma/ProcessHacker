@@ -186,6 +186,11 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
         KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
     }
 
+    if (KphInformerOpts(&context).EnableStackTraces)
+    {
+        KphCaptureStackInMessage(msg);
+    }
+
     KphCommsSendMessageAsync(msg);
 
 Exit:
@@ -241,6 +246,11 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
 
         KphpCopySiloInformation(serverSilo, &msg->Kernel.SiloTerminate.ServerSilo);
         KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
+    }
+
+    if (KphInformerOpts(&context).EnableStackTraces)
+    {
+        KphCaptureStackInMessage(msg);
     }
 
     KphCommsSendMessageAsync(msg);
