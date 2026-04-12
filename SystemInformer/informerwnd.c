@@ -41,6 +41,7 @@ typedef enum _PH_INFORMER_COLUMN_ID
     PHIC_PROCESS,
     PHIC_PID,
     PHIC_TID,
+    PHIC_START_KEY,
     PHIC_CATEGORY,
     PHIC_EVENT,
     PHIC_PATH,
@@ -60,6 +61,7 @@ typedef struct _PH_INFORMERW_NODE
     PPH_STRING ProcessText;
     WCHAR PidString[PH_INT32_STR_LEN_1];
     WCHAR TidString[PH_INT32_STR_LEN_1];
+    PPH_STRING StartKeyText;
     PH_STRINGREF CategoryText;
     PH_STRINGREF EventText;
     WCHAR EventFallback[16];
@@ -136,6 +138,7 @@ VOID PhpInformerNodeFree(
 
     PhClearReference(&Node->TimeText);
     PhClearReference(&Node->ProcessText);
+    PhClearReference(&Node->StartKeyText);
     PhClearReference(&Node->PathAllocated);
     PhClearReference(&Node->ResultText);
     PhClearReference(&Node->DurationText);
@@ -2729,6 +2732,56 @@ HANDLE PhpInformerGetPid(
     return NULL;
 }
 
+ULONG64 PhpInformerGetStartKey(
+    _In_ PCKPH_MESSAGE Message
+    )
+{
+    if (Message->Header.MessageId >= KphMsgFilePreCreate &&
+        Message->Header.MessageId <= KphMsgFilePostVolumeDismount)
+    {
+        return Message->Kernel.File.ProcessStartKey;
+    }
+
+    if (Message->Header.MessageId >= KphMsgRegPreDeleteKey &&
+        Message->Header.MessageId <= KphMsgRegPostSaveMergedKey)
+    {
+        return Message->Kernel.Reg.ProcessStartKey;
+    }
+
+    switch (Message->Header.MessageId)
+    {
+    case KphMsgThreadCreate:
+        return Message->Kernel.ThreadCreate.CreatingProcessStartKey;
+    case KphMsgThreadExecute:
+        return Message->Kernel.ThreadExecute.ProcessStartKey;
+    case KphMsgThreadExit:
+        return Message->Kernel.ThreadExit.ProcessStartKey;
+    case KphMsgProcessCreate:
+        return Message->Kernel.ProcessCreate.CreatingProcessStartKey;
+    case KphMsgProcessExit:
+        return Message->Kernel.ProcessExit.ProcessStartKey;
+    case KphMsgImageLoad:
+        return Message->Kernel.ImageLoad.LoadingProcessStartKey;
+    case KphMsgImageVerify:
+        return Message->Kernel.ImageVerify.ProcessStartKey;
+    case KphMsgSiloCreate:
+        return Message->Kernel.SiloCreate.ProcessStartKey;
+    case KphMsgSiloTerminate:
+        return Message->Kernel.SiloTerminate.ProcessStartKey;
+    default:
+        {
+            if (Message->Header.MessageId >= KphMsgHandlePreCreateProcess &&
+                Message->Header.MessageId <= KphMsgHandlePostDuplicateDesktop)
+            {
+                return Message->Kernel.Handle.ContextProcessStartKey;
+            }
+        }
+        break;
+    }
+
+    return 0;
+}
+
 _Function_class_(PH_TN_FILTER_FUNCTION)
 BOOLEAN NTAPI PhpInformerSearchFilterCallback(
     _In_ PPH_TREENEW_NODE Node,
@@ -2904,6 +2957,10 @@ BOOLEAN NTAPI PhpInformerTreeNewCallback(
             case PHIC_TID:
                 PhInitializeStringRefLongHint(&getCellText->Text, node->TidString);
                 break;
+            case PHIC_START_KEY:
+                if (node->StartKeyText)
+                    getCellText->Text = node->StartKeyText->sr;
+                break;
             case PHIC_CATEGORY:
                 getCellText->Text = node->CategoryText;
                 break;
@@ -2974,6 +3031,23 @@ BOOLEAN NTAPI PhpInformerTreeNewCallback(
                 }
                 break;
             }
+        }
+        return TRUE;
+
+    case TreeNewHeaderRightClick:
+        {
+            PH_TN_COLUMN_MENU_DATA data;
+
+            data.TreeNewHandle = hwnd;
+            data.MouseEvent = Parameter1;
+            data.DefaultSortColumn = 0;
+            data.DefaultSortOrder = NoSortOrder;
+            PhInitializeTreeNewColumnMenuEx(&data, PH_TN_COLUMN_MENU_SHOW_RESET_SORT);
+
+            data.Selection = PhShowEMenu(data.Menu, hwnd, PH_EMENU_SHOW_LEFTRIGHT,
+                PH_ALIGN_LEFT | PH_ALIGN_TOP, data.MouseEvent->ScreenLocation.x, data.MouseEvent->ScreenLocation.y);
+            PhHandleTreeNewColumnMenu(&data);
+            PhDeleteTreeNewColumnMenu(&data);
         }
         return TRUE;
 
@@ -3051,15 +3125,16 @@ VOID PhpInformerInitializeColumns(
     TreeNew_SetSort(tn, PHIC_TIME, NoSortOrder);
 
     PhAddTreeNewColumn(tn, PHIC_TIME, TRUE, L"Time", 140, PH_ALIGN_RIGHT, 0, DT_RIGHT);
-    PhAddTreeNewColumn(tn, PHIC_DURATION, TRUE, L"Duration", 70, PH_ALIGN_RIGHT, 1, DT_RIGHT);
+    PhAddTreeNewColumn(tn, PHIC_DURATION, FALSE, L"Duration", 70, PH_ALIGN_RIGHT, 1, DT_RIGHT);
     PhAddTreeNewColumn(tn, PHIC_PROCESS,TRUE, L"Process", 120, PH_ALIGN_LEFT, 2, 0);
     PhAddTreeNewColumn(tn, PHIC_PID, TRUE, L"PID", 50, PH_ALIGN_RIGHT, 3, DT_RIGHT);
     PhAddTreeNewColumn(tn, PHIC_TID, TRUE, L"TID", 50, PH_ALIGN_RIGHT, 4, DT_RIGHT);
-    PhAddTreeNewColumn(tn, PHIC_CATEGORY, TRUE, L"Category", 60, PH_ALIGN_LEFT, 5, 0);
-    PhAddTreeNewColumn(tn, PHIC_EVENT, TRUE, L"Event", 100, PH_ALIGN_LEFT, 6, 0);
-    PhAddTreeNewColumn(tn, PHIC_PATH, TRUE, L"Path", 200, PH_ALIGN_LEFT, 7, 0);
-    PhAddTreeNewColumn(tn, PHIC_RESULT, TRUE, L"Result", 60, PH_ALIGN_LEFT, 8, 0);
-    PhAddTreeNewColumn(tn, PHIC_DETAILS, TRUE, L"Details", 200, PH_ALIGN_LEFT, 9, 0);
+    PhAddTreeNewColumn(tn, PHIC_START_KEY, FALSE, L"Start key", 140, PH_ALIGN_LEFT, 5, 0);
+    PhAddTreeNewColumn(tn, PHIC_CATEGORY, TRUE, L"Category", 60, PH_ALIGN_LEFT, 6, 0);
+    PhAddTreeNewColumn(tn, PHIC_EVENT, TRUE, L"Event", 100, PH_ALIGN_LEFT, 7, 0);
+    PhAddTreeNewColumn(tn, PHIC_PATH, TRUE, L"Path", 200, PH_ALIGN_LEFT, 8, 0);
+    PhAddTreeNewColumn(tn, PHIC_RESULT, TRUE, L"Result", 60, PH_ALIGN_LEFT, 9, 0);
+    PhAddTreeNewColumn(tn, PHIC_DETAILS, TRUE, L"Details", 200, PH_ALIGN_LEFT, 10, 0);
 
     PhCmInitializeManager(&Context->Cm, tn, PHIC_MAXIMUM, PhpInformerPostSortFunction);
 
@@ -3493,10 +3568,18 @@ VOID PhpInformerAddMessage(
 
     HANDLE pid = PhpInformerGetPid(Message);
     HANDLE tid = PhpInformerGetTid(Message);
+    ULONG64 startKey = PhpInformerGetStartKey(Message);
     if (pid)
         PhPrintUInt32(node->PidString, HandleToUlong(pid));
     if (tid)
         PhPrintUInt32(node->TidString, HandleToUlong(tid));
+    if (startKey)
+    {
+        PH_FORMAT format[2];
+        PhInitFormatS(&format[0], L"0x");
+        PhInitFormatI64XWithWidth(&format[1], startKey, 16);
+        node->StartKeyText = PhFormat(format, 2, 20);
+    }
 
     preSeq = PhpInformerGetPreOpSequence(Message);
     if (preSeq)
