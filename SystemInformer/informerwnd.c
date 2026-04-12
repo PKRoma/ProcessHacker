@@ -1658,12 +1658,6 @@ PPH_STRING PhpInformerFormatDetailsText(
             return PhFormat(format, 4, 40);
         }
 
-    case KphMsgRegPreDeleteValueKey:
-        break;
-
-    case KphMsgRegPreQueryValueKey:
-        break;
-
     case KphMsgRegPreEnumerateKey:
         {
             PH_FORMAT format[2];
@@ -1689,6 +1683,36 @@ PPH_STRING PhpInformerFormatDetailsText(
             return PhCreateStringFromUnicodeString(&str);
         break;
 
+    case KphMsgRegPreCreateKey:
+    case KphMsgRegPreOpenKey:
+    {
+        ACCESS_MASK desiredAccess;
+        ULONG attributes;
+        PPH_STRING accessStr;
+        PH_FORMAT format[3];
+        ULONG count = 0;
+
+        if (msgId == KphMsgRegPreCreateKey)
+        {
+            desiredAccess = Message->Kernel.Reg.Parameters.CreateKey.DesiredAccess;
+            attributes = Message->Kernel.Reg.Parameters.CreateKey.Attributes;
+        }
+        else
+        {
+            desiredAccess = Message->Kernel.Reg.Parameters.OpenKey.DesiredAccess;
+            attributes = Message->Kernel.Reg.Parameters.OpenKey.Attributes;
+        }
+
+        accessStr = PhpInformerFormatAccessMask(L"Key", desiredAccess);
+        PhInitFormatS(&format[count++], L"Access: ");
+        PhInitFormatSR(&format[count++], accessStr->sr);
+
+        if (FlagOn(attributes, OBJ_KERNEL_HANDLE) || (Message->Kernel.Reg.ClientId.UniqueProcess == SYSTEM_PROCESS_ID))
+            PhInitFormatS(&format[count++], L", Kernel handle: Yes");
+
+        return PhFormat(format, count, 20);
+    }
+
     //
     // Handle events — process
     //
@@ -1699,7 +1723,7 @@ PPH_STRING PhpInformerFormatDetailsText(
             ACCESS_MASK desiredAccess = Message->Kernel.Handle.Pre.DesiredAccess;
             PPH_STRING targetName = PhpInformerGetTargetProcessName(Context, targetPid);
             PPH_STRING accessStr = PhpInformerFormatAccessMask(L"Process", desiredAccess);
-            PH_FORMAT format[7];
+            PH_FORMAT format[8];
             ULONG count = 0;
             PPH_STRING result;
 
@@ -1719,6 +1743,9 @@ PPH_STRING PhpInformerFormatDetailsText(
             PhInitFormatS(&format[count++], L"), Access: ");
             PhInitFormatSR(&format[count++], accessStr->sr);
 
+            if (Message->Kernel.Handle.KernelHandle)
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
+
             result = PhFormat(format, count, 100);
             PhClearReference(&targetName);
             PhDereferenceObject(accessStr);
@@ -1733,7 +1760,7 @@ PPH_STRING PhpInformerFormatDetailsText(
             ACCESS_MASK desiredAccess = Message->Kernel.Handle.Pre.DesiredAccess;
             PPH_STRING targetName = PhpInformerGetTargetProcessName(Context, targetPid);
             PPH_STRING accessStr = PhpInformerFormatAccessMask(L"Process", desiredAccess);
-            PH_FORMAT format[11];
+            PH_FORMAT format[12];
             ULONG count = 0;
             PPH_STRING result;
 
@@ -1756,6 +1783,9 @@ PPH_STRING PhpInformerFormatDetailsText(
             PhInitFormatU(&format[count++], HandleToUlong(destPid));
             PhInitFormatS(&format[count++], L", Access: ");
             PhInitFormatSR(&format[count++], accessStr->sr);
+
+            if (Message->Kernel.Handle.KernelHandle)
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
 
             result = PhFormat(format, count, 120);
             PhClearReference(&targetName);
@@ -1773,7 +1803,7 @@ PPH_STRING PhpInformerFormatDetailsText(
             ACCESS_MASK desiredAccess = Message->Kernel.Handle.Pre.DesiredAccess;
             PPH_STRING targetName = PhpInformerGetTargetProcessName(Context, targetCid.UniqueProcess);
             PPH_STRING accessStr = PhpInformerFormatAccessMask(L"Thread", desiredAccess);
-            PH_FORMAT format[9];
+            PH_FORMAT format[10];
             ULONG count = 0;
             PPH_STRING result;
 
@@ -1795,6 +1825,9 @@ PPH_STRING PhpInformerFormatDetailsText(
             PhInitFormatS(&format[count++], L"), Access: ");
             PhInitFormatSR(&format[count++], accessStr->sr);
 
+            if (Message->Kernel.Handle.KernelHandle)
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
+
             result = PhFormat(format, count, 100);
             PhClearReference(&targetName);
             PhDereferenceObject(accessStr);
@@ -1809,7 +1842,7 @@ PPH_STRING PhpInformerFormatDetailsText(
             ACCESS_MASK desiredAccess = Message->Kernel.Handle.Pre.DesiredAccess;
             PPH_STRING targetName = PhpInformerGetTargetProcessName(Context, targetCid.UniqueProcess);
             PPH_STRING accessStr = PhpInformerFormatAccessMask(L"Thread", desiredAccess);
-            PH_FORMAT format[13];
+            PH_FORMAT format[14];
             ULONG count = 0;
             PPH_STRING result;
 
@@ -1835,6 +1868,9 @@ PPH_STRING PhpInformerFormatDetailsText(
             PhInitFormatS(&format[count++], L", Access: ");
             PhInitFormatSR(&format[count++], accessStr->sr);
 
+            if (Message->Kernel.Handle.KernelHandle)
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
+
             result = PhFormat(format, count, 140);
             PhClearReference(&targetName);
             PhDereferenceObject(accessStr);
@@ -1850,7 +1886,7 @@ PPH_STRING PhpInformerFormatDetailsText(
             ACCESS_MASK desiredAccess = Message->Kernel.Handle.Pre.DesiredAccess;
             PPH_STRING accessStr = PhpInformerFormatAccessMask(L"Desktop", desiredAccess);
             PPH_STRING objectName = NULL;
-            PH_FORMAT format[4];
+            PH_FORMAT format[5];
             ULONG count = 0;
             PPH_STRING result;
 
@@ -1866,6 +1902,9 @@ PPH_STRING PhpInformerFormatDetailsText(
             PhInitFormatS(&format[count++], L"Access: ");
             PhInitFormatSR(&format[count++], accessStr->sr);
 
+            if (Message->Kernel.Handle.KernelHandle)
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
+
             result = PhFormat(format, count, 80);
             PhClearReference(&objectName);
             PhDereferenceObject(accessStr);
@@ -1879,7 +1918,7 @@ PPH_STRING PhpInformerFormatDetailsText(
             ACCESS_MASK desiredAccess = Message->Kernel.Handle.Pre.DesiredAccess;
             PPH_STRING accessStr = PhpInformerFormatAccessMask(L"Desktop", desiredAccess);
             PPH_STRING objectName = NULL;
-            PH_FORMAT format[8];
+            PH_FORMAT format[9];
             ULONG count = 0;
             PPH_STRING result;
 
@@ -1898,6 +1937,9 @@ PPH_STRING PhpInformerFormatDetailsText(
             PhInitFormatU(&format[count++], HandleToUlong(destPid));
             PhInitFormatS(&format[count++], L", Access: ");
             PhInitFormatSR(&format[count++], accessStr->sr);
+
+            if (Message->Kernel.Handle.KernelHandle)
+                PhInitFormatS(&format[count++], L", Kernel handle: Yes");
 
             result = PhFormat(format, count, 100);
             PhClearReference(&objectName);
@@ -3114,21 +3156,35 @@ VOID PhpInformerUpdateDetailsFromPostOp(
         break;
 
     //
-    // Registry post-ops: append disposition for CreateKey/OpenKey.
+    // Registry post-ops: append access and disposition for CreateKey/OpenKey.
     //
 
     case KphMsgRegPostCreateKey:
     case KphMsgRegPostOpenKey:
         {
             ULONG disposition;
+            ACCESS_MASK granted;
+            PPH_STRING accessStr = NULL;
             PCPH_STRINGREF dispText;
-            PH_FORMAT format[3];
+            PH_FORMAT format[6];
             ULONG count = 0;
 
             if (msgId == KphMsgRegPostCreateKey)
+            {
                 disposition = PostMsg->Kernel.Reg.Post.CreateKey.Disposition;
+                if (PostMsg->Kernel.Reg.Parameters.CreateKey.GrantedAccess)
+                    granted = PostMsg->Kernel.Reg.Parameters.CreateKey.GrantedAccess;
+                else
+                    granted = PostMsg->Kernel.Reg.Parameters.CreateKey.DesiredAccess;
+            }
             else
+            {
                 disposition = PostMsg->Kernel.Reg.Post.OpenKey.Disposition;
+                if (PostMsg->Kernel.Reg.Parameters.CreateKey.GrantedAccess)
+                    granted = PostMsg->Kernel.Reg.Parameters.CreateKey.GrantedAccess;
+                else
+                    granted = PostMsg->Kernel.Reg.Parameters.CreateKey.DesiredAccess;
+            }
 
             if (disposition == REG_CREATED_NEW_KEY)
                 dispText = &dispCreated;
@@ -3143,10 +3199,19 @@ VOID PhpInformerUpdateDetailsFromPostOp(
                 PhInitFormatSR(&format[count++], separator);
             }
 
+            if (NT_SUCCESS(PostMsg->Kernel.Reg.Post.Status))
+            {
+                accessStr = PhpInformerFormatAccessMask(L"Key", granted);
+                PhInitFormatSR(&format[count++], grantedPrefix);
+                PhInitFormatSR(&format[count++], accessStr->sr);
+                PhInitFormatSR(&format[count++], separator);
+            }
+
             PhInitFormatSR(&format[count++], *dispText);
 
             PhMoveReference(&PreNode->DetailsText, PhFormat(format, count, 80));
             PhClearReference(&PreNode->TooltipText);
+            PhClearReference(&accessStr);
         }
         break;
 
@@ -3158,12 +3223,18 @@ VOID PhpInformerUpdateDetailsFromPostOp(
     case KphMsgFilePostCreateNamedPipe:
     case KphMsgFilePostCreateMailslot:
         {
-            ULONG_PTR information = PostMsg->Kernel.File.Post.IoStatus.Information;
-            PCPH_STRINGREF resultName = PhpInformerGetOpenResultName(information);
+            ULONG_PTR information;
+            PCPH_STRINGREF resultName;
             ACCESS_MASK granted;
             PPH_STRING accessStr = NULL;
             PH_FORMAT format[8];
             ULONG count = 0;
+
+            if (!NT_SUCCESS(PostMsg->Kernel.File.Post.IoStatus.Status))
+                break;
+
+            information = PostMsg->Kernel.File.Post.IoStatus.Information;
+            resultName = PhpInformerGetOpenResultName(information);
 
             if (msgId == KphMsgFilePostCreate)
                 granted = PostMsg->Kernel.File.Post.Create.SecurityContext.PreviouslyGrantedAccess;
@@ -3172,37 +3243,25 @@ VOID PhpInformerUpdateDetailsFromPostOp(
             else
                 granted = PostMsg->Kernel.File.Post.CreateMailslot.SecurityContext.PreviouslyGrantedAccess;
 
-            if (!resultName && !granted)
-                break;
-
             if (!PhIsNullOrEmptyString(PreNode->DetailsText))
             {
                 PhInitFormatSR(&format[count++], PreNode->DetailsText->sr);
                 PhInitFormatSR(&format[count++], separator);
             }
 
-            if (resultName)
-            {
-                PhInitFormatSR(&format[count++], openResultPrefix);
-                PhInitFormatSR(&format[count++], *resultName);
-            }
+            accessStr = PhpInformerFormatAccessMask(L"File", granted);
 
-            if (granted)
-            {
-                accessStr = PhpInformerFormatAccessMask(L"File", granted);
+            PhInitFormatSR(&format[count++], grantedPrefix);
+            PhInitFormatSR(&format[count++], accessStr->sr);
+            PhInitFormatSR(&format[count++], separator);
 
-                if (resultName)
-                    PhInitFormatSR(&format[count++], separator);
-
-                PhInitFormatSR(&format[count++], grantedPrefix);
-                PhInitFormatSR(&format[count++], accessStr->sr);
-            }
+            PhInitFormatSR(&format[count++], openResultPrefix);
+            PhInitFormatSR(&format[count++], *resultName);
 
             PhMoveReference(&PreNode->DetailsText, PhFormat(format, count, 100));
             PhClearReference(&PreNode->TooltipText);
 
-            if (accessStr)
-                PhDereferenceObject(accessStr);
+            PhClearReference(&accessStr);
         }
         break;
     }
