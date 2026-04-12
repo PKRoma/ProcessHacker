@@ -102,8 +102,6 @@ NTSTATUS KSIAPI KphpInitializeImageLoadApc(
         ObReferenceObject(apc->FileObject);
     }
 
-    KphReferenceHashingInfrastructure();
-
     return STATUS_SUCCESS;
 }
 
@@ -129,8 +127,6 @@ VOID KSIAPI KphpDeleteImageLoadApc(
     {
         ObDereferenceObject(apc->FileObject);
     }
-
-    KphDereferenceHashingInfrastructure();
 }
 
 /**

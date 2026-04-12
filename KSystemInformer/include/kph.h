@@ -1548,16 +1548,6 @@ VOID KphCleanupHashing(
     VOID
     );
 
-_IRQL_requires_max_(APC_LEVEL)
-VOID KphReferenceHashingInfrastructure(
-    VOID
-    );
-
-_IRQL_requires_max_(APC_LEVEL)
-VOID KphDereferenceHashingInfrastructure(
-    VOID
-    );
-
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphHashBuffer(

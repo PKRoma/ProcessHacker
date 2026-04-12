@@ -64,8 +64,7 @@
 // hash
 
 #define KPH_TAG_HASHING_CONTEXT                 '0HpK'
-#define KPH_TAG_HASHING_INFRA                   '1HpK'
-#define KPH_TAG_CAPTURED_HASHES                 '2HpK'
+#define KPH_TAG_CAPTURED_HASHES                 '1HpK'
 
 // verify
 
