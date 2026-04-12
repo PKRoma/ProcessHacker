@@ -150,15 +150,11 @@ BOOLEAN KphpInformerProcessAllowed(
     PKPH_INFORMER_STATE state;
 
     KPH_NPAGED_CODE_DISPATCH_MAX();
+    NT_ASSERT(Index < KPH_INFORMER_COUNT);
 
     if (!Process)
     {
         return TRUE;
-    }
-
-    if (!NT_VERIFY(Index < KPH_INFORMER_COUNT))
-    {
-        return FALSE;
     }
 
     state = KphAtomicReferenceObject(&Process->InformerState.Atomic);
@@ -192,11 +188,7 @@ BOOLEAN KphpInformerGlobalAllowed(
     PKPH_INFORMER_STATE state;
 
     KPH_NPAGED_CODE_DISPATCH_MAX();
-
-    if (!NT_VERIFY(Index < KPH_INFORMER_COUNT))
-    {
-        return FALSE;
-    }
+    NT_ASSERT(Index < KPH_INFORMER_COUNT);
 
     state = KphAtomicReferenceObject(&KphpInformerState.Atomic);
     NT_ASSERT(state);
@@ -227,6 +219,11 @@ BOOLEAN KphInformerAllowed(
     LARGE_INTEGER timeStamp;
 
     KPH_NPAGED_CODE_DISPATCH_MAX();
+
+    if (!NT_VERIFY(Index < KPH_INFORMER_COUNT))
+    {
+        return FALSE;
+    }
 
     if (!KphGetInformerClientCount())
     {
