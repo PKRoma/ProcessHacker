@@ -31,7 +31,7 @@ typedef struct _KPH_INFORMER_CONTEXT
 } KPH_INFORMER_CONTEXT, *PKPH_INFORMER_CONTEXT;
 
 FORCEINLINE
-VOID KphInformerAppend(
+VOID KphInformerContextAdd(
     _Inout_ PKPH_INFORMER_CONTEXT Context,
     _In_opt_ PKPH_PROCESS_CONTEXT Process
     )
@@ -57,12 +57,12 @@ VOID KphInformerAppend(
 }
 
 FORCEINLINE
-VOID KphInformerMove(
+VOID KphInformerContextMove(
     _Inout_ PKPH_INFORMER_CONTEXT Context,
     _In_opt_ PKPH_PROCESS_CONTEXT Process
     )
 {
-    KphInformerAppend(Context, Process);
+    KphInformerContextAdd(Context, Process);
 
     if (Process)
     {
@@ -71,17 +71,17 @@ VOID KphInformerMove(
 }
 
 FORCEINLINE
-VOID KphInformerInit(
+VOID KphInformerContextInit(
     _Out_ PKPH_INFORMER_CONTEXT Context
     )
 {
     RtlZeroMemory(Context, sizeof(KPH_INFORMER_CONTEXT));
-    KphInformerMove(Context, KphGetCurrentProcessContext());
-    KphInformerMove(Context, KphGetEProcessContext(PsGetThreadProcess(PsGetCurrentThread())));
+    KphInformerContextMove(Context, KphGetCurrentProcessContext());
+    KphInformerContextMove(Context, KphGetEProcessContext(PsGetThreadProcess(PsGetCurrentThread())));
 }
 
 FORCEINLINE
-VOID KphInformerDelete(
+VOID KphInformerContextDelete(
     _In_ _Post_invalid_ PKPH_INFORMER_CONTEXT Context
     )
 {
@@ -96,14 +96,16 @@ BOOLEAN KphInformerAllowed(
     _In_opt_ PKPH_INFORMER_CONTEXT Context
     );
 
-#define KphInformerEnabled(name, ctx)                                          \
-    KphInformerAllowed(KPH_INFORMER_INDEX(name), (ctx))
-
 KPH_INFORMER_OPTIONS KphInformerOptions(
     _In_opt_ PKPH_INFORMER_CONTEXT Context
     );
 
-#define KphInformerOpts(ctx)           KphInformerOptions((ctx))
+#define KPH_INFORMER_CONTEXT_ENTER() KPH_INFORMER_CONTEXT informerContext; KphInformerContextInit(&informerContext)
+#define KPH_INFORMER_CONTEXT_EXIT() KphInformerContextDelete(&informerContext)
+#define KphInformerMove(proc) KphInformerContextMove(&informerContext, (proc))
+#define KphInformerAdd(proc) KphInformerContextAdd(&informerContext, (proc))
+#define KphInformerEnabled(name) KphInformerAllowed(KPH_INFORMER_INDEX(name), &informerContext)
+#define KphInformerOpts() KphInformerOptions(&informerContext)
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_

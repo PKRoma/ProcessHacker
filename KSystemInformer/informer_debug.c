@@ -150,7 +150,6 @@ VOID KphpDebugPrintCallback(
     )
 {
     BOOLEAN enabled;
-    KPH_INFORMER_CONTEXT context;
     PKPH_DBG_PRINT_SLOT slot;
 
     KPH_NPAGED_CODE_DISPATCH_MIN();
@@ -162,9 +161,9 @@ VOID KphpDebugPrintCallback(
         return;
     }
 
-    KphInformerInit(&context);
-    enabled = KphInformerEnabled(DebugPrint, &context);
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_ENTER();
+    enabled = KphInformerEnabled(DebugPrint);
+    KPH_INFORMER_CONTEXT_EXIT();
     if (!enabled)
     {
         return;

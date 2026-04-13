@@ -62,30 +62,30 @@ KPH_FLT_OPTIONS KphpFltGetOptions(
     )
 {
     KPH_FLT_OPTIONS options;
-    KPH_INFORMER_CONTEXT context;
 
     KPH_NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
+    KPH_INFORMER_CONTEXT_ENTER();
+
     options.Flags = 0;
-    KphInformerInit(&context);
 
     if (Data->Thread)
     {
-        KphInformerMove(&context, KphGetEProcessContext(PsGetThreadProcess(Data->Thread)));
+        KphInformerMove(KphGetEProcessContext(PsGetThreadProcess(Data->Thread)));
     }
     else
     {
-        KphInformerMove(&context, KphGetSystemProcessContext());
+        KphInformerMove(KphGetSystemProcessContext());
     }
 
 #define KPH_FLT_SETTING(majorFunction, name)                                   \
     case majorFunction:                                                        \
     {                                                                          \
-        if (KphInformerEnabled(FilePre##name, &context))                       \
+        if (KphInformerEnabled(FilePre##name))                                 \
         {                                                                      \
             options.PreEnabled = TRUE;                                         \
         }                                                                      \
-        if (KphInformerEnabled(FilePost##name, &context))                      \
+        if (KphInformerEnabled(FilePost##name))                                \
         {                                                                      \
             options.PostEnabled = TRUE;                                        \
         }                                                                      \
@@ -144,7 +144,7 @@ KPH_FLT_OPTIONS KphpFltGetOptions(
     {
         KPH_INFORMER_OPTIONS opts;
 
-        opts = KphInformerOpts(&context);
+        opts = KphInformerOpts();
 
         options.EnableStackTraces = !!opts.EnableStackTraces;
         options.EnablePostFileNames = !!opts.FileEnablePostFileNames;
@@ -157,7 +157,7 @@ KPH_FLT_OPTIONS KphpFltGetOptions(
         options.EnablePostCreateReply = !!opts.FileEnablePostCreateReply;
     }
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 
     return options;
 }

@@ -1193,13 +1193,15 @@ VOID KphpSendRequiredStateFailure(
 
     KPH_PAGED_CODE_PASSIVE();
 
+    KPH_INFORMER_CONTEXT_ENTER();
+
     msg = KphAllocateMessage();
     if (!msg)
     {
         KphTracePrint(TRACE_LEVEL_VERBOSE,
                       COMMS,
                       "Failed to allocate message");
-        return;
+        goto Exit;
     }
 
     KphMsgInit(msg, KphMsgRequiredStateFailure);
@@ -1209,12 +1211,16 @@ VOID KphpSendRequiredStateFailure(
     msg->Kernel.RequiredStateFailure.ClientState = ClientState;
     msg->Kernel.RequiredStateFailure.RequiredState = RequiredState;
 
-    if (KphInformerOpts(NULL).EnableStackTraces)
+    if (KphInformerOpts().EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
 
     KphCommsSendMessageAsync(msg);
+
+Exit:
+
+    KPH_INFORMER_CONTEXT_EXIT();
 }
 
 /**

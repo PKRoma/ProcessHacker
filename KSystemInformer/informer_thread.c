@@ -124,17 +124,17 @@ VOID KphpCreateThreadNotifyInformer(
     )
 {
     PKPH_MESSAGE msg;
-    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE();
 
+    KPH_INFORMER_CONTEXT_ENTER();
+
     msg = NULL;
-    KphInformerInit(&context);
-    KphInformerAppend(&context, Thread->ProcessContext);
+    KphInformerAdd(Thread->ProcessContext);
 
     if (Type == KphThreadNotifyCreate)
     {
-        if (!KphInformerEnabled(ThreadCreate, &context))
+        if (!KphInformerEnabled(ThreadCreate))
         {
             goto Exit;
         }
@@ -164,7 +164,7 @@ VOID KphpCreateThreadNotifyInformer(
         //
         subProcessTag = KphGetCurrentThreadSubProcessTag();
 
-        if (!KphInformerEnabled(ThreadExecute, &context))
+        if (!KphInformerEnabled(ThreadExecute))
         {
             goto Exit;
         }
@@ -187,7 +187,7 @@ VOID KphpCreateThreadNotifyInformer(
     {
         NT_ASSERT(Type == KphThreadNotifyExit);
 
-        if (!KphInformerEnabled(ThreadExit, &context))
+        if (!KphInformerEnabled(ThreadExit))
         {
             goto Exit;
         }
@@ -207,7 +207,7 @@ VOID KphpCreateThreadNotifyInformer(
         msg->Kernel.ThreadExit.ExitStatus = PsGetThreadExitStatus(Thread->EThread);
     }
 
-    if (KphInformerOpts(&context).EnableStackTraces)
+    if (KphInformerOpts().EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -222,7 +222,7 @@ Exit:
         KphFreeMessage(msg);
     }
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 }
 
 /**

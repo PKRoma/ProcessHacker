@@ -111,26 +111,26 @@ KPH_REG_OPTIONS KphpRegGetOptions(
     )
 {
     KPH_REG_OPTIONS options;
-    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE();
 
+    KPH_INFORMER_CONTEXT_ENTER();
+
     options.Flags = 0;
-    KphInformerInit(&context);
 
     if (ExGetPreviousMode() != UserMode)
     {
-        KphInformerMove(&context, KphGetSystemProcessContext());
+        KphInformerMove(KphGetSystemProcessContext());
     }
 
 #define KPH_REG_SETTING2(reg, name)                                            \
     case RegNtPre##reg:                                                        \
     {                                                                          \
-        if (KphInformerEnabled(RegPre##name, &context))                        \
+        if (KphInformerEnabled(RegPre##name))                                  \
         {                                                                      \
             options.PreEnabled = TRUE;                                         \
         }                                                                      \
-        if (KphInformerEnabled(RegPost##name, &context))                       \
+        if (KphInformerEnabled(RegPost##name))                                 \
         {                                                                      \
             options.PostEnabled = TRUE;                                        \
         }                                                                      \
@@ -187,7 +187,7 @@ KPH_REG_OPTIONS KphpRegGetOptions(
     {
         KPH_INFORMER_OPTIONS opts;
 
-        opts = KphInformerOpts(&context);
+        opts = KphInformerOpts();
 
         options.EnableStackTraces = !!opts.EnableStackTraces;
         options.EnablePostObjectNames = !!opts.RegEnablePostObjectNames;
@@ -195,7 +195,7 @@ KPH_REG_OPTIONS KphpRegGetOptions(
         options.EnableValueBuffers = !!opts.RegEnableValueBuffers;
     }
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 
     return options;
 }

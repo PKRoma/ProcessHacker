@@ -150,13 +150,12 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
     )
 {
     PKPH_MESSAGE msg;
-    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE_PASSIVE();
 
-    KphInformerInit(&context);
+    KPH_INFORMER_CONTEXT_ENTER();
 
-    if (!KphInformerEnabled(SiloCreate, &context))
+    if (!KphInformerEnabled(SiloCreate))
     {
         goto Exit;
     }
@@ -186,7 +185,7 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
         KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
     }
 
-    if (KphInformerOpts(&context).EnableStackTraces)
+    if (KphInformerOpts().EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -195,7 +194,7 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
 
 Exit:
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 
     return STATUS_SUCCESS;
 }
@@ -212,13 +211,12 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
     )
 {
     PKPH_MESSAGE msg;
-    KPH_INFORMER_CONTEXT context;
 
     KPH_PAGED_CODE_PASSIVE();
 
-    KphInformerInit(&context);
+    KPH_INFORMER_CONTEXT_ENTER();
 
-    if (!KphInformerEnabled(SiloTerminate, &context))
+    if (!KphInformerEnabled(SiloTerminate))
     {
         goto Exit;
     }
@@ -248,7 +246,7 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
         KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
     }
 
-    if (KphInformerOpts(&context).EnableStackTraces)
+    if (KphInformerOpts().EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -257,7 +255,7 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
 
 Exit:
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 }
 
 /**

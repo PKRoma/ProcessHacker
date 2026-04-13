@@ -57,7 +57,6 @@ VOID KphpLoadImageNotifyInformer(
     )
 {
     NTSTATUS status;
-    KPH_INFORMER_CONTEXT context;
     PKPH_PROCESS_CONTEXT targetProcess;
     PKPH_MESSAGE msg;
     PUNICODE_STRING fileName;
@@ -65,10 +64,12 @@ VOID KphpLoadImageNotifyInformer(
 
     KPH_PAGED_CODE_PASSIVE();
 
-    KphInformerInit(&context);
+    KPH_INFORMER_CONTEXT_ENTER();
+
     targetProcess = KphGetProcessContext(ProcessId);
-    KphInformerAppend(&context, targetProcess);
-    if (!KphInformerEnabled(ImageLoad, &context))
+    KphInformerAdd(targetProcess);
+
+    if (!KphInformerEnabled(ImageLoad))
     {
         goto Exit;
     }
@@ -129,7 +130,7 @@ VOID KphpLoadImageNotifyInformer(
         }
     }
 
-    if (KphInformerOpts(&context).EnableStackTraces)
+    if (KphInformerOpts().EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -143,7 +144,7 @@ Exit:
         KphDereferenceObject(targetProcess);
     }
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 }
 
 /**
@@ -201,7 +202,6 @@ KphpImageVerificationCallback(
     )
 {
     NTSTATUS status;
-    KPH_INFORMER_CONTEXT context;
     PKPH_MESSAGE msg;
     KPHM_SIZED_BUFFER buffer;
 
@@ -209,9 +209,9 @@ KphpImageVerificationCallback(
 
     UNREFERENCED_PARAMETER(CallbackContext);
 
-    KphInformerInit(&context);
+    KPH_INFORMER_CONTEXT_ENTER();
 
-    if (!KphInformerEnabled(ImageVerify, &context))
+    if (!KphInformerEnabled(ImageVerify))
     {
         goto Exit;
     }
@@ -304,7 +304,7 @@ KphpImageVerificationCallback(
                       status);
     }
 
-    if (KphInformerOpts(&context).EnableStackTraces)
+    if (KphInformerOpts().EnableStackTraces)
     {
         KphCaptureStackInMessage(msg);
     }
@@ -313,7 +313,7 @@ KphpImageVerificationCallback(
 
 Exit:
 
-    KphInformerDelete(&context);
+    KPH_INFORMER_CONTEXT_EXIT();
 }
 
 /**
