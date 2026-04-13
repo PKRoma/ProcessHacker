@@ -32,6 +32,7 @@
 static KPH_OBJECT_TYPE KphpObjectTypes[15] = { 0 };
 C_ASSERT(ARRAYSIZE(KphpObjectTypes) < MAXUCHAR);
 static LONG KphpObjectTypeCount = 0;
+static KSI_KDPC KphpDeferDeleteObjectDpc;
 static KSI_WORK_QUEUE_ITEM KphpDeferDeleteObjectWorkItem;
 static SLIST_HEADER KphpDeferDeleteObjectList;
 
@@ -63,19 +64,31 @@ VOID KphpObjectDelete(
  *
  * \param[in] Header The header of an object to defer deletion of.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphpObjectDeferDelete(
     _In_ PKPH_OBJECT_HEADER Header
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     //
-    // Only queue the work item when the list was empty. The worker will flush
-    // the list, at that point the work item is already removed from the work
-    // queue and ready to be re-queued.
+    // Only schedule the worker when we transition the list from empty. The
+    // worker will flush the entire list on its next pass, so subsequent
+    // pushes can rely on it picking up our entry.
     //
-    if (!InterlockedPushEntrySList(&KphpDeferDeleteObjectList,
-                                   &Header->ListEntry))
+    if (InterlockedPushEntrySList(&KphpDeferDeleteObjectList,
+                                  &Header->ListEntry))
+    {
+        return;
+    }
+
+    if (KeGetCurrentIrql() <= DISPATCH_LEVEL)
     {
         KsiQueueWorkItem(&KphpDeferDeleteObjectWorkItem, CriticalWorkQueue);
+    }
+    else
+    {
+        KsiInsertQueueDpc(&KphpDeferDeleteObjectDpc, NULL, NULL);
     }
 }
 
@@ -232,12 +245,15 @@ VOID KphDereferenceObject(
  *
  * \param[in] Object The object to dereference.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphDereferenceObjectDeferDelete(
     _In_ PVOID Object
     )
 {
     PKPH_OBJECT_HEADER header;
     SSIZE_T refCount;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     header = KphObjectToObjectHeader(Object);
 
@@ -543,6 +559,36 @@ PVOID KphAtomicMoveObjectReference(
     return KphpAtomicStoreObjectReference(ObjectRef, Object);
 }
 
+/**
+ * \brief DPC bridge that bounces from above-DISPATCH context down to
+ * DISPATCH_LEVEL where the work-queue API can be called. Its only job is
+ * to queue the deferred-delete worker.
+ *
+ * \param[in] Dpc Unused.
+ * \param[in] DeferredContext Unused.
+ * \param[in] SystemArgument1 Unused.
+ * \param[in] SystemArgument2 Unused.
+ */
+_Function_class_(KDEFERRED_ROUTINE)
+_IRQL_requires_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID KphpDeferDeleteObjectDpcRoutine(
+    _In_ PKDPC Dpc,
+    _In_opt_ PVOID DeferredContext,
+    _In_opt_ PVOID SystemArgument1,
+    _In_opt_ PVOID SystemArgument2
+    )
+{
+    KPH_NPAGED_CODE_DISPATCH();
+
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(DeferredContext);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    KsiQueueWorkItem(&KphpDeferDeleteObjectWorkItem, CriticalWorkQueue);
+}
+
 KPH_PAGED_FILE();
 
 /**
@@ -588,6 +634,10 @@ VOID KphObjectInitialize(
     KPH_PAGED_CODE_PASSIVE();
 
     InitializeSListHead(&KphpDeferDeleteObjectList);
+    KsiInitializeDpc(&KphpDeferDeleteObjectDpc,
+                     KphDriverObject,
+                     KphpDeferDeleteObjectDpcRoutine,
+                     NULL);
     KsiInitializeWorkItem(&KphpDeferDeleteObjectWorkItem,
                           KphDriverObject,
                           KphpDeferDeleteObjectWorker,

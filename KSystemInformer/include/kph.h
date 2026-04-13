@@ -1685,6 +1685,7 @@ VOID KphDereferenceObject(
     _In_ PVOID Object
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphDereferenceObjectDeferDelete(
     _In_ PVOID Object
     );
