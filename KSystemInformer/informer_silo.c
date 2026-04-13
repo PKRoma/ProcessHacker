@@ -20,6 +20,18 @@ KPH_PAGED_FILE();
 
 static PSILO_MONITOR KphpSiloMonitor = NULL;
 
+//
+// N.B. PsIsHostSilo is just a NULL check. The desired pattern by Microsoft
+// is to infer the host silo based on a NULL PESILO. This is unfortunate since
+// their SAL annotations ended up misleading. They state _In_ when the host
+// silo is passed (a NULL pointer). This breaks reasonable expectations and
+// one can easily pass a NULL pointer to a routine like ObQueryNameString. Our
+// ntfill and callback code opts to use _In_opt_ to indicate what routines
+// are capable of handling a NULL PESILE or not. Our callbacks also opt to use
+// _In_opt_ instead of _In_ to make it obvious that the callback can be called
+// with a NULL PESILO.
+//
+
 /**
  * \brief Copies silo information from a silo object.
  *
@@ -28,7 +40,7 @@ static PSILO_MONITOR KphpSiloMonitor = NULL;
  */
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID KphpCopySiloInformation(
-    _In_ PESILO Silo,
+    _In_opt_ PESILO Silo,
     _Out_ PKPHM_SILO_INFORMATION SiloInfo
     )
 {
@@ -41,9 +53,9 @@ VOID KphpCopySiloInformation(
         SiloInfo->IsHostSilo = KphDynPsIsHostSilo(Silo);
     }
 
-    if (KphDynPsGetSiloeIdentifier)
+    if (KphDynPsGetSiloIdentifier)
     {
-        SiloInfo->SiloIdentifier = KphDynPsGetSiloeIdentifier(Silo);
+        SiloInfo->SiloIdentifier = KphDynPsGetSiloIdentifier(Silo);
     }
 
     if (KphDynPsGetServerSiloServiceSessionId)
@@ -56,7 +68,7 @@ VOID KphpCopySiloInformation(
         SiloInfo->ActiveConsoleId = KphDynPsGetServerSiloActiveConsoleId(Silo);
     }
 
-    if (KphDynPsGetSiloContainerId)
+    if (KphDynPsGetSiloContainerId && Silo)
     {
         RtlCopyMemory(&SiloInfo->ContainerId,
                       KphDynPsGetSiloContainerId(Silo),
@@ -146,7 +158,7 @@ Exit:
 _Function_class_(SILO_MONITOR_CREATE_CALLBACK)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
-    _In_ PESILO Silo
+    _In_opt_ PESILO Silo
     )
 {
     PKPH_MESSAGE msg;
@@ -173,7 +185,11 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
     KphCaptureCurrentContext(&msg->Kernel.SiloCreate.Context);
 
     KphpCopySiloInformation(Silo, &msg->Kernel.SiloCreate.Silo);
-    KphpCopySiloName(msg, Silo, KphMsgFieldObjectName);
+
+    if (Silo)
+    {
+        KphpCopySiloName(msg, Silo, KphMsgFieldObjectName);
+    }
 
     if (KphDynPsGetEffectiveServerSilo)
     {
@@ -182,7 +198,11 @@ NTSTATUS NTAPI KphpSiloMonitorCreateCallback(
         serverSilo = KphDynPsGetEffectiveServerSilo(Silo);
 
         KphpCopySiloInformation(serverSilo, &msg->Kernel.SiloCreate.ServerSilo);
-        KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
+
+        if (serverSilo)
+        {
+            KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
+        }
     }
 
     if (KphInformerOpts().EnableStackTraces)
@@ -207,7 +227,7 @@ Exit:
 _Function_class_(SILO_MONITOR_TERMINATE_CALLBACK)
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID NTAPI KphpSiloMonitorTerminateCallback(
-    _In_ PESILO Silo
+    _In_opt_ PESILO Silo
     )
 {
     PKPH_MESSAGE msg;
@@ -234,7 +254,11 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
     KphCaptureCurrentContext(&msg->Kernel.SiloTerminate.Context);
 
     KphpCopySiloInformation(Silo, &msg->Kernel.SiloTerminate.Silo);
-    KphpCopySiloName(msg, Silo, KphMsgFieldObjectName);
+
+    if (Silo)
+    {
+        KphpCopySiloName(msg, Silo, KphMsgFieldObjectName);
+    }
 
     if (KphDynPsGetEffectiveServerSilo)
     {
@@ -243,7 +267,11 @@ VOID NTAPI KphpSiloMonitorTerminateCallback(
         serverSilo = KphDynPsGetEffectiveServerSilo(Silo);
 
         KphpCopySiloInformation(serverSilo, &msg->Kernel.SiloTerminate.ServerSilo);
-        KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
+
+        if (serverSilo)
+        {
+            KphpCopySiloName(msg, serverSilo, KphMsgFieldOtherObjectName);
+        }
     }
 
     if (KphInformerOpts().EnableStackTraces)
