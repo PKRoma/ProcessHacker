@@ -2850,14 +2850,12 @@ typedef struct _KPH_RATE_LIMIT
     LONG64 CasMiss;
 } KPH_RATE_LIMIT, *PKPH_RATE_LIMIT;
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphInitializeRateLimit(
     _In_ PCKPH_RATE_LIMIT_POLICY Policy,
     _In_ PLARGE_INTEGER TimeStamp,
     _Out_ PKPH_RATE_LIMIT RateLimit
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN KphRateLimitConsumeToken(
     _Inout_ PKPH_RATE_LIMIT RateLimit,
     _In_ PLARGE_INTEGER TimeStamp
