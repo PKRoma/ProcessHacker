@@ -90,15 +90,12 @@ VOID KphCaptureCurrentContext(
  *
  * \return Number of connected clients.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG KphGetConnectedClientCount(
     VOID
     )
 {
     ULONG count;
     KIRQL oldIrql;
-
-    KPH_NPAGED_CODE_DISPATCH_MAX();
 
     oldIrql = ExAcquireSpinLockShared(&KphpConnectedClientsLock);
 
@@ -114,15 +111,12 @@ ULONG KphGetConnectedClientCount(
  *
  * \return Number of active informer clients.
  */
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG KphGetInformerClientCount(
     VOID
     )
 {
     ULONG count;
     KIRQL oldIrql;
-
-    KPH_NPAGED_CODE_DISPATCH_MAX();
 
     count = 0;
 

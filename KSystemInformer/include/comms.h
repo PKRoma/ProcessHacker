@@ -97,12 +97,10 @@ VOID KphCommsStop(
     VOID
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG KphGetConnectedClientCount(
     VOID
     );
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
 ULONG KphGetInformerClientCount(
     VOID
     );
