@@ -5666,7 +5666,10 @@ BOOLEAN PhUiStopService(
         }
         else
         {
-            PhpShowErrorService(WindowHandle, L"stop", Service, status, 0);
+            if (!cancelled)
+            {
+                PhpShowErrorService(WindowHandle, L"stop", Service, status, 0);
+            }
         }
     }
 
@@ -5730,7 +5733,10 @@ BOOLEAN PhUiDeleteService(
         }
         else
         {
-            PhpShowErrorService(WindowHandle, L"delete", Service, status, 0);
+            if (!cancelled)
+            {
+                PhpShowErrorService(WindowHandle, L"delete", Service, status, 0);
+            }
         }
     }
 
