@@ -297,6 +297,141 @@ VOID KSIAPI KsiQueueWorkItem(
 }
 
 //
+// This is an extension of the DPC functionality in Windows to enable a driver
+// to be unloaded while there are outstanding queued or in-flight DPCs on the
+// system that reference it.
+//
+// N.B. While this library guarantees the driver will not be unmapped, it does
+// not prevent DriverUnload from being invoked. Drivers using this library may
+// check DIRVER_OBJECT.Flags for DRVO_UNLOAD_INVOKED to know if the system has
+// or is about to invoke DriverUnload. If applicable the driver should act
+// accordingly in their routines.
+//
+
+_Function_class_(KDEFERRED_ROUTINE)
+_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_min_(DISPATCH_LEVEL)
+_IRQL_requires_(DISPATCH_LEVEL)
+_IRQL_requires_same_
+VOID KsipDpcRoutine(
+    _In_ PKDPC Dpc,
+    _In_opt_ PVOID DeferredContext,
+    _In_opt_ PVOID SystemArgument1,
+    _In_opt_ PVOID SystemArgument2
+    )
+{
+    PKSI_KDPC ksiDpc;
+    PDRIVER_OBJECT driverObject;
+    PKDEFERRED_ROUTINE routine;
+    PVOID context;
+
+    UNREFERENCED_PARAMETER(Dpc);
+    NT_ASSERT(DeferredContext);
+
+    ksiDpc = DeferredContext;
+    driverObject = ksiDpc->DriverObject;
+    routine = ksiDpc->Routine;
+    context = ksiDpc->Context;
+
+    routine(&ksiDpc->Dpc, context, SystemArgument1, SystemArgument2);
+
+    ObDereferenceObjectDeferDelete(driverObject);
+}
+
+_IRQL_requires_max_(HIGH_LEVEL)
+VOID KSIAPI KsiInitializeDpc(
+    _Out_ PKSI_KDPC Dpc,
+    _In_ PDRIVER_OBJECT DriverObject,
+    _In_ PKDEFERRED_ROUTINE DeferredRoutine,
+    _In_opt_ PVOID DeferredContext
+    )
+{
+    KPH_NPAGED_CODE_HIGH_MAX();
+
+    Dpc->DriverObject = DriverObject;
+    Dpc->Routine = DeferredRoutine;
+    Dpc->Context = DeferredContext;
+
+    KeInitializeDpc(&Dpc->Dpc, KsipDpcRoutine, Dpc);
+}
+
+_IRQL_requires_max_(HIGH_LEVEL)
+VOID KSIAPI KsiInitializeThreadedDpc(
+    _Out_ PKSI_KDPC Dpc,
+    _In_ PDRIVER_OBJECT DriverObject,
+    _In_ PKDEFERRED_ROUTINE DeferredRoutine,
+    _In_opt_ PVOID DeferredContext
+    )
+{
+    KPH_NPAGED_CODE_HIGH_MAX();
+
+    Dpc->DriverObject = DriverObject;
+    Dpc->Routine = DeferredRoutine;
+    Dpc->Context = DeferredContext;
+
+    KeInitializeThreadedDpc(&Dpc->Dpc, KsipDpcRoutine, Dpc);
+}
+
+_IRQL_requires_max_(HIGH_LEVEL)
+BOOLEAN KSIAPI KsiInsertQueueDpc(
+    _Inout_ PKSI_KDPC Dpc,
+    _In_opt_ PVOID SystemArgument1,
+    _In_opt_ PVOID SystemArgument2
+    )
+{
+    BOOLEAN result;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
+
+#pragma warning(suppress: 28121)
+    ObReferenceObject(Dpc->DriverObject);
+
+    result = KeInsertQueueDpc(&Dpc->Dpc, SystemArgument1, SystemArgument2);
+    if (!result)
+    {
+#pragma warning(suppress: 28121)
+        ObDereferenceObject(Dpc->DriverObject);
+    }
+
+    return result;
+}
+
+_IRQL_requires_max_(HIGH_LEVEL)
+BOOLEAN KSIAPI KsiRemoveQueueDpc(
+    _Inout_ PKSI_KDPC Dpc
+    )
+{
+    KPH_NPAGED_CODE_HIGH_MAX();
+
+    if (!KeRemoveQueueDpc(&Dpc->Dpc))
+    {
+        return FALSE;
+    }
+
+    ObDereferenceObjectDeferDelete(Dpc->DriverObject);
+
+    return TRUE;
+}
+
+_IRQL_requires_max_(HIGH_LEVEL)
+BOOLEAN KSIAPI KsiRemoveQueueDpcEx(
+    _Inout_ PKSI_KDPC Dpc,
+    _In_ BOOLEAN WaitIfActive
+    )
+{
+    KPH_NPAGED_CODE_HIGH_MAX();
+
+    if (!KeRemoveQueueDpcEx(&Dpc->Dpc, WaitIfActive))
+    {
+        return FALSE;
+    }
+
+    ObDereferenceObjectDeferDelete(Dpc->DriverObject);
+
+    return TRUE;
+}
+
+//
 // This is an extension that allows a minimal system process to be created.
 // Minimal processes must be terminated using PsTerminateMinimalProcess, but
 // this routine is not exported or accessible through normal means. If a minimal

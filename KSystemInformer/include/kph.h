@@ -64,6 +64,12 @@
 #define KPH_NPAGED_CODE_DISPATCH()                                             \
     NT_ASSERT(KeGetCurrentIrql() == DISPATCH_LEVEL);                           \
     NT_ANALYSIS_ASSUME(KeGetCurrentIrql() == DISPATCH_LEVEL)
+#define KPH_NPAGED_CODE_HIGH_MAX()                                             \
+    NT_ASSERT(KeGetCurrentIrql() <= HIGH_LEVEL);                               \
+    NT_ANALYSIS_ASSUME((KeGetCurrentIrql() == HIGH_LEVEL) ||                   \
+                       (KeGetCurrentIrql() == DISPATCH_LEVEL) ||               \
+                       (KeGetCurrentIrql() == APC_LEVEL) ||                    \
+                       (KeGetCurrentIrql() == PASSIVE_LEVEL))
 
 //
 // N.B. This decorates code to indicate that the code supports up to APC_LEVEL
@@ -2462,6 +2468,63 @@ KSIAPI
 KsiQueueWorkItem(
     _Inout_ PKSI_WORK_QUEUE_ITEM WorkItem,
     _In_ WORK_QUEUE_TYPE QueueType
+    );
+
+typedef struct _KSI_KDPC
+{
+    KDPC Dpc;
+    PDRIVER_OBJECT DriverObject;
+    PKDEFERRED_ROUTINE Routine;
+    PVOID Context;
+} KSI_KDPC, *PKSI_KDPC;
+
+_IRQL_requires_max_(HIGH_LEVEL)
+KSISYSAPI
+VOID
+KSIAPI
+KsiInitializeDpc(
+    _Out_ PKSI_KDPC Dpc,
+    _In_ PDRIVER_OBJECT DriverObject,
+    _In_ PKDEFERRED_ROUTINE DeferredRoutine,
+    _In_opt_ PVOID DeferredContext
+    );
+
+_IRQL_requires_max_(HIGH_LEVEL)
+KSISYSAPI
+VOID
+KSIAPI
+KsiInitializeThreadedDpc(
+    _Out_ PKSI_KDPC Dpc,
+    _In_ PDRIVER_OBJECT DriverObject,
+    _In_ PKDEFERRED_ROUTINE DeferredRoutine,
+    _In_opt_ PVOID DeferredContext
+    );
+
+_IRQL_requires_max_(HIGH_LEVEL)
+KSISYSAPI
+BOOLEAN
+KSIAPI
+KsiInsertQueueDpc(
+    _Inout_ PKSI_KDPC Dpc,
+    _In_opt_ PVOID SystemArgument1,
+    _In_opt_ PVOID SystemArgument2
+    );
+
+_IRQL_requires_max_(HIGH_LEVEL)
+KSISYSAPI
+BOOLEAN
+KSIAPI
+KsiRemoveQueueDpc(
+    _Inout_ PKSI_KDPC Dpc
+    );
+
+_IRQL_requires_max_(HIGH_LEVEL)
+KSISYSAPI
+BOOLEAN
+KSIAPI
+KsiRemoveQueueDpcEx(
+    _Inout_ PKSI_KDPC Dpc,
+    _In_ BOOLEAN WaitIfActive
     );
 
 extern KSISYSAPI PEPROCESS KsiSystemProcess;
