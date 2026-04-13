@@ -395,6 +395,7 @@ EXPORTS
     PhCreateThreadEx
     PhDecodeUnicodeDecoder
     PhDelayExecution
+    PhDelayExecutionEx
     PhDeleteArray
     PhDeleteBytesBuilder
     PhDeleteCallback
