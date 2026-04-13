@@ -739,7 +739,7 @@ BOOLEAN PhListView_GetItemCount(
 BOOLEAN PhListView_SetItemCount(
     _In_ PPH_LISTVIEW_CONTEXT Context,
     _In_ LONG ItemCount,
-    _In_ PH_LISTVIEW_SETITEMCOUNT_FLAGS Flags
+    _In_ LV_LISTVIEW_SETITEMCOUNT_FLAGS Flags
     )
 {
     if (Context->ListViewInterface && NtCurrentThreadId() == Context->ThreadId)
