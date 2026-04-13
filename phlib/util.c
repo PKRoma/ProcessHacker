@@ -4393,7 +4393,7 @@ PPH_STRING PhGetLocalAppDataDirectory(
     {
         if (!FileName) return localAppDataDirectory;
         localAppDataFileName = PhConcatStringRef2(&localAppDataDirectory->sr, FileName);
-        PhReferenceObject(localAppDataDirectory);
+        PhDereferenceObject(localAppDataDirectory);
     }
 
     return localAppDataFileName;
@@ -4418,7 +4418,7 @@ PPH_STRING PhGetRoamingAppDataDirectory(
     {
         if (!FileName) return roamingAppDataDirectory;
         roamingAppDataFileName = PhConcatStringRef2(&roamingAppDataDirectory->sr, FileName);
-        PhReferenceObject(roamingAppDataDirectory);
+        PhDereferenceObject(roamingAppDataDirectory);
     }
 
     return roamingAppDataFileName;
