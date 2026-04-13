@@ -2410,7 +2410,7 @@ VOID KphCleanupVerify(
 #define KSISYSAPI
 #endif
 
-#define KSIDLL_CURRENT_VERSION 1
+#define KSIDLL_CURRENT_VERSION 2
 
 KSISYSAPI
 _IRQL_requires_max_(PASSIVE_LEVEL)
