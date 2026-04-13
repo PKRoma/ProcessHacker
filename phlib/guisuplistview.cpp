@@ -982,7 +982,7 @@ BOOLEAN PhListView_GetItemState(
     {
         ULONG state = 0;
 
-        if (HR_SUCCESS(Context->ListViewInterface->GetItemState(ItemIndex, 0, (PH_LISTVIEW_ITEM_STATE_FLAGS)Mask, (PH_LISTVIEW_ITEM_STATE_FLAGS*)&state)))
+        if (HR_SUCCESS(Context->ListViewInterface->GetItemState(ItemIndex, 0, (LV_LISTVIEW_ITEM_STATE_FLAGS)Mask, (LV_LISTVIEW_ITEM_STATE_FLAGS*)&state)))
         {
             *State = state;
             return TRUE;
@@ -1006,7 +1006,7 @@ BOOLEAN PhListView_SetItemState(
 {
     if (Context->ListViewInterface && NtCurrentThreadId() == Context->ThreadId)
     {
-        if (HR_SUCCESS(Context->ListViewInterface->SetItemState(ItemIndex, 0, (PH_LISTVIEW_ITEM_STATE_FLAGS)State, (PH_LISTVIEW_ITEM_STATE_FLAGS)Mask)))
+        if (HR_SUCCESS(Context->ListViewInterface->SetItemState(ItemIndex, 0, (LV_LISTVIEW_ITEM_STATE_FLAGS)State, (LV_LISTVIEW_ITEM_STATE_FLAGS)Mask)))
             return TRUE;
     }
     else
@@ -1361,7 +1361,7 @@ VOID PhListView_SetStateAllItems(
         {
             for (i = 0; i < count; i++)
             {
-                Context->ListViewInterface->SetItemState(i, 0, (PH_LISTVIEW_ITEM_STATE_FLAGS)Mask, (PH_LISTVIEW_ITEM_STATE_FLAGS)State);
+                Context->ListViewInterface->SetItemState(i, 0, (LV_LISTVIEW_ITEM_STATE_FLAGS)Mask, (LV_LISTVIEW_ITEM_STATE_FLAGS)State);
             }
         }
     }
