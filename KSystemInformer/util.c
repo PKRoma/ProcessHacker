@@ -27,6 +27,7 @@
  *
  * \return Pointer to the found element, NULL if not found.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 _Success_(return != NULL)
 PVOID KphBinarySearch(
@@ -38,6 +39,8 @@ PVOID KphBinarySearch(
     _In_opt_ PVOID Context
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     return bsearch_s(Key,
                      Base,
                      NumberOfElements,
@@ -55,6 +58,7 @@ PVOID KphBinarySearch(
  * \param[in] Callback Comparison callback.
  * \param[in] Context Optional context for the callback.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphQuickSort(
     _Inout_updates_bytes_(NumberOfElements * SizeOfElement) PVOID Base,
     _In_ ULONG NumberOfElements,
@@ -63,6 +67,8 @@ VOID KphQuickSort(
     _In_opt_ PVOID Context
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     qsort_s(Base, NumberOfElements, SizeOfElement, Callback, Context);
 }
 
@@ -77,6 +83,7 @@ VOID KphQuickSort(
  * \return Pointer to the beginning of the first found pattern, NULL if the
  * pattern is not found.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 _Success_(return != NULL)
 PVOID KphSearchMemory(
@@ -88,6 +95,8 @@ PVOID KphSearchMemory(
 {
     PBYTE buffer;
     PBYTE end;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     if (!BufferLength || !PatternLength)
     {
@@ -153,12 +162,15 @@ PVOID KphSearchMemory(
  *
  * \return The sequence number key.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG64 KphGetProcessSequenceNumber(
     _In_ PEPROCESS Process
     )
 {
     ULONG64 sequence;
     PKPH_PROCESS_CONTEXT process;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     if (KphDynPsGetProcessSequenceNumber)
     {
@@ -178,7 +190,7 @@ ULONG64 KphGetProcessSequenceNumber(
 
     sequence = process->SequenceNumber;
 
-    KphDereferenceObject(process);
+    KphDereferenceObjectDeferDelete(process);
 
     return sequence;
 }
@@ -190,12 +202,15 @@ ULONG64 KphGetProcessSequenceNumber(
  *
  * \return The process start key.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG64 KphGetProcessStartKey(
     _In_ PEPROCESS Process
     )
 {
     ULONG64 key;
     PKPH_PROCESS_CONTEXT process;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     if (KphDynPsGetProcessStartKey)
     {
@@ -222,7 +237,7 @@ ULONG64 KphGetProcessStartKey(
         key = (process->SequenceNumber | ((ULONG64)SharedUserData->BootId << 48));
     }
 
-    KphDereferenceObject(process);
+    KphDereferenceObjectDeferDelete(process);
 
     return key;
 }
@@ -232,6 +247,7 @@ ULONG64 KphGetProcessStartKey(
  *
  * \return The current thread's sub-process tag.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 PVOID KphGetCurrentThreadSubProcessTag(
     VOID
     )
@@ -239,6 +255,8 @@ PVOID KphGetCurrentThreadSubProcessTag(
     PKPH_THREAD_CONTEXT thread;
     PVOID subProcessTag;
     PTEB teb;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     if (PsIsSystemThread(PsGetCurrentThread()))
     {
@@ -260,7 +278,7 @@ PVOID KphGetCurrentThreadSubProcessTag(
         {
             subProcessTag = thread->SubProcessTag;
 
-            KphDereferenceObject(thread);
+            KphDereferenceObjectDeferDelete(thread);
         }
 
         return subProcessTag;
@@ -301,6 +319,7 @@ PVOID KphGetCurrentThreadSubProcessTag(
  *
  * \return The thread's sub-process tag.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 PVOID KphGetThreadSubProcessTagEx(
     _In_ PETHREAD Thread,
     _In_ BOOLEAN CacheOnly
@@ -309,6 +328,8 @@ PVOID KphGetThreadSubProcessTagEx(
     PKPH_THREAD_CONTEXT thread;
     PVOID subProcessTag;
     PTEB teb;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     if (PsIsSystemThread(Thread))
     {
@@ -335,7 +356,7 @@ PVOID KphGetThreadSubProcessTagEx(
         {
             subProcessTag = thread->SubProcessTag;
 
-            KphDereferenceObject(thread);
+            KphDereferenceObjectDeferDelete(thread);
         }
 
         return subProcessTag;
@@ -374,10 +395,13 @@ PVOID KphGetThreadSubProcessTagEx(
  *
  * \return The thread's sub-process tag.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 PVOID KphGetThreadSubProcessTag(
     _In_ PETHREAD Thread
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     return KphGetThreadSubProcessTagEx(Thread, FALSE);
 }
 

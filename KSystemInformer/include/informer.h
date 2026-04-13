@@ -30,6 +30,7 @@ typedef struct _KPH_INFORMER_CONTEXT
     PKPH_PROCESS_CONTEXT Items[8];
 } KPH_INFORMER_CONTEXT, *PKPH_INFORMER_CONTEXT;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 FORCEINLINE
 VOID KphInformerContextAdd(
     _Inout_ PKPH_INFORMER_CONTEXT Context,
@@ -56,6 +57,7 @@ VOID KphInformerContextAdd(
     }
 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 FORCEINLINE
 VOID KphInformerContextMove(
     _Inout_ PKPH_INFORMER_CONTEXT Context,
@@ -66,10 +68,11 @@ VOID KphInformerContextMove(
 
     if (Process)
     {
-        KphDereferenceObject(Process);
+        KphDereferenceObjectDeferDelete(Process);
     }
 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 FORCEINLINE
 VOID KphInformerContextInit(
     _Out_ PKPH_INFORMER_CONTEXT Context
@@ -80,6 +83,7 @@ VOID KphInformerContextInit(
     KphInformerContextMove(Context, KphGetEProcessContext(PsGetThreadProcess(PsGetCurrentThread())));
 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 FORCEINLINE
 VOID KphInformerContextDelete(
     _In_ _Post_invalid_ PKPH_INFORMER_CONTEXT Context
@@ -87,15 +91,17 @@ VOID KphInformerContextDelete(
 {
     for (ULONG i = 0; i < Context->Count; i++)
     {
-        KphDereferenceObject(Context->Items[i]);
+        KphDereferenceObjectDeferDelete(Context->Items[i]);
     }
 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 BOOLEAN KphInformerAllowed(
     _In_ ULONG Index,
     _In_opt_ PKPH_INFORMER_CONTEXT Context
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 KPH_INFORMER_OPTIONS KphInformerOptions(
     _In_opt_ PKPH_INFORMER_CONTEXT Context
     );

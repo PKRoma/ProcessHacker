@@ -51,12 +51,15 @@ static KQUEUE KphpMessageQueue;
 static PETHREAD* KphpMessageQueueThreads = NULL;
 static ULONG KphpMessageQueueThreadsCount = 0;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphCaptureThreadContext(
     _Out_ PKPHM_CONTEXT Context,
     _In_ PETHREAD Thread,
     _In_ BOOLEAN CacheOnly
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     Context->ClientId.UniqueProcess = PsGetThreadProcessId(Thread);
     Context->ClientId.UniqueThread = PsGetThreadId(Thread);
     Context->ProcessStartKey = KphGetProcessStartKey(PsGetThreadProcess(Thread));
@@ -65,11 +68,14 @@ VOID KphCaptureThreadContext(
     Context->AttachedProcessStartKey = Context->ProcessStartKey;
 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphCaptureCurrentContextEx(
     _Out_ PKPHM_CONTEXT Context,
     _In_ BOOLEAN CacheOnly
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     Context->ClientId.UniqueProcess = PsGetCurrentProcessId();
     Context->ClientId.UniqueThread = PsGetCurrentThreadId();
     Context->ProcessStartKey = KphGetCurrentProcessStartKey();
@@ -78,10 +84,13 @@ VOID KphCaptureCurrentContextEx(
     Context->AttachedProcessStartKey = KphGetProcessStartKey(PsGetCurrentProcess());
 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphCaptureCurrentContext(
     _Out_ PKPHM_CONTEXT Context
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     KphCaptureCurrentContextEx(Context, FALSE);
 }
 
@@ -90,6 +99,7 @@ VOID KphCaptureCurrentContext(
  *
  * \return Number of connected clients.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG KphGetConnectedClientCount(
     VOID
     )
@@ -97,11 +107,30 @@ ULONG KphGetConnectedClientCount(
     ULONG count;
     KIRQL oldIrql;
 
-    oldIrql = ExAcquireSpinLockShared(&KphpConnectedClientsLock);
+    KPH_NPAGED_CODE_HIGH_MAX();
+
+    if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+    {
+        oldIrql = HIGH_LEVEL;
+#pragma warning(suppress: 28121)
+        ExAcquireSpinLockSharedAtDpcLevel(&KphpConnectedClientsLock);
+    }
+    else
+    {
+        oldIrql = ExAcquireSpinLockShared(&KphpConnectedClientsLock);
+    }
 
     count = KphpConnectedClientsCount;
 
-    ExReleaseSpinLockShared(&KphpConnectedClientsLock, oldIrql);
+    if (oldIrql == HIGH_LEVEL)
+    {
+#pragma warning(suppress: 28121)
+        ExReleaseSpinLockSharedFromDpcLevel(&KphpConnectedClientsLock);
+    }
+    else
+    {
+        ExReleaseSpinLockShared(&KphpConnectedClientsLock, oldIrql);
+    }
 
     return count;
 }
@@ -111,6 +140,7 @@ ULONG KphGetConnectedClientCount(
  *
  * \return Number of active informer clients.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG KphGetInformerClientCount(
     VOID
     )
@@ -118,9 +148,20 @@ ULONG KphGetInformerClientCount(
     ULONG count;
     KIRQL oldIrql;
 
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     count = 0;
 
-    oldIrql = ExAcquireSpinLockShared(&KphpConnectedClientsLock);
+    if (KeGetCurrentIrql() >= DISPATCH_LEVEL)
+    {
+        oldIrql = HIGH_LEVEL;
+#pragma warning(suppress: 28121)
+        ExAcquireSpinLockSharedAtDpcLevel(&KphpConnectedClientsLock);
+    }
+    else
+    {
+        oldIrql = ExAcquireSpinLockShared(&KphpConnectedClientsLock);
+    }
 
     for (ULONG i = 0; i < KphpConnectedClientsCount; i++)
     {
@@ -132,11 +173,19 @@ ULONG KphGetInformerClientCount(
         if (state)
         {
             count++;
-            KphDereferenceObject(state);
+            KphDereferenceObjectDeferDelete(state);
         }
     }
 
-    ExReleaseSpinLockShared(&KphpConnectedClientsLock, oldIrql);
+    if (oldIrql == HIGH_LEVEL)
+    {
+#pragma warning(suppress: 28121)
+        ExReleaseSpinLockSharedFromDpcLevel(&KphpConnectedClientsLock);
+    }
+    else
+    {
+        ExReleaseSpinLockShared(&KphpConnectedClientsLock, oldIrql);
+    }
 
     return count;
 }

@@ -2194,12 +2194,15 @@ Exit:
  * \param[in,out] Data The callback data for the operation.
  * \param[in] FltObjects The related objects for the operation.
  */
+_IRQL_requires_max_(APC_LEVEL)
 VOID KphpFltRequestHandler(
     _Inout_ PFLT_CALLBACK_DATA Data,
     _In_ PCFLT_RELATED_OBJECTS FltObjects
     )
 {
     PKPH_THREAD_CONTEXT thread;
+
+    KPH_NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     //
     // KphQueryVirtualMemory will use this to create a data section object.

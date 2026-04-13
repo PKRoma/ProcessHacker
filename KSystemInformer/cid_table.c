@@ -41,11 +41,14 @@ C_ASSERT(KPH_CID_MAX == KPH_CID_LIMIT);
  *
  * \return Referenced object pointer, NULL if no object is assigned.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PVOID KphCidReferenceObject(
     _In_ PKPH_CID_TABLE_ENTRY Entry
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     return KphAtomicReferenceObject(&Entry->ObjectRef);
 }
 
@@ -58,6 +61,7 @@ PVOID KphCidReferenceObject(
  * \return Pointer to the CID table entry, NULL if the table hasn't been
  * expanded enough.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_CID_TABLE_ENTRY KphCidLookupEntry(
     _In_ HANDLE Cid,
@@ -69,6 +73,8 @@ PKPH_CID_TABLE_ENTRY KphCidLookupEntry(
     PKPH_CID_TABLE_ENTRY* tableL1;
     PKPH_CID_TABLE_ENTRY** tableL2;
     ULONG_PTR id;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     id = KphpCidToId(Cid);
 

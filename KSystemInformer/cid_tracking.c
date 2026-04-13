@@ -52,6 +52,7 @@ static ULONG64 KphpProcessSequence = 0;
  * not of the expected type. The caller *must* dereference the object when
  * they are through with it.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PVOID KphpLookupContext(
     _In_ HANDLE Cid,
@@ -60,6 +61,8 @@ PVOID KphpLookupContext(
 {
     PVOID object;
     PKPH_CID_TABLE_ENTRY entry;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     entry = KphCidLookupEntry(Cid, &KphpCidTable);
     if (!entry)
@@ -70,7 +73,7 @@ PVOID KphpLookupContext(
     object = KphCidReferenceObject(entry);
     if (object && (KphGetObjectType(object) != ObjectType))
     {
-        KphDereferenceObject(object);
+        KphDereferenceObjectDeferDelete(object);
         object = NULL;
     }
 
@@ -83,11 +86,14 @@ PVOID KphpLookupContext(
  * \return Pointer to the system process context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetSystemProcessContext(
     VOID
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     if (KphpSystemProcessContext)
     {
         KphReferenceObject(KphpSystemProcessContext);
@@ -104,11 +110,14 @@ PKPH_PROCESS_CONTEXT KphGetSystemProcessContext(
  * \return Pointer to the process context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetProcessContext(
     _In_ HANDLE ProcessId
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     return KphpLookupContext(ProcessId, KphProcessContextType);
 }
 
@@ -120,17 +129,25 @@ PKPH_PROCESS_CONTEXT KphGetProcessContext(
  * \return Pointer to the process context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetEProcessContext(
     _In_ PEPROCESS Process
     )
 {
+    HANDLE processId;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     if (Process == PsInitialSystemProcess)
     {
         return KphGetSystemProcessContext();
     }
 
-    return KphGetProcessContext(PsGetProcessId(Process));
+#pragma prefast(suppress: 28121) // SAL is incorrect
+    processId = PsGetProcessId(Process);
+
+    return KphGetProcessContext(processId);
 }
 
 /**
@@ -141,11 +158,14 @@ PKPH_PROCESS_CONTEXT KphGetEProcessContext(
  * \return Pointer to the thread context, null if not found. The caller
  * *must* dereference the object when they are through with it.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_THREAD_CONTEXT KphGetThreadContext(
     _In_ HANDLE ThreadId
     )
 {
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     return KphpLookupContext(ThreadId, KphThreadContextType);
 }
 

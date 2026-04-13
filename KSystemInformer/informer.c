@@ -139,6 +139,7 @@ VOID KSIAPI KphpFreeInformerState(
  *
  * \return TRUE if the informer is allowed, FALSE otherwise.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 BOOLEAN KphpInformerProcessAllowed(
     _In_ ULONG Index,
     _In_ PLARGE_INTEGER TimeStamp,
@@ -147,6 +148,8 @@ BOOLEAN KphpInformerProcessAllowed(
 {
     BOOLEAN allowed;
     PKPH_INFORMER_STATE state;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     NT_ASSERT(Index < KPH_INFORMER_COUNT);
 
@@ -163,7 +166,7 @@ BOOLEAN KphpInformerProcessAllowed(
 
     allowed = KphRateLimitConsumeToken(&state->RateLimit[Index], TimeStamp);
 
-    KphDereferenceObject(state);
+    KphDereferenceObjectDeferDelete(state);
 
     return allowed;
 }
@@ -176,6 +179,7 @@ BOOLEAN KphpInformerProcessAllowed(
  *
  * \return TRUE if the informer is allowed, FALSE otherwise.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 BOOLEAN KphpInformerGlobalAllowed(
     _In_ ULONG Index,
     _In_ PLARGE_INTEGER TimeStamp
@@ -184,6 +188,8 @@ BOOLEAN KphpInformerGlobalAllowed(
     BOOLEAN allowed;
     PKPH_INFORMER_STATE state;
 
+    KPH_NPAGED_CODE_HIGH_MAX();
+
     NT_ASSERT(Index < KPH_INFORMER_COUNT);
 
     state = KphAtomicReferenceObject(&KphpInformerState.Atomic);
@@ -191,7 +197,7 @@ BOOLEAN KphpInformerGlobalAllowed(
 
     allowed = KphRateLimitConsumeToken(&state->RateLimit[Index], TimeStamp);
 
-    KphDereferenceObject(state);
+    KphDereferenceObjectDeferDelete(state);
 
     return allowed;
 }
@@ -204,12 +210,15 @@ BOOLEAN KphpInformerGlobalAllowed(
  *
  * \return TRUE if the informer is allowed, FALSE otherwise.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 BOOLEAN KphInformerAllowed(
     _In_ ULONG Index,
     _In_opt_ PKPH_INFORMER_CONTEXT Context
     )
 {
     LARGE_INTEGER timeStamp;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     if (!NT_VERIFY(Index < KPH_INFORMER_COUNT))
     {
@@ -246,12 +255,15 @@ BOOLEAN KphInformerAllowed(
  *
  * \return Active informer options.
  */
+_IRQL_requires_max_(HIGH_LEVEL)
 KPH_INFORMER_OPTIONS KphInformerOptions(
     _In_opt_ PKPH_INFORMER_CONTEXT Context
     )
 {
     PKPH_INFORMER_STATE state;
     KPH_INFORMER_OPTIONS options;
+
+    KPH_NPAGED_CODE_HIGH_MAX();
 
     options.Flags = 0;
 
@@ -260,7 +272,7 @@ KPH_INFORMER_OPTIONS KphInformerOptions(
 
     SetFlag(options.Flags, state->Options.Flags);
 
-    KphDereferenceObject(state);
+    KphDereferenceObjectDeferDelete(state);
 
     if (Context)
     {
@@ -274,7 +286,7 @@ KPH_INFORMER_OPTIONS KphInformerOptions(
             if (state)
             {
                 SetFlag(options.Flags, state->Options.Flags);
-                KphDereferenceObject(state);
+                KphDereferenceObjectDeferDelete(state);
             }
         }
     }

@@ -347,7 +347,6 @@ _Pragma("warning(disable : 30030)")                                            \
 KphpGetSystemAddressForMdl(mdl, priority)                                      \
 _Pragma("warning(pop)")
 
-#pragma deprecated("ObReferenceObjectByHandle")
 _IRQL_requires_max_(APC_LEVEL)
 _Must_inspect_result_
 FORCEINLINE
@@ -360,7 +359,6 @@ NTSTATUS KphpObReferenceObjectByHandle(
     _Out_opt_ POBJECT_HANDLE_INFORMATION HandleInformation
     )
 {
-#pragma warning(disable: 4995)   // suppress deprecation warning
 #pragma prefast(suppress: 28118) // allow at APC_LEVEL
     return ObReferenceObjectByHandle(Handle,
                                      DesiredAccess,
@@ -370,6 +368,62 @@ NTSTATUS KphpObReferenceObjectByHandle(
                                      HandleInformation);
 }
 #define ObReferenceObjectByHandle KphpObReferenceObjectByHandle
+
+_IRQL_requires_max_(HIGH_LEVEL)
+FORCEINLINE
+PETHREAD KphpGetCurrentThread(
+    VOID
+    )
+{
+#pragma prefast(suppress: 28118) // allow at HIGH_LEVEL
+    return PsGetCurrentThread();
+}
+#define PsGetCurrentThread KphpGetCurrentThread
+
+_IRQL_requires_max_(HIGH_LEVEL)
+FORCEINLINE
+HANDLE KphpGetCurrentThreadId(
+    VOID
+    )
+{
+#pragma prefast(suppress: 28118) // allow at HIGH_LEVEL
+    return PsGetCurrentThreadId();
+}
+#define PsGetCurrentThreadId KphpGetCurrentThreadId
+
+_IRQL_requires_max_(HIGH_LEVEL)
+FORCEINLINE
+HANDLE KphpGetThreadId(
+    _In_ PETHREAD Thread
+    )
+{
+#pragma prefast(suppress: 28118) // allow at HIGH_LEVEL
+    return PsGetThreadId(Thread);
+}
+#define PsGetThreadId KphpGetThreadId
+
+_IRQL_requires_max_(HIGH_LEVEL)
+FORCEINLINE
+PEPROCESS KphpGetCurrentProcess(
+    VOID
+    )
+{
+#pragma prefast(suppress: 28118) // allow at HIGH_LEVEL
+    return PsGetCurrentProcess();
+}
+#undef PsGetCurrentProcess
+#define PsGetCurrentProcess KphpGetCurrentProcess
+
+_IRQL_requires_max_(HIGH_LEVEL)
+FORCEINLINE
+HANDLE KphpGetProcessId(
+    _In_ PEPROCESS Process
+    )
+{
+#pragma prefast(suppress: 28118) // allow at HIGH_LEVEL
+    return PsGetProcessId(Process);
+}
+#define PsGetProcessId KphpGetProcessId
 
 // main
 
@@ -772,6 +826,7 @@ typedef struct _KPH_DYN
     BCRYPT_KEY_HANDLE SessionTokenPublicKeyHandle;
 } KPH_DYN, *PKPH_DYN;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_DYN KphReferenceDynData(
     VOID
@@ -817,12 +872,14 @@ VOID KphCleanupDynData(
 #define IsPseudoHandle(Handle) (((ULONG_PTR)(Handle) <= (ULONG_PTR)-1) && \
                                 ((ULONG_PTR)(Handle) >= (ULONG_PTR)-6))
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PVOID KphObpDecodeObject(
     _In_ PKPH_DYN Dyn,
     _In_ PHANDLE_TABLE_ENTRY HandleTableEntry
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG KphObpGetHandleAttributes(
     _In_ PKPH_DYN Dyn,
     _In_ PHANDLE_TABLE_ENTRY HandleTableEntry
@@ -1147,6 +1204,7 @@ KPH_BINARY_SEARCH_CALLBACK(
     );
 typedef KPH_BINARY_SEARCH_CALLBACK* PKPH_BINARY_SEARCH_CALLBACK;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 _Success_(return != NULL)
 PVOID KphBinarySearch(
@@ -1169,6 +1227,7 @@ KPH_QUICK_SORT_CALLBACK(
     );
 typedef KPH_QUICK_SORT_CALLBACK* PKPH_QUICK_SORT_CALLBACK;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphQuickSort(
     _Inout_updates_bytes_(NumberOfElements * SizeOfElement) PVOID Base,
     _In_ ULONG NumberOfElements,
@@ -1177,6 +1236,7 @@ VOID KphQuickSort(
     _In_opt_ PVOID Context
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 _Success_(return != NULL)
 PVOID KphSearchMemory(
@@ -1421,10 +1481,12 @@ NTSTATUS KphDominationAndPrivilegeCheck(
     _In_ KPROCESSOR_MODE AccessMode
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG64 KphGetProcessSequenceNumber(
     _In_ PEPROCESS Process
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONG64 KphGetProcessStartKey(
     _In_ PEPROCESS Process
     );
@@ -1432,15 +1494,18 @@ ULONG64 KphGetProcessStartKey(
 #define KphGetCurrentProcessStartKey() KphGetProcessStartKey(PsGetThreadProcess(PsGetCurrentThread()))
 #define KphGetThreadProcessStartKey(thread) KphGetProcessStartKey(PsGetThreadProcess(thread))
 
+_IRQL_requires_max_(HIGH_LEVEL)
 PVOID KphGetCurrentThreadSubProcessTag(
     VOID
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 PVOID KphGetThreadSubProcessTagEx(
     _In_ PETHREAD Thread,
     _In_ BOOLEAN CacheOnly
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 PVOID KphGetThreadSubProcessTag(
     _In_ PETHREAD Thread
     );
@@ -1663,12 +1728,14 @@ VOID KphObjectInitialize(
     VOID
     );
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 VOID KphCreateObjectType(
     _In_ PCUNICODE_STRING TypeName,
     _In_ PKPH_OBJECT_TYPE_INFO TypeInfo,
     _Outptr_ PKPH_OBJECT_TYPE* ObjectType
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphCreateObject(
     _In_ PKPH_OBJECT_TYPE ObjectType,
@@ -1677,10 +1744,12 @@ NTSTATUS KphCreateObject(
     _In_opt_ PVOID Parameter
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphReferenceObject(
     _In_ PVOID Object
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphDereferenceObject(
     _In_ PVOID Object
     );
@@ -1690,6 +1759,7 @@ VOID KphDereferenceObjectDeferDelete(
     _In_ PVOID Object
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_OBJECT_TYPE KphGetObjectType(
     _In_ PVOID Object
@@ -1702,16 +1772,19 @@ typedef struct _KPH_ATOMIC_OBJECT_REF
 
 #define KPH_ATOMIC_OBJECT_REF_INIT { .Object = 0 }
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PVOID KphAtomicReferenceObject(
     _In_ PKPH_ATOMIC_OBJECT_REF ObjectRef
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphAtomicAssignObjectReference(
     _Inout_ PKPH_ATOMIC_OBJECT_REF ObjectRef,
     _In_opt_ PVOID Object
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PVOID KphAtomicMoveObjectReference(
     _Inout_ PKPH_ATOMIC_OBJECT_REF ObjectRef,
@@ -1731,11 +1804,13 @@ typedef struct _KPH_CID_TABLE
     ULONG_PTR Table;
 } KPH_CID_TABLE, *PKPH_CID_TABLE;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PVOID KphCidReferenceObject(
     _In_ PKPH_CID_TABLE_ENTRY Entry
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_CID_TABLE_ENTRY KphCidLookupEntry(
     _In_ HANDLE Cid,
@@ -2052,16 +2127,19 @@ VOID KphCidMarkPopulated(
     VOID
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetSystemProcessContext(
     VOID
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetProcessContext(
     _In_ HANDLE ProcessId
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_PROCESS_CONTEXT KphGetEProcessContext(
     _In_ PEPROCESS Process
@@ -2069,6 +2147,7 @@ PKPH_PROCESS_CONTEXT KphGetEProcessContext(
 
 #define KphGetCurrentProcessContext() KphGetEProcessContext(PsGetCurrentProcess())
 
+_IRQL_requires_max_(HIGH_LEVEL)
 _Must_inspect_result_
 PKPH_THREAD_CONTEXT KphGetThreadContext(
     _In_ HANDLE ThreadId
@@ -2373,7 +2452,7 @@ typedef enum _KSI_KAPC_CLEANUP_REASON
 typedef
 _Function_class_(KSI_KCLEANUP_ROUTINE)
 _IRQL_requires_min_(PASSIVE_LEVEL)
-_IRQL_requires_max_(APC_LEVEL)
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _IRQL_requires_same_
 VOID
 KSIAPI
@@ -2400,6 +2479,7 @@ typedef KSI_KKERNEL_ROUTINE *PKSI_KKERNEL_ROUTINE;
 
 C_ASSERT(FIELD_OFFSET(KSI_KAPC, Apc) == 0);
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 KSISYSAPI
 VOID
 KSIAPI
@@ -2415,6 +2495,7 @@ KsiInitializeApc(
     _In_opt_ PVOID NormalContext
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 KSISYSAPI
 BOOLEAN
 KSIAPI
@@ -2425,6 +2506,7 @@ KsiInsertQueueApc(
     _In_ KPRIORITY PriorityBoost
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 KSISYSAPI
 NTSTATUS
 KSIAPI
@@ -2722,17 +2804,20 @@ typedef struct _KPH_RING_BUFFER
     PEPROCESS Process;
 } KPH_RING_BUFFER, *PKPH_RING_BUFFER;
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 _Return_allocatesMem_size_(Length)
 PVOID KphReserveRingBuffer(
     _In_ PKPH_RING_BUFFER Ring,
     _In_ ULONG Length
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphCommitRingBuffer(
     _In_ PKPH_RING_BUFFER Ring,
     _In_freesMem_ PVOID Buffer
     );
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KphDiscardRingBuffer(
     _In_ PKPH_RING_BUFFER Ring,
     _In_freesMem_ PVOID Buffer
@@ -2914,12 +2999,14 @@ typedef struct _KPH_RATE_LIMIT
     LONG64 CasMiss;
 } KPH_RATE_LIMIT, *PKPH_RATE_LIMIT;
 
+_IRQL_requires_max_(HIGH_LEVEL)
 VOID KphInitializeRateLimit(
     _In_ PCKPH_RATE_LIMIT_POLICY Policy,
     _In_ PLARGE_INTEGER TimeStamp,
     _Out_ PKPH_RATE_LIMIT RateLimit
     );
 
+_IRQL_requires_max_(HIGH_LEVEL)
 BOOLEAN KphRateLimitConsumeToken(
     _Inout_ PKPH_RATE_LIMIT RateLimit,
     _In_ PLARGE_INTEGER TimeStamp

@@ -149,6 +149,7 @@ VOID NTAPI KsipApcKernelRoutine(
     ObDereferenceObjectDeferDelete(driverObject);
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 VOID KSIAPI KsiInitializeApc(
     _Out_ PKSI_KAPC Apc,
     _In_ PDRIVER_OBJECT DriverObject,
@@ -161,6 +162,8 @@ VOID KSIAPI KsiInitializeApc(
     _In_opt_ PVOID NormalContext
     )
 {
+    KPH_NPAGED_CODE_DISPATCH_MAX();
+
     KeInitializeApc(&Apc->Apc,
                     Thread,
                     Environment,
@@ -176,6 +179,7 @@ VOID KSIAPI KsiInitializeApc(
     Apc->InternalContext = NULL;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN KSIAPI KsiInsertQueueApc(
     _Inout_ PKSI_KAPC Apc,
     _In_opt_ PVOID SystemArgument1,
@@ -184,6 +188,8 @@ BOOLEAN KSIAPI KsiInsertQueueApc(
     )
 {
     BOOLEAN result;
+
+    KPH_NPAGED_CODE_DISPATCH_MAX();
 
     ObReferenceObject(Apc->DriverObject);
 
@@ -199,12 +205,15 @@ BOOLEAN KSIAPI KsiInsertQueueApc(
     return result;
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS KSIAPI KsiRemoveQueueApc(
     _Inout_ PKSI_KAPC Apc
     )
 {
     PDRIVER_OBJECT driverObject;
     PKSI_KCLEANUP_ROUTINE cleanupRoutine;
+
+    KPH_NPAGED_CODE_DISPATCH_MAX();
 
     if (!KsipKeRemoveQueueApc)
     {
@@ -604,10 +613,13 @@ VOID KSIAPI KsiUninitialize(
     UNREFERENCED_PARAMETER(Reserved);
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS DllUnload(
     VOID
     )
 {
+    KPH_NPAGED_CODE_PASSIVE();
+
     //
     // N.B. It used to be that not specifying a DllUnload routine would
     // enforce that your export driver can not be unloaded by not activating
@@ -618,10 +630,13 @@ NTSTATUS DllUnload(
     return STATUS_NOT_SUPPORTED;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS DllInitialize(
     _In_ PUNICODE_STRING RegistryPath
     )
 {
+    KPH_NPAGED_CODE_PASSIVE();
+
     UNREFERENCED_PARAMETER(RegistryPath);
 
     __security_init_cookie();

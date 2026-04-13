@@ -815,7 +815,8 @@ PsGetProcessImageFileName(
 
 typedef
 _Function_class_(PS_GET_PROCESS_SEQUENCE_NUMBER)
-_IRQL_requires_max_(DISPATCH_LEVEL)
+//_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONGLONG
 PS_GET_PROCESS_SEQUENCE_NUMBER(
     _In_ PEPROCESS Process
@@ -824,7 +825,8 @@ typedef PS_GET_PROCESS_SEQUENCE_NUMBER* PPS_GET_PROCESS_SEQUENCE_NUMBER;
 
 typedef
 _Function_class_(PS_GET_PROCESS_START_KEY)
-_IRQL_requires_max_(DISPATCH_LEVEL)
+//_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(HIGH_LEVEL)
 ULONGLONG
 PS_GET_PROCESS_START_KEY(
     _In_ PEPROCESS Process
