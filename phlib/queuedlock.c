@@ -373,7 +373,7 @@ FORCEINLINE VOID PhpOptimizeQueuedLockListEx(
     PPH_QUEUED_WAIT_BLOCK lastWaitBlock;
     PPH_QUEUED_WAIT_BLOCK previousWaitBlock;
 
-    value = ReadULongPtrAcquire(&Value);
+    value = Value;
 
     while (TRUE)
     {
@@ -469,7 +469,7 @@ FORCEINLINE PPH_QUEUED_WAIT_BLOCK PhpPrepareToWakeQueuedLock(
     PPH_QUEUED_WAIT_BLOCK lastWaitBlock;
     PPH_QUEUED_WAIT_BLOCK previousWaitBlock;
 
-    value = ReadULongPtrAcquire(&Value);
+    value = Value;
 
     while (TRUE)
     {
