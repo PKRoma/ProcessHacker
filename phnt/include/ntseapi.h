@@ -491,6 +491,7 @@ typedef struct _TOKEN_LOGGING_INFORMATION
  * \param Source Pointer to a TOKEN_SOURCE structure specifying the source of the token.
  * \return NTSTATUS code indicating success or failure.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -526,6 +527,7 @@ NtCreateToken(
  * \return NTSTATUS code indicating success or failure.
  * \sa https://learn.microsoft.com/en-us/windows/win32/secauthz/ntcreatelowboxtoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -565,6 +567,7 @@ NtCreateLowBoxToken(
  * \param Source Pointer to a TOKEN_SOURCE structure specifying the source of the token.
  * \return NTSTATUS code indicating success or failure.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -598,6 +601,7 @@ NtCreateTokenEx(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntopenprocesstoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -617,6 +621,7 @@ NtOpenProcessToken(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntopenprocesstokenex
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -637,6 +642,7 @@ NtOpenProcessTokenEx(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntopenthreadtoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -658,6 +664,7 @@ NtOpenThreadToken(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntopenthreadtokenex
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -681,6 +688,7 @@ NtOpenThreadTokenEx(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntduplicatetoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -705,6 +713,7 @@ NtDuplicateToken(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntqueryinformationtoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -726,6 +735,7 @@ NtQueryInformationToken(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntsetinformationtoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -749,6 +759,7 @@ NtSetInformationToken(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-adjusttokenprivileges
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -773,6 +784,7 @@ NtAdjustPrivilegesToken(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-adjusttokengroups
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -786,6 +798,7 @@ NtAdjustGroupsToken(
     );
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_8)
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -827,6 +840,7 @@ NtAdjustTokenClaimsAndDeviceGroups(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-sefiltertoken
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -840,6 +854,7 @@ NtFilterToken(
     );
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_8)
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -870,6 +885,7 @@ NtFilterTokenEx(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/secauthz/ntcomparetokens
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -888,6 +904,7 @@ NtCompareTokens(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-privilegecheck
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -903,6 +920,7 @@ NtPrivilegeCheck(
  * \param ThreadHandle Handle to the thread that will impersonate the anonymous token. The handle must have THREAD_DIRECT_IMPERSONATION access.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -921,6 +939,7 @@ NtImpersonateAnonymousToken(
  * \param ReturnLength Pointer to a variable that receives the number of bytes required to store the complete security attribute information.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -950,6 +969,7 @@ NtQuerySecurityAttributesToken(
  * \return NTSTATUS code indicating success or failure.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-accesscheck
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -981,6 +1001,7 @@ NtAccessCheck(
  * \return NTSTATUS code indicating success or failure.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-accesscheckbytype
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1015,6 +1036,7 @@ NtAccessCheckByType(
  * \return NTSTATUS code indicating success or failure.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-accesscheckbytyperesultlist
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1052,6 +1074,7 @@ NtAccessCheckByTypeResultList(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-getcachedsigninglevel
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1075,6 +1098,7 @@ NtGetCachedSigningLevel(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-setcachedsigninglevel
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1104,6 +1128,7 @@ typedef struct _SE_SET_FILE_CACHE_INFORMATION
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS1)
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1119,6 +1144,7 @@ NtSetCachedSigningLevel2(
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS2)
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1150,6 +1176,7 @@ NtCompareSigningLevels(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-accesscheckandauditalarma
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1190,6 +1217,7 @@ NtAccessCheckAndAuditAlarm(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-accesscheckbytypeandauditalarma
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1235,6 +1263,7 @@ NtAccessCheckByTypeAndAuditAlarm(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-accesscheckbytyperesultlistandauditalarma
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1281,6 +1310,7 @@ NtAccessCheckByTypeResultListAndAuditAlarm(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-accesscheckbytyperesultlistandauditalarmbyhandlea
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1321,6 +1351,7 @@ NtAccessCheckByTypeResultListAndAuditAlarmByHandle(
  * \param GenerateOnClose A pointer to a flag set by the audit-generation routine when the function returns.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1350,6 +1381,7 @@ NtOpenObjectAuditAlarm(
  * \param AccessGranted Specifies a flag that determines whether access was granted.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1370,6 +1402,7 @@ NtPrivilegeObjectAuditAlarm(
  * \param GenerateOnClose Specifies a flag that determines whether to generate an audit on close.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1387,6 +1420,7 @@ NtCloseObjectAuditAlarm(
  * \param GenerateOnClose Specifies a flag that determines whether to generate an audit on close.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1407,6 +1441,7 @@ NtDeleteObjectAuditAlarm(
  * \return NTSTATUS Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-privilegedserviceauditalarma
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI

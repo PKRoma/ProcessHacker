@@ -6490,6 +6490,7 @@ typedef struct _ETW_MAX_PMC_COUNTER_INFORMATION
  * \param ReturnLength A pointer to a variable that receives the size of the data returned in the output buffer.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -6511,6 +6512,7 @@ NtTraceControl(
  * \param Fields A pointer to the event data or header structure.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
