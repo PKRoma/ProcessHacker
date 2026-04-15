@@ -152,7 +152,7 @@ static CONST PH_KEY_VALUE_PAIR PhSidTypePairs[] =
     SIP(L"Alias", SidTypeAlias),
     SIP(L"WellKnownGroup", SidTypeWellKnownGroup),
     SIP(L"DeletedAccount", SidTypeDeletedAccount),
-    SIP(L"Yes (Limited)", SidTypeInvalid),
+    SIP(L"Invalid", SidTypeInvalid),
     SIP(L"Unknown", SidTypeUnknown),
     SIP(L"Computer", SidTypeComputer),
     SIP(L"Label", SidTypeLabel),
@@ -923,13 +923,20 @@ NTSTATUS NTAPI PhpEnumeratePrivilegesCallback(
         PPH_STRING privilegeDisplayName;
         PPHP_TOKEN_PAGE_LISTVIEW_ITEM lvitem;
         LONG itemIndex;
+        BOOLEAN found = FALSE;
 
         for (ULONG j = 0; j < tokenPageContext->Privileges->PrivilegeCount; j++)
         {
             if (RtlIsEqualLuid(&tokenPageContext->Privileges->Privileges[j].Luid, &Privileges[i].LocalValue))
             {
-                continue;
+                found = TRUE;
+                break;
             }
+        }
+                
+        if (found)
+        {
+            continue;
         }
 
         privilegeName = PhCreateStringFromUnicodeString(&Privileges[i].Name);
@@ -2558,7 +2565,7 @@ INT_PTR CALLBACK PhpTokenGeneralPageProc(
 
                 if (NT_SUCCESS(PhGetTokenUIAccess(tokenHandle, &isUIAccessEnabled)))
                 {
-                    tokenUIAccess = isUIAccessEnabled ? L"Enabled": L"Disabled";
+                    tokenUIAccess = isUIAccessEnabled ? L"Enabled" : L"Disabled";
                 }
 
                 tokenPageContext->CloseObject(tokenHandle, FALSE, tokenPageContext->Context);
@@ -4731,7 +4738,7 @@ typedef enum _AppModelPolicy_Type
     AppModelPolicy_Type_BackgroundTaskRegistrationType = 57,
     AppModelPolicy_Type_ModsPowerNotification = 58,
     AppModelPolicy_Type_DamRegistration = 59, // since 24H2
-    AppModelPolicy_Type_Count = 59,
+    AppModelPolicy_Type_Count = 60,
 } AppModelPolicy_Type;
 
 typedef enum _AppModelPolicy_PolicyValue
