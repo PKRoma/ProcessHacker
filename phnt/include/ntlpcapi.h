@@ -205,6 +205,7 @@ typedef struct _REMOTE_PORT_VIEW64
  * \param MaxPoolUsage Maximum amount of paged pool memory for this port.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -226,6 +227,7 @@ NtCreatePort(
  * \param MaxPoolUsage Maximum amount of paged pool memory for this port.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -254,6 +256,7 @@ NtCreateWaitablePort(
  * \param ConnectionInformationLength Optional size of the connection information.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -282,6 +285,7 @@ NtConnectPort(
  * \param ConnectionInformationLength Optional size of the connection information.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -308,6 +312,7 @@ NtSecureConnectPort(
  * \param ConnectionRequest Receives the details of the connection request.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -327,6 +332,7 @@ NtListenPort(
  * \param ClientView Optional shared memory mapping for the client.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -345,6 +351,7 @@ NtAcceptConnectPort(
  * \param PortHandle Handle to the server communication port.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -363,6 +370,7 @@ NtCompleteConnectPort(
  * \param RequestMessage Pointer to the message to be sent.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -379,6 +387,7 @@ NtRequestPort(
  * \param ReplyMessage Receives the reply message.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -395,6 +404,7 @@ NtRequestWaitReplyPort(
  * \param ReplyMessage Pointer to the reply message.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -410,6 +420,7 @@ NtReplyPort(
  * \param ReplyMessage On input, the reply data; on output, the next reply received.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -426,6 +437,7 @@ NtReplyWaitReplyPort(
  * \param ReplyMessage Optional pointer to the reply message.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -446,6 +458,7 @@ NtReplyWaitReceivePort(
  * \param Timeout Optional timeout for the wait.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -464,6 +477,7 @@ NtReplyWaitReceivePortEx(
  * \param Message Pointer to the message from the client to impersonate.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -483,6 +497,7 @@ NtImpersonateClientOfPort(
  * \param NumberOfBytesRead Optional receives the actual number of bytes read.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -506,6 +521,7 @@ NtReadRequestData(
  * \param NumberOfBytesWritten Optional receives the actual number of bytes written.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -534,6 +550,7 @@ typedef enum _PORT_INFORMATION_CLASS
  * \param ReturnLength Optional receives the number of bytes returned.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -892,6 +909,7 @@ typedef struct _ALPC_MESSAGE_HANDLE_INFORMATION
  * \param PortAttributes Defines the operational characteristics and limits of the port.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -933,6 +951,7 @@ typedef enum _ALPC_DISCONNECT_PORT_FLAGS
  * \param Flags Disconnect flags.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -951,6 +970,7 @@ NtAlpcDisconnectPort(
  * \param ReturnLength Optional receives the number of bytes returned.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -971,6 +991,7 @@ NtAlpcQueryInformation(
  * \param Length Size of the buffer.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -996,6 +1017,7 @@ NtAlpcSetInformation(
  * \param ActualSectionSize Receives the actual size of the section created.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1016,6 +1038,7 @@ NtAlpcCreatePortSection(
  * \param SectionHandle Handle to the ALPC section to delete.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1034,6 +1057,7 @@ NtAlpcDeletePortSection(
  * \param ResourceId Receives the ID of the created resource reserve.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1052,6 +1076,7 @@ NtAlpcCreateResourceReserve(
  * \param ResourceId ID of the resource reserve to delete.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1069,6 +1094,7 @@ NtAlpcDeleteResourceReserve(
  * \param ViewAttributes Specifies the view attributes to create.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1086,6 +1112,7 @@ NtAlpcCreateSectionView(
  * \param ViewBase Base address of the view to delete.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1103,6 +1130,7 @@ NtAlpcDeleteSectionView(
  * \param SecurityAttribute Specifies the security attributes and QoS.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1120,6 +1148,7 @@ NtAlpcCreateSecurityContext(
  * \param ContextHandle Handle to the security context to delete.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1137,6 +1166,7 @@ NtAlpcDeleteSecurityContext(
  * \param ContextHandle Handle to the security context to revoke.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1157,6 +1187,7 @@ NtAlpcRevokeSecurityContext(
  * \param ReturnLength Optional receives the number of bytes returned.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1205,6 +1236,7 @@ typedef enum _ALPC_MESSAGE_FLAGS
  * \param Timeout Optional timeout for the connection request.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1239,6 +1271,7 @@ NtAlpcConnectPort(
  * \param Timeout Optional timeout for the connection request.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1278,6 +1311,7 @@ typedef enum _ALPC_PORT_FLAGS
  * \param AcceptConnection TRUE to accept the connection, FALSE to reject it.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1306,6 +1340,7 @@ NtAlpcAcceptConnectPort(
  * \param Timeout Optional timeout for the wait.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1340,6 +1375,7 @@ typedef enum _ALPC_CANCEL_FLAGS
  * \param MessageContext Context identifying the message to cancel.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1370,6 +1406,7 @@ typedef enum _ALPC_IMPERSONATE_FLAGS
  * \param Flags Impersonation flags.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1388,6 +1425,7 @@ NtAlpcImpersonateClientOfPort(
  * \param Flags Impersonation flags.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1409,6 +1447,7 @@ NtAlpcImpersonateClientContainerOfPort(
  * \param ObjectAttributes Specifies the object attributes for the process handle.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -1432,6 +1471,7 @@ NtAlpcOpenSenderProcess(
  * \param ObjectAttributes Specifies the object attributes for the thread handle.
  * \return NTSTATUS Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
