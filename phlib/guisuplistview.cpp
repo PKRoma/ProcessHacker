@@ -1006,7 +1006,7 @@ BOOLEAN PhListView_SetItemState(
 {
     if (Context->ListViewInterface && NtCurrentThreadId() == Context->ThreadId)
     {
-        if (HR_SUCCESS(Context->ListViewInterface->SetItemState(ItemIndex, 0, (LV_LISTVIEW_ITEM_STATE_FLAGS)State, (LV_LISTVIEW_ITEM_STATE_FLAGS)Mask)))
+        if (HR_SUCCESS(Context->ListViewInterface->SetItemState(ItemIndex, 0, (LV_LISTVIEW_ITEM_STATE_FLAGS)Mask, (LV_LISTVIEW_ITEM_STATE_FLAGS)State)))
             return TRUE;
     }
     else
@@ -1451,6 +1451,7 @@ BOOLEAN PhListView_GetClientRect(
     }
     else
     {
+        //ListView_GetViewRect(Context->ListViewHandle, ClientRect);
         return !!GetClientRect(Context->ListViewHandle, ClientRect);
     }
 }
