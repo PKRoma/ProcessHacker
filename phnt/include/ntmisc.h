@@ -251,6 +251,7 @@ typedef struct _AHC_SERVICE_DATA
     ULONG ParamsOutSize;                        // Parameters out size.
 } AHC_SERVICE_DATA, *PAHC_SERVICE_DATA;
 
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -283,6 +284,7 @@ typedef enum _VDMSERVICECLASS
     VdmPreInitialize
 } VDMSERVICECLASS, *PVDMSERVICECLASS;
 
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -322,6 +324,7 @@ typedef enum _IO_SESSION_STATE
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
 
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -331,6 +334,7 @@ NtOpenSession(
     _In_ POBJECT_ATTRIBUTES ObjectAttributes
     );
 
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -379,6 +383,7 @@ typedef enum _SECURE_SETTING_VALUE_TYPE
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_RS1)
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -394,6 +399,7 @@ NtQuerySecurityPolicy(
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_20H1)
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -407,6 +413,7 @@ NtCreateCrossVmEvent(
     );
 
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -420,6 +427,7 @@ NtCreateCrossVmMutant(
     );
 
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -431,6 +439,7 @@ NtAcquireCrossVmMutant(
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_10_20H1)
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -445,6 +454,7 @@ NtDirectGraphicsCall(
 
 #if (PHNT_VERSION >= PHNT_WINDOWS_11_22H2)
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -455,6 +465,7 @@ NtOpenCpuPartition(
     );
 
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -465,6 +476,7 @@ NtCreateCpuPartition(
     );
 
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -479,6 +491,7 @@ NtSetInformationCpuPartition(
     );
 
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -504,6 +517,7 @@ typedef enum _PROCESS_ACTIVITY_TYPE
 } PROCESS_ACTIVITY_TYPE;
 
 // rev
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
