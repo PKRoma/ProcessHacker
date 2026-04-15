@@ -239,7 +239,7 @@ DECLARE_INTERFACE_(IOwnerDataCallback, IUnknown)
      * Sets the position of an item.
      *
      * \param ItemIndex The zero-based index of the item.
-     * \param position The desired item position in view coordinates.
+     * \param Position The desired item position in view coordinates.
      * \return HRESULT indicating success or failure.
      */
     DECLSPEC_XFGVIRT(IOwnerDataCallback, SetItemPosition)
@@ -248,9 +248,9 @@ DECLARE_INTERFACE_(IOwnerDataCallback, IUnknown)
     /**
      * Maps a group-wide index to the control-wide item index.
      *
-     * \param groupIndex Zero-based list view group index.
-     * \param groupWideItemIndex Zero-based index of the item within the group.
-     * \param pTotalItemIndex Receives the control-wide item index.
+     * \param GroupIndex Zero-based list view group index.
+     * \param GroupWideItemIndex Zero-based index of the item within the group.
+     * \param TotalItemIndex Receives the control-wide item index.
      * \return HRESULT indicating success or failure.
      */
     DECLSPEC_XFGVIRT(IOwnerDataCallback, GetItemInGroup)
@@ -260,22 +260,22 @@ DECLARE_INTERFACE_(IOwnerDataCallback, IUnknown)
      * Retrieves the group for a specific occurrence of an item.
      *
      * \param ItemIndex Control-wide zero-based item index.
-     * \param occurenceIndex Zero-based occurrence index of the item.
-     * \param pGroupIndex Receives the group's zero-based index.
+     * \param OccurrenceIndex Zero-based occurrence index of the item.
+     * \param GroupIndex Receives the group's zero-based index.
      * \return HRESULT indicating success or failure.
      */
     DECLSPEC_XFGVIRT(IOwnerDataCallback, GetItemGroup)
-    STDMETHOD(GetItemGroup)(THIS_ _In_ LONG ItemIndex, _In_ LONG OccurenceIndex, _Out_ PLONG GroupIndex) PURE;
+    STDMETHOD(GetItemGroup)(THIS_ _In_ LONG ItemIndex, _In_ LONG OccurrenceIndex, _Out_ PLONG GroupIndex) PURE;
 
     /**
      * Retrieves how often an item occurs in the control.
      *
      * \param ItemIndex Control-wide zero-based item index.
-     * \param pOccurenceCount Receives the number of occurrences.
+     * \param OccurrenceCount Receives the number of occurrences.
      * \return HRESULT indicating success or failure.
      */
     DECLSPEC_XFGVIRT(IOwnerDataCallback, GetItemGroupCount)
-    STDMETHOD(GetItemGroupCount)(THIS_ _In_ LONG ItemIndex, _Out_ PLONG OccurenceCount) PURE;
+    STDMETHOD(GetItemGroupCount)(THIS_ _In_ LONG ItemIndex, _Out_ PLONG OccurrenceCount) PURE;
 
     /**
      * Provides a cache hint for a range of items.
@@ -1468,7 +1468,7 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
 
 #ifdef COBJMACROS
 
-#define IListViewQueryInterface(This,riid,ppvObject) \
+#define IListView_QueryInterface(This,riid,ppvObject) \
     ((This)->lpVtbl->QueryInterface(This,riid,ppvObject))
 #define IListView_AddRef(This) \
     ((This)->lpVtbl->AddRef(This))
@@ -1477,11 +1477,11 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
 #define IListView_GetWindow(This, OleWindow, WindowHandle) \
     ((This)->lpVtbl->GetWindow(This, OleWindow, WindowHandle))
 #define IListView_ContextSensitiveHelp(This, EnterMode) \
-    ((This)->lpVtbl->ContextSensitiveHelp(This, fEnterMode))
+    ((This)->lpVtbl->ContextSensitiveHelp(This, EnterMode))
 #define IListView_GetImageList(This, ImageList, NewImageList) \
     ((This)->lpVtbl->GetImageList(This, ImageList, ImageList))
 #define IListView_SetImageList(This, ImageList, NewImageList, OldImageList) \
-    ((This)->lpVtbl->SetImageList(This, ImageList, hNewImageList, OldImageList))
+    ((This)->lpVtbl->SetImageList(This, ImageList, NewImageList, OldImageList))
 #define IListView_GetBackgroundColor(This, Color) \
     ((This)->lpVtbl->GetBackgroundColor(This, Color))
 #define IListView_SetBackgroundColor(This, Color) \
