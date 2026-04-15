@@ -2405,6 +2405,7 @@ typedef struct _POWER_INFORMATION_BBR_DIRECT_ACCESS_RESPONSE_OUTPUT
  * \return Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-ntpowerinformation
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2425,6 +2426,7 @@ NtPowerInformation(
  * \return Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2441,6 +2443,7 @@ NtSetThreadExecutionState(
  * \param latency The desired latency time.
  * \return Successful or errant status.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2459,6 +2462,7 @@ NtRequestWakeupLatency(
  * \return Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-initiatesystemshutdownw
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2478,6 +2482,7 @@ NtInitiatePowerAction(
  * \return Successful or errant status.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setsystempowerstate
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2497,6 +2502,7 @@ NtSetSystemPowerState(
  * If the device is in a low-power state, accessing the device may cause it to either queue or fail any I/O requests, or transition the device into the working state.
  * The exact behavior depends on the implementation of the device.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
@@ -2510,6 +2516,7 @@ NtGetDevicePowerState(
 
  * \return BOOLEAN TRUE if the system resume is automatic, FALSE otherwise.
  */
+_Kernel_entry_
 NTSYSCALLAPI
 BOOLEAN
 NTAPI
