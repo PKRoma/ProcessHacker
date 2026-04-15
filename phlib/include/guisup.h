@@ -595,7 +595,7 @@ PhGetShellWindow(
     );
 
 /**
- * Converts default logical units (based on 96 DPI) to physical units appropriate for the current current monitor's display DPI.
+ * Converts default logical units (based on 96 DPI) to physical units appropriate for the current monitor's display DPI.
  * \param Value The value to scale.
  * \param Scale The target DPI scale.
  * \return The scaled value.
@@ -1606,7 +1606,7 @@ PhRemoveWindowContext(
  * Retrieves the window context pointer associated with a window handle.
  *
  * \param[in] WindowHandle A handle to the window from which to retrieve the context.
- * \return A pointer to the window context, or NULL if no context has been set. * *
+ * \return A pointer to the window context, or NULL if no context has been set.
  */
 FORCEINLINE
 PVOID
