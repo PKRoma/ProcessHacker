@@ -141,10 +141,12 @@ NTSTATUS PhCreateFileWin32Ex(
         0
         );
 
-    if (status == STATUS_SHARING_VIOLATION &&
-        KsiLevel() >= KphLevelMed &&
+    if (
+        status == STATUS_SHARING_VIOLATION &&
         (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&
-        CreateDisposition == KPH_FILE_READ_DISPOSITION)
+        CreateDisposition == KPH_FILE_READ_DISPOSITION &&
+        KsiLevel() >= KphLevelMed
+        )
     {
         status = KphCreateFile(
             &fileHandle,
@@ -175,6 +177,21 @@ NTSTATUS PhCreateFileWin32Ex(
     return status;
 }
 
+/**
+ * Creates or opens a file with extended create options.
+ *
+ * \param FileHandle A variable that receives the file handle.
+ * \param FileName The Win32 file name.
+ * \param DesiredAccess The desired access to the file.
+ * \param FileAttributes File attributes applied if the file is created or overwritten.
+ * \param ShareAccess The file access granted to other threads.
+ * \param CreateDisposition The action to perform if the file does or does not exist.
+ * \param CreateOptions The options to apply when the file is opened or created.
+ * \param CreateFlags Extended create flags.
+ * \param AllocationSize The initial allocation size if the file is being created, overwritten, or superseded.
+ * \param CreateStatus A variable that receives creation information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhCreateFileWin32ExAlt(
     _Out_ PHANDLE FileHandle,
     _In_ PCWSTR FileName,
@@ -230,10 +247,12 @@ NTSTATUS PhCreateFileWin32ExAlt(
         sizeof(EXTENDED_CREATE_INFORMATION)
         );
 
-    if (status == STATUS_SHARING_VIOLATION &&
-        KsiLevel() >= KphLevelMed &&
+    if (
+        status == STATUS_SHARING_VIOLATION &&
         (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&
-        CreateDisposition == KPH_FILE_READ_DISPOSITION)
+        CreateDisposition == KPH_FILE_READ_DISPOSITION &&
+        KsiLevel() >= KphLevelMed
+        )
     {
         status = KphCreateFile(
             &fileHandle,
@@ -326,10 +345,12 @@ NTSTATUS PhCreateFile(
         0
         );
 
-    if (status == STATUS_SHARING_VIOLATION &&
-        KsiLevel() >= KphLevelMed &&
+    if (
+        status == STATUS_SHARING_VIOLATION &&
         (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&
-        CreateDisposition == KPH_FILE_READ_DISPOSITION)
+        CreateDisposition == KPH_FILE_READ_DISPOSITION &&
+        KsiLevel() >= KphLevelMed
+        )
     {
         status = KphCreateFile(
             &fileHandle,
@@ -435,10 +456,12 @@ NTSTATUS PhCreateFileEx(
         0
         );
 
-    if (status == STATUS_SHARING_VIOLATION &&
-        KsiLevel() >= KphLevelMed &&
+    if (
+        status == STATUS_SHARING_VIOLATION &&
         (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&
-        CreateDisposition == KPH_FILE_READ_DISPOSITION)
+        CreateDisposition == KPH_FILE_READ_DISPOSITION &&
+        KsiLevel() >= KphLevelMed
+        )
     {
         status = KphCreateFile(
             &fileHandle,
@@ -467,6 +490,16 @@ NTSTATUS PhCreateFileEx(
     return status;
 }
 
+/**
+ * Opens a file using Win32 semantics.
+ *
+ * \param FileHandle A variable that receives the file handle.
+ * \param FileName The Win32 file name.
+ * \param DesiredAccess The desired access to the file.
+ * \param ShareAccess The file access granted to other threads.
+ * \param OpenOptions The options to apply when the file is opened.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhOpenFileWin32(
     _Out_ PHANDLE FileHandle,
     _In_ PCWSTR FileName,
@@ -485,6 +518,17 @@ NTSTATUS PhOpenFileWin32(
         );
 }
 
+/**
+ * Opens a file using Win32 semantics with extended options.
+ *
+ * \param FileHandle A variable that receives the file handle.
+ * \param FileName The Win32 file name.
+ * \param DesiredAccess The desired access to the file.
+ * \param ShareAccess The file access granted to other threads.
+ * \param OpenOptions The options to apply when the file is opened.
+ * \param OpenStatus A variable that receives open information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhOpenFileWin32Ex(
     _Out_ PHANDLE FileHandle,
     _In_ PCWSTR FileName,
@@ -540,6 +584,18 @@ NTSTATUS PhOpenFileWin32Ex(
     return status;
 }
 
+/**
+ * Opens a file.
+ *
+ * \param FileHandle A variable that receives the file handle.
+ * \param FileName The file name.
+ * \param DesiredAccess The desired access to the file.
+ * \param RootDirectory The root object directory for the file.
+ * \param ShareAccess The file access granted to other threads.
+ * \param OpenOptions The options to apply when the file is opened.
+ * \param OpenStatus A variable that receives open information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhOpenFile(
     _Out_ PHANDLE FileHandle,
     _In_ PCPH_STRINGREF FileName,
@@ -590,6 +646,17 @@ NTSTATUS PhOpenFile(
 }
 
 // rev from OpenFileById
+/**
+ * Opens a file by its file ID, object ID, or extended file ID.
+ *
+ * \param FileHandle A variable that receives the file handle.
+ * \param VolumeHandle A handle to the volume containing the file.
+ * \param FileId A pointer to a FILE_ID_DESCRIPTOR structure identifying the file.
+ * \param DesiredAccess The desired access to the file.
+ * \param ShareAccess The file access granted to other threads.
+ * \param OpenOptions The options to apply when the file is opened.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhOpenFileById(
     _Out_ PHANDLE FileHandle,
     _In_ HANDLE VolumeHandle,
@@ -706,9 +773,11 @@ NTSTATUS PhReOpenFile(
         0
         );
 
-    if (status == STATUS_SHARING_VIOLATION &&
-        KsiLevel() >= KphLevelMed &&
-        (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess)
+    if (
+        status == STATUS_SHARING_VIOLATION &&
+        (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&     
+        KsiLevel() >= KphLevelMed
+        )
     {
         assert(KPH_FILE_READ_DISPOSITION == FILE_OPEN);
 
@@ -736,6 +805,16 @@ NTSTATUS PhReOpenFile(
     return status;
 }
 
+/**
+ * Reads data from a file.
+ *
+ * \param FileHandle Handle to the file to read from.
+ * \param Buffer Pointer to the buffer that receives the data.
+ * \param NumberOfBytesToRead Number of bytes to read.
+ * \param ByteOffset Optional pointer to the byte offset in the file.
+ * \param NumberOfBytesRead Optional pointer to a variable that receives the number of bytes read.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhReadFile(
     _In_ HANDLE FileHandle,
     _Out_writes_bytes_(NumberOfBytesToRead) PVOID Buffer,
@@ -780,6 +859,16 @@ NTSTATUS PhReadFile(
     return status;
 }
 
+/**
+ * Writes data to a file.
+ *
+ * \param FileHandle Handle to the file to write to.
+ * \param Buffer Pointer to the buffer containing the data to write.
+ * \param NumberOfBytesToWrite Number of bytes to write.
+ * \param ByteOffset Optional pointer to the byte offset in the file.
+ * \param NumberOfBytesWritten Optional pointer to a variable that receives the number of bytes written.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhWriteFile(
     _In_ HANDLE FileHandle,
     _In_reads_bytes_(NumberOfBytesToWrite) PVOID Buffer,
@@ -824,6 +913,15 @@ NTSTATUS PhWriteFile(
     return status;
 }
 
+/**
+ * Enumerates files in a directory.
+ *
+ * \param FileHandle Handle to the directory.
+ * \param SearchPattern Optional search pattern.
+ * \param Callback Callback function for each entry.
+ * \param Context User-defined context for the callback.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhEnumDirectoryFile(
     _In_ HANDLE FileHandle,
     _In_opt_ PCPH_STRINGREF SearchPattern,
@@ -841,6 +939,17 @@ NTSTATUS PhEnumDirectoryFile(
         );
 }
 
+/**
+ * Enumerates files in a directory with extended options.
+ *
+ * \param FileHandle Handle to the directory.
+ * \param FileInformationClass The type of directory information to query.
+ * \param ReturnSingleEntry Whether to return a single entry.
+ * \param SearchPattern Optional search pattern.
+ * \param Callback Callback function for each entry.
+ * \param Context User-defined context for the callback.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhEnumDirectoryFileEx(
     _In_ HANDLE FileHandle,
     _In_ FILE_INFORMATION_CLASS FileInformationClass,
@@ -928,7 +1037,7 @@ NTSTATUS PhEnumDirectoryFileEx(
 
         while (TRUE)
         {
-            CONST PFILE_DIRECTORY_NEXT_INFORMATION information = PTR_ADD_OFFSET(buffer, i);
+            CONST FILE_DIRECTORY_NEXT_INFORMATION* information = PTR_ADD_OFFSET(buffer, i);
 
             if (!Callback(FileHandle, information, Context))
             {
@@ -1171,7 +1280,7 @@ BOOLEAN PhDoesDirectoryExistWin32(
 
     if (NT_SUCCESS(status))
     {
-        if (basicInfo.FileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        if (FlagOn(basicInfo.FileAttributes, FILE_ATTRIBUTE_DIRECTORY))
             return TRUE;
     }
 
@@ -1195,7 +1304,7 @@ BOOLEAN PhDoesDirectoryExist(
 
     if (NT_SUCCESS(status))
     {
-        if (basicInfo.FileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        if (FlagOn(basicInfo.FileAttributes, FILE_ATTRIBUTE_DIRECTORY))
             return TRUE;
     }
 
@@ -1386,16 +1495,24 @@ NTSTATUS PhCreateDirectory(
     PH_STRINGREF directoryPart;
     PH_STRINGREF remainingPart;
 
+    // Check if the target directory already exists.
+
     if (PhDoesDirectoryExist(DirectoryPath))
         return STATUS_SUCCESS;
+
+    // Resolve the longest existing path prefix to determine where to start creating subdirectories.
 
     directoryPath = PhGetExistingPathPrefix(DirectoryPath);
 
     if (PhIsNullOrEmptyString(directoryPath))
         return STATUS_UNSUCCESSFUL;
 
+    // Calculate the remaining part of the path that needs to be created.
+
     remainingPart.Length = DirectoryPath->Length - directoryPath->Length - sizeof(OBJ_NAME_PATH_SEPARATOR);
     remainingPart.Buffer = PTR_ADD_OFFSET(DirectoryPath->Buffer, directoryPath->Length + sizeof(OBJ_NAME_PATH_SEPARATOR));
+
+    // Iterate through each component of the remaining path.
 
     while (remainingPart.Length != 0)
     {
@@ -1403,15 +1520,21 @@ NTSTATUS PhCreateDirectory(
 
         if (directoryPart.Length != 0)
         {
+            // Construct the full path for the current component.
+
             directoryName = PhConcatStringRef3(
                 &directoryPath->sr,
                 &PhNtPathSeparatorString,
                 &directoryPart
                 );
 
+            // Verify the directory does not already exist before attempting creation.
+
             if (!PhDoesDirectoryExist(&directoryName->sr))
             {
                 HANDLE directoryHandle;
+
+                // Attempt to create the directory component.
 
                 if (NT_SUCCESS(PhCreateFile(
                     &directoryHandle,
@@ -1420,12 +1543,14 @@ NTSTATUS PhCreateDirectory(
                     FILE_ATTRIBUTE_NORMAL,
                     FILE_SHARE_READ | FILE_SHARE_WRITE,
                     FILE_CREATE,
-                    FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT //| FILE_OPEN_REPARSE_POINT
+                    FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT
                     )))
                 {
                     NtClose(directoryHandle);
                 }
             }
+
+            // Update the current path prefix and move to the next component.
 
             PhMoveReference(&directoryPath, directoryName);
         }
@@ -1454,16 +1579,24 @@ NTSTATUS PhCreateDirectoryWin32(
     PH_STRINGREF directoryPart;
     PH_STRINGREF remainingPart;
 
+    // Check if the target directory already exists.
+
     if (PhDoesDirectoryExistWin32(PhGetStringRefZ(DirectoryPath)))
         return STATUS_SUCCESS;
+
+    // Resolve the longest existing path prefix to determine where to start creating subdirectories.
 
     directoryPath = PhGetExistingPathPrefixWin32(DirectoryPath);
 
     if (PhIsNullOrEmptyString(directoryPath))
         return STATUS_UNSUCCESSFUL;
 
+    // Calculate the remaining part of the path that needs to be created.
+
     remainingPart.Length = DirectoryPath->Length - directoryPath->Length - sizeof(OBJ_NAME_PATH_SEPARATOR);
     remainingPart.Buffer = PTR_ADD_OFFSET(DirectoryPath->Buffer, directoryPath->Length + sizeof(OBJ_NAME_PATH_SEPARATOR));
+
+    // Iterate through each component of the remaining path.
 
     while (remainingPart.Length != 0)
     {
@@ -1477,15 +1610,17 @@ NTSTATUS PhCreateDirectoryWin32(
             }
             else
             {
+                // Construct the full path for the current component.
+
                 directoryName = PhConcatStringRef3(&directoryPath->sr, &PhNtPathSeparatorString, &directoryPart);
 
-                // Check if the directory already exists. (dmex)
+                // Verify the directory does not already exist before attempting creation.
 
                 if (!PhDoesDirectoryExistWin32(PhGetString(directoryName)))
                 {
                     HANDLE directoryHandle;
 
-                    // Create the directory. (dmex)
+                    // Attempt to create the directory component.
 
                     if (NT_SUCCESS(PhCreateFileWin32(
                         &directoryHandle,
@@ -1494,7 +1629,7 @@ NTSTATUS PhCreateDirectoryWin32(
                         FILE_ATTRIBUTE_NORMAL,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                         FILE_CREATE,
-                        FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT //| FILE_OPEN_REPARSE_POINT
+                        FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_FOR_BACKUP_INTENT
                         )))
                     {
                         NtClose(directoryHandle);
@@ -1568,6 +1703,15 @@ NTSTATUS PhCreateDirectoryFullPath(
 
 // NOTE: This callback handles both Native and Win32 filenames
 // since they're both relative to the parent RootDirectory. (dmex)
+/**
+ * Callback function used to recursively delete files and directories within a directory.
+ * Handles both files and subdirectories, marking them for deletion as needed.
+ *
+ * \param RootDirectory Handle to the parent directory.
+ * \param Information Pointer to a FILE_DIRECTORY_INFORMATION structure for the current entry.
+ * \param Context Optional user-defined context (unused).
+ * \return TRUE to continue enumeration, FALSE to stop.
+ */
 _Function_class_(PH_ENUM_DIRECTORY_FILE)
 static BOOLEAN PhDeleteDirectoryCallback(
     _In_ HANDLE RootDirectory,
@@ -1653,6 +1797,7 @@ NTSTATUS PhDeleteDirectory(
     NTSTATUS status;
     HANDLE directoryHandle;
 
+    // Open the directory with permissions required for deletion and enumeration.
     status = PhCreateFile(
         &directoryHandle,
         DirectoryPath,
@@ -1665,7 +1810,7 @@ NTSTATUS PhDeleteDirectory(
 
     if (NT_SUCCESS(status))
     {
-        // Remove any files or folders inside the directory. (dmex)
+        // Enumerate the directory content and remove files and sub-directories.
         status = PhEnumDirectoryFile(
             directoryHandle,
             NULL,
@@ -1675,13 +1820,15 @@ NTSTATUS PhDeleteDirectory(
 
         if (NT_SUCCESS(status))
         {
-            // Remove the directory. (dmex)
+            // Remove the now-empty directory.
             status = PhSetFileDelete(directoryHandle);
         }
 
+        // Close the handle to the directory.
         NtClose(directoryHandle);
     }
 
+    // Verify if the directory was actually deleted.
     if (!PhDoesDirectoryExist(DirectoryPath))
         return STATUS_SUCCESS;
 
@@ -2535,8 +2682,9 @@ NTSTATUS PhEnumReparsePointInformation(
     ULONG bufferSize;
     PVOID buffer;
 
-    bufferSize = sizeof(FILE_REPARSE_POINT_INFORMATION[512]);
-    buffer = PhAllocate(bufferSize);
+    bufferSize = sizeof(FILE_REPARSE_POINT_INFORMATION[64]);
+    buffer = PhAllocateStack(bufferSize);
+    if (!buffer) return STATUS_NO_MEMORY;
 
     while (TRUE)
     {
@@ -2585,7 +2733,7 @@ NTSTATUS PhEnumReparsePointInformation(
         firstTime = FALSE;
     }
 
-    PhFree(buffer);
+    PhFreeStack(buffer);
 
     return status;
 }
@@ -2610,8 +2758,9 @@ NTSTATUS PhEnumObjectIdInformation(
     ULONG bufferSize;
     PVOID buffer;
 
-    bufferSize = sizeof(FILE_OBJECTID_INFORMATION[128]);
-    buffer = PhAllocate(bufferSize);
+    bufferSize = sizeof(FILE_OBJECTID_INFORMATION[14]);
+    buffer = PhAllocateStack(bufferSize);
+    if (!buffer) return STATUS_NO_MEMORY;
 
     while (TRUE)
     {
@@ -2660,11 +2809,19 @@ NTSTATUS PhEnumObjectIdInformation(
         firstTime = FALSE;
     }
 
-    PhFree(buffer);
+    PhFreeStack(buffer);
 
     return status;
 }
 
+/**
+ * Enumerates extended attributes for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Callback Callback function for each extended attribute.
+ * \param Context User-defined context for the callback.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhEnumFileExtendedAttributes(
     _In_ HANDLE FileHandle,
     _In_ PPH_ENUM_FILE_EA Callback,
@@ -2744,6 +2901,14 @@ NTSTATUS PhEnumFileExtendedAttributes(
     return status;
 }
 
+/**
+ * Sets an extended attribute for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Name Name of the extended attribute.
+ * \param Value Optional value for the extended attribute.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileExtendedAttributes(
     _In_ HANDLE FileHandle,
     _In_ PPH_BYTESREF Name,
@@ -2753,13 +2918,13 @@ NTSTATUS PhSetFileExtendedAttributes(
     NTSTATUS status;
     ULONG infoLength;
     PFILE_FULL_EA_INFORMATION info;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     infoLength = sizeof(FILE_FULL_EA_INFORMATION) + (ULONG)Name->Length + sizeof(ANSI_NULL);
     if (Value) infoLength += (ULONG)Value->Length + sizeof(ANSI_NULL);
 
     info = PhAllocateStack(infoLength);
-    if (!info) return STATUS_INSUFFICIENT_RESOURCES;
+    if (!info) return STATUS_NO_MEMORY;
 
     info->EaNameLength = (UCHAR)Name->Length;
     memcpy(info->EaName, Name->Buffer, Name->Length);
@@ -2776,7 +2941,7 @@ NTSTATUS PhSetFileExtendedAttributes(
 
     status = NtSetEaFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         info,
         infoLength
         );
@@ -2786,6 +2951,14 @@ NTSTATUS PhSetFileExtendedAttributes(
     return status;
 }
 
+/**
+ * Queries file information with a variable-sized buffer.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileInformationClass The type of file information to query.
+ * \param Buffer Receives a pointer to the allocated buffer with the information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhpQueryFileVariableSize(
     _In_ HANDLE FileHandle,
     _In_ FILE_INFORMATION_CLASS FileInformationClass,
@@ -2793,7 +2966,7 @@ NTSTATUS PhpQueryFileVariableSize(
     )
 {
     NTSTATUS status;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
     PVOID buffer;
     ULONG bufferSize = 0x200;
 
@@ -2803,7 +2976,7 @@ NTSTATUS PhpQueryFileVariableSize(
     {
         status = NtQueryInformationFile(
             FileHandle,
-            &isb,
+            &ioStatusBlock,
             buffer,
             bufferSize,
             FileInformationClass
@@ -2833,6 +3006,13 @@ NTSTATUS PhpQueryFileVariableSize(
     return status;
 }
 
+/**
+ * Enumerates streams for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Streams Receives a pointer to the allocated buffer with stream information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhEnumFileStreams(
     _In_ HANDLE FileHandle,
     _Out_ PVOID *Streams
@@ -2845,6 +3025,13 @@ NTSTATUS PhEnumFileStreams(
         );
 }
 
+/**
+ * Enumerates hard links for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param HardLinks Receives a pointer to the allocated buffer with hard link information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhEnumFileHardLinks(
     _In_ HANDLE FileHandle,
     _Out_ PVOID *HardLinks
@@ -2920,50 +3107,71 @@ NTSTATUS PhQueryVolumeInformationFile(
     return status;
 }
 
+/**
+ * Queries basic information for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param BasicInfo Pointer to a FILE_BASIC_INFORMATION structure that receives the information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileBasicInformation(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_BASIC_INFORMATION BasicInfo
     )
 {
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     return NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         BasicInfo,
         sizeof(FILE_BASIC_INFORMATION),
         FileBasicInformation
         );
 }
 
+/**
+ * Sets basic information for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param BasicInfo Pointer to a FILE_BASIC_INFORMATION structure containing the information to set.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileBasicInformation(
     _In_ HANDLE FileHandle,
     _In_ PFILE_BASIC_INFORMATION BasicInfo
     )
 {
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     return NtSetInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         BasicInfo,
         sizeof(FILE_BASIC_INFORMATION),
         FileBasicInformation
         );
 }
 
+/**
+ * Queries full attributes information for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileInformation Pointer to a FILE_NETWORK_OPEN_INFORMATION structure that receives the information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileFullAttributesInformation(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_NETWORK_OPEN_INFORMATION FileInformation
     )
 {
     NTSTATUS status;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
     FILE_NETWORK_OPEN_INFORMATION fullAttributesInfo;
 
     status = NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &fullAttributesInfo,
         sizeof(FILE_NETWORK_OPEN_INFORMATION),
         FileNetworkOpenInformation
@@ -2977,18 +3185,25 @@ NTSTATUS PhGetFileFullAttributesInformation(
     return status;
 }
 
+/**
+ * Queries standard information for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param StandardInfo Pointer to a FILE_STANDARD_INFORMATION structure that receives the information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileStandardInformation(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_STANDARD_INFORMATION StandardInfo
     )
 {
     NTSTATUS status;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
     FILE_STANDARD_INFORMATION standardInfo;
 
     status = NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &standardInfo,
         sizeof(FILE_STANDARD_INFORMATION),
         FileStandardInformation
@@ -3003,25 +3218,39 @@ NTSTATUS PhGetFileStandardInformation(
 }
 
 // rev from SetFileCompletionNotificationModes (dmex)
+/**
+ * Sets the file completion notification mode.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Flags Notification mode flags.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileCompletionNotificationMode(
     _In_ HANDLE FileHandle,
     _In_ ULONG Flags
     )
 {
     FILE_IO_COMPLETION_NOTIFICATION_INFORMATION completionMode;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     completionMode.Flags = Flags;
 
     return NtSetInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &completionMode,
         sizeof(FILE_IO_COMPLETION_NOTIFICATION_INFORMATION),
         FileIoCompletionNotificationInformation
         );
 }
 
+/**
+ * Queries the size of a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Size Pointer to a LARGE_INTEGER that receives the file size.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileSize(
     _In_ HANDLE FileHandle,
     _Out_ PLARGE_INTEGER Size
@@ -3043,25 +3272,39 @@ NTSTATUS PhGetFileSize(
     return status;
 }
 
+/**
+ * Sets the size of a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Size Pointer to a LARGE_INTEGER specifying the new file size.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileSize(
     _In_ HANDLE FileHandle,
     _In_ PLARGE_INTEGER Size
     )
 {
     FILE_END_OF_FILE_INFORMATION endOfFileInfo;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     endOfFileInfo.EndOfFile = *Size;
 
     return NtSetInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &endOfFileInfo,
         sizeof(FILE_END_OF_FILE_INFORMATION),
         FileEndOfFileInformation
         );
 }
 
+/**
+ * Queries the current file position.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Position Pointer to a LARGE_INTEGER that receives the current file position.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFilePosition(
     _In_ HANDLE FileHandle,
     _Out_ PLARGE_INTEGER Position
@@ -3069,11 +3312,11 @@ NTSTATUS PhGetFilePosition(
 {
     NTSTATUS status;
     FILE_POSITION_INFORMATION positionInfo;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     status = NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &positionInfo,
         sizeof(FILE_POSITION_INFORMATION),
         FilePositionInformation
@@ -3087,13 +3330,20 @@ NTSTATUS PhGetFilePosition(
     return status;
 }
 
+/**
+ * Sets the current file position.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Position Optional pointer to a LARGE_INTEGER specifying the new file position.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFilePosition(
     _In_ HANDLE FileHandle,
     _In_opt_ PLARGE_INTEGER Position
     )
 {
     FILE_POSITION_INFORMATION positionInfo;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     if (Position)
         positionInfo.CurrentByteOffset.QuadPart = Position->QuadPart;
@@ -3102,13 +3352,20 @@ NTSTATUS PhSetFilePosition(
 
     return NtSetInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &positionInfo,
         sizeof(FILE_POSITION_INFORMATION),
         FilePositionInformation
         );
 }
 
+/**
+ * Queries the allocation size of a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param AllocationSize Pointer to a LARGE_INTEGER that receives the allocation size.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileAllocationSize(
     _In_ HANDLE FileHandle,
     _Out_ PLARGE_INTEGER AllocationSize
@@ -3116,11 +3373,11 @@ NTSTATUS PhGetFileAllocationSize(
 {
     NTSTATUS status;
     FILE_ALLOCATION_INFORMATION allocationInfo;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     status = NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &allocationInfo,
         sizeof(FILE_ALLOCATION_INFORMATION),
         FileAllocationInformation
@@ -3134,41 +3391,62 @@ NTSTATUS PhGetFileAllocationSize(
     return status;
 }
 
+/**
+ * Sets the allocation size of a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param AllocationSize Pointer to a LARGE_INTEGER specifying the new allocation size.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileAllocationSize(
     _In_ HANDLE FileHandle,
     _In_ PLARGE_INTEGER AllocationSize
     )
 {
     FILE_ALLOCATION_INFORMATION allocationInfo;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     allocationInfo.AllocationSize = *AllocationSize;
 
     return NtSetInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         &allocationInfo,
         sizeof(FILE_ALLOCATION_INFORMATION),
         FileAllocationInformation
         );
 }
 
+/**
+ * Queries the file index number.
+ *
+ * \param FileHandle Handle to the file.
+ * \param IndexNumber Pointer to a FILE_INTERNAL_INFORMATION structure that receives the index number.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileIndexNumber(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_INTERNAL_INFORMATION IndexNumber
     )
 {
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     return NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         IndexNumber,
         sizeof(FILE_INTERNAL_INFORMATION),
         FileInternalInformation
         );
 }
 
+/**
+ * Queries whether a file is on a remote device.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileIsRemoteDevice Pointer to a BOOLEAN that receives TRUE if the file is remote, FALSE otherwise.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileIsRemoteDevice(
     _In_ HANDLE FileHandle,
     _Out_ PBOOLEAN FileIsRemoteDevice
@@ -3194,6 +3472,13 @@ NTSTATUS PhGetFileIsRemoteDevice(
     return status;
 }
 
+/**
+ * Marks a file for deletion. Attempts to use the extended disposition information if available,
+ * otherwise falls back to the standard disposition information.
+ *
+ * \param FileHandle Handle to the file to be marked for deletion.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileDelete(
     _In_ HANDLE FileHandle
     )
@@ -3250,6 +3535,16 @@ NTSTATUS PhSetFileDelete(
     return status;
 }
 
+/**
+ * Renames a file to a new name, optionally replacing the destination if it exists.
+ * Uses extended rename information if available, otherwise falls back to standard rename information.
+ *
+ * \param FileHandle Handle to the file to be renamed.
+ * \param RootDirectory Optional handle to the root directory for the new file name.
+ * \param ReplaceIfExists If TRUE, replaces the destination file if it exists.
+ * \param NewFileName Pointer to a PH_STRINGREF structure containing the new file name.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileRename(
     _In_ HANDLE FileHandle,
     _In_opt_ HANDLE RootDirectory,
@@ -3351,6 +3646,13 @@ NTSTATUS PhSetFileRename(
     return status;
 }
 
+/**
+ * Queries the I/O priority hint for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param IoPriorityHint Pointer to a variable that receives the I/O priority hint.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileIoPriorityHint(
     _In_ HANDLE FileHandle,
     _Out_ IO_PRIORITY_HINT* IoPriorityHint
@@ -3435,15 +3737,15 @@ NTSTATUS PhGetFileHandleName(
     NTSTATUS status;
     ULONG bufferSize;
     PFILE_NAME_INFORMATION buffer;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     bufferSize = sizeof(FILE_NAME_INFORMATION) + MAX_PATH;
     buffer = PhAllocateStack(bufferSize);
-    if (!buffer) return STATUS_INSUFFICIENT_RESOURCES;
+    if (!buffer) return STATUS_NO_MEMORY;
 
     status = NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         buffer,
         bufferSize,
         FileNameInformation
@@ -3454,11 +3756,11 @@ NTSTATUS PhGetFileHandleName(
         bufferSize = sizeof(FILE_NAME_INFORMATION) + buffer->FileNameLength + sizeof(UNICODE_NULL);
         PhFreeStack(buffer);
         buffer = PhAllocateStack(bufferSize);
-        if (!buffer) return STATUS_INSUFFICIENT_RESOURCES;
+        if (!buffer) return STATUS_NO_MEMORY;
 
         status = NtQueryInformationFile(
             FileHandle,
-            &isb,
+            &ioStatusBlock,
             buffer,
             bufferSize,
             FileNameInformation
@@ -3489,7 +3791,7 @@ NTSTATUS PhGetFileNetworkPhysicalName(
 
     bufferLength = UFIELD_OFFSET(FILE_NETWORK_PHYSICAL_NAME_INFORMATION, FileName[DOS_MAX_PATH_LENGTH]) + sizeof(UNICODE_NULL);
     buffer = PhAllocateStack(bufferLength);
-    if (!buffer) return STATUS_INSUFFICIENT_RESOURCES;
+    if (!buffer) return STATUS_NO_MEMORY;
 
     status = NtQueryInformationFile(
         FileHandle,
@@ -3504,7 +3806,7 @@ NTSTATUS PhGetFileNetworkPhysicalName(
         bufferLength = sizeof(FILE_NETWORK_PHYSICAL_NAME_INFORMATION) + buffer->FileNameLength;
         PhFreeStack(buffer);
         buffer = PhAllocateStack(bufferLength);
-        if (!buffer) return STATUS_INSUFFICIENT_RESOURCES;
+        if (!buffer) return STATUS_NO_MEMORY;
 
         status = NtQueryInformationFile(
             FileHandle,
@@ -3544,11 +3846,11 @@ NTSTATUS PhGetFileId(
     _Out_ PFILE_ID_INFORMATION FileId
     )
 {
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     return NtQueryInformationFile(
         FileHandle,
-        &isb,
+        &ioStatusBlock,
         FileId,
         sizeof(FILE_ID_INFORMATION),
         FileIdInformation
@@ -3609,14 +3911,14 @@ NTSTATUS PhGetProcessesUsingVolumeOrFile(
     NTSTATUS status;
     PVOID buffer;
     ULONG bufferSize;
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     bufferSize = initialBufferSize;
     buffer = PhAllocate(bufferSize);
 
     while ((status = NtQueryInformationFile(
         VolumeOrFileHandle,
-        &isb,
+        &ioStatusBlock,
         buffer,
         bufferSize,
         FileProcessIdsUsingFileInformation
@@ -3653,7 +3955,7 @@ NTSTATUS PhGetFileUsn(
     ULONG recordLength;
     PUSN_RECORD_V2 recordBuffer; // USN_RECORD_UNION
     UCHAR buffer[sizeof(USN_RECORD_V2) + MAXIMUM_FILENAME_LENGTH * sizeof(WCHAR)];
-    IO_STATUS_BLOCK isb;
+    IO_STATUS_BLOCK ioStatusBlock;
 
     recordLength = sizeof(buffer);
     recordBuffer = (PUSN_RECORD_V2)buffer;
@@ -3663,7 +3965,7 @@ NTSTATUS PhGetFileUsn(
         NULL,
         NULL,
         NULL,
-        &isb,
+        &ioStatusBlock,
         FSCTL_READ_FILE_USN_DATA, // FSCTL_WRITE_USN_CLOSE_RECORD
         NULL, // READ_FILE_USN_DATA
         0,
