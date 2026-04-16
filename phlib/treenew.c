@@ -2162,6 +2162,7 @@ LRESULT PhTnpOnUserMessage(
 #if defined (TREENEW_VSCROLL_ANCHOR)
                 PhTnpPrepareVScrollAnchor(Context);
 #endif
+                // Coalesce repeated structure requests while redraw is suspended.
                 Context->SuspendUpdateStructure = TRUE;
                 Context->SuspendUpdateLayout = TRUE;
                 InvalidateRect(Context->Handle, NULL, FALSE);
@@ -2557,13 +2558,14 @@ LRESULT PhTnpOnUserMessage(
         {
             ULONG count = (ULONG)WParam;
             PULONG visible = (PULONG)LParam;
+            PPH_TREENEW_COLUMN column;
 
             for (ULONG i = 0; i < count; i++)
             {
-                if (visible[i] >= Context->AllocatedColumns)
+                if (!(column = PhTnpLookupColumnById(Context, visible[i])))
                     return FALSE;
 
-                visible[i] = Context->Columns[visible[i]]->Visible;
+                visible[i] = column->Visible;
             }
         }
         return TRUE;
@@ -3239,6 +3241,8 @@ BOOLEAN PhTnpGetAnchoredVScrollPosition(
 
 /**
  * Enables or disables redrawing of the treenew control.
+ * When the outermost redraw suspension ends, any deferred structure/layout
+ * updates requested via TNM_NODESSTRUCTURED are committed once here.
  *
  * \param Context Pointer to the treenew context structure.
  * \param Redraw TRUE to enable redrawing, FALSE to disable.
