@@ -280,7 +280,7 @@ VOID EspShowDeviceInstanceMenu(
     PPH_EMENU subMenu;
     PPH_EMENU_ITEM selectedItem;
 
-    if (!PhGetClientPos(ParentWindow, &cursorPos))
+    if (!PhGetMessagePos(&cursorPos))
         return;
 
     menu = PhCreateEMenu();
