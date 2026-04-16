@@ -532,7 +532,7 @@ BOOLEAN NTAPI EtpDiskTreeNewCallback(
 
             if (!getChildren->Node)
             {
-                static PVOID sortFunctions[] =
+                static CONST _CoreCrtNonSecureSearchSortCompareFunction sortFunctions[] =
                 {
                     SORT_FUNCTION(Process),
                     SORT_FUNCTION(Pid),
@@ -544,7 +544,7 @@ BOOLEAN NTAPI EtpDiskTreeNewCallback(
                     SORT_FUNCTION(ResponseTime),
                     SORT_FUNCTION(OriginalFile),
                 };
-                int (__cdecl *sortFunction)(const void *, const void *);
+                _CoreCrtNonSecureSearchSortCompareFunction sortFunction;
 
                 static_assert(RTL_NUMBER_OF(sortFunctions) == ETDSTNC_MAXIMUM, "SortFunctions must equal maximum.");
 
