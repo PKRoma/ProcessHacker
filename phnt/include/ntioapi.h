@@ -972,7 +972,15 @@ typedef struct _FILE_MAILSLOT_SET_INFORMATION
  */
 typedef struct _FILE_REPARSE_POINT_INFORMATION
 {
-    LONGLONG FileReference;
+    union
+    {
+        ULARGE_INTEGER FileReference;
+        struct
+        {
+            ULONGLONG MftRecordIndex : 48; // rev
+            ULONGLONG SequenceNumber : 16; // rev
+        };
+    };
     ULONG Tag;
 } FILE_REPARSE_POINT_INFORMATION, *PFILE_REPARSE_POINT_INFORMATION;
 
@@ -1836,7 +1844,15 @@ typedef struct _FILE_ID_GLOBAL_TX_DIR_INFORMATION
 
 typedef struct _FILE_OBJECTID_INFORMATION
 {
-    ULONGLONG FileReference;
+    union
+    {
+        ULARGE_INTEGER FileReference;
+        struct
+        {
+            ULONGLONG MftRecordIndex : 48; // rev
+            ULONGLONG SequenceNumber : 16; // rev
+        };
+    };
     UCHAR ObjectId[16]; // GUID
     union
     {
