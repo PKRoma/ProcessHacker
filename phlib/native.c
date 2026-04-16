@@ -6921,6 +6921,16 @@ NTSTATUS PhSetSystemFileCacheSize(
     return status;
 }
 
+/**
+ * Creates a mutant (mutex) object.
+ *
+ * \param MutantHandle A pointer to a variable that receives the handle to the mutant object.
+ * \param DesiredAccess The access mask that specifies the requested access to the mutant object.
+ * \param RootDirectory Optional handle to the root directory for the object name.
+ * \param ObjectName Optional pointer to a string reference specifying the name of the mutant object.
+ * \param InitialOwner If TRUE, the calling thread obtains initial ownership of the mutant object.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhCreateMutant(
     _Out_ PHANDLE MutantHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -6961,6 +6971,15 @@ NTSTATUS PhCreateMutant(
     return status;
 }
 
+/**
+ * Opens an existing mutant (mutex) object.
+ *
+ * \param MutantHandle A pointer to a variable that receives the handle to the mutant object.
+ * \param DesiredAccess The access mask that specifies the requested access to the mutant object.
+ * \param RootDirectory Optional handle to the root directory for the object name.
+ * \param ObjectName Optional pointer to a string reference specifying the name of the mutant object.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhOpenMutant(
     _Out_ PHANDLE MutantHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -6999,6 +7018,13 @@ NTSTATUS PhOpenMutant(
     return status;
 }
 
+/**
+ * Retrieves basic information about a mutant (mutex) object.
+ *
+ * \param MutantHandle Handle to the mutant object.
+ * \param BasicInformation Pointer to a MUTANT_BASIC_INFORMATION structure that receives the information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetMutantBasicInformation(
     _In_ HANDLE MutantHandle,
     _Out_ PMUTANT_BASIC_INFORMATION BasicInformation
@@ -7013,6 +7039,13 @@ NTSTATUS PhGetMutantBasicInformation(
         );
 }
 
+/**
+ * Retrieves owner information for a mutant (mutex) object.
+ *
+ * \param MutantHandle Handle to the mutant object.
+ * \param OwnerInformation Pointer to a MUTANT_OWNER_INFORMATION structure that receives the information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetMutantOwnerInformation(
     _In_ HANDLE MutantHandle,
     _Out_ PMUTANT_OWNER_INFORMATION OwnerInformation
