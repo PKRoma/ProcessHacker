@@ -66,6 +66,7 @@ VOID EtSaveSettingsPoolTagTreeList(
     PhSetIntegerPairSetting(SETTING_NAME_POOL_TREE_LIST_SORT, sortSettings);
 }
 
+_Function_class_(PH_HASHTABLE_EQUAL_FUNCTION)
 BOOLEAN EtPoolTagNodeHashtableEqualFunction(
     _In_ PVOID Entry1,
     _In_ PVOID Entry2
@@ -77,6 +78,7 @@ BOOLEAN EtPoolTagNodeHashtableEqualFunction(
     return poolTagNode1->TagUlong == poolTagNode2->TagUlong;
 }
 
+_Function_class_(PH_HASHTABLE_HASH_FUNCTION)
 ULONG EtPoolTagNodeHashtableHashFunction(
     _In_ PVOID Entry
     )
@@ -456,7 +458,7 @@ BOOLEAN NTAPI EtPoolTagTreeNewCallback(
 
             if (!getChildren->Node)
             {
-                static PVOID sortFunctions[] =
+                static CONST _CoreCrtSecureSearchSortCompareFunction sortFunctions[] =
                 {
                     SORT_FUNCTION(Name),
                     SORT_FUNCTION(Type),
@@ -486,7 +488,7 @@ BOOLEAN NTAPI EtPoolTagTreeNewCallback(
                     SORT_FUNCTION(CurrentDelta),
                     SORT_FUNCTION(TotalDelta),
                 };
-                int (__cdecl *sortFunction)(void *, const void *, const void *);
+                _CoreCrtSecureSearchSortCompareFunction sortFunction;
 
                 static_assert(RTL_NUMBER_OF(sortFunctions) == TREE_COLUMN_ITEM_MAXIMUM, "SortFunctions must equal maximum.");
 
