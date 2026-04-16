@@ -9,7 +9,6 @@
 *  Copyright (c) Microsoft Corp.  All rights reserved.            *
 *                                                                 *
 ******************************************************************/
-
 #ifndef _NTSTRSAFE_H_INCLUDED_
 #define _NTSTRSAFE_H_INCLUDED_
 #if (_MSC_VER > 1000)
@@ -116,7 +115,7 @@ typedef unsigned long DWORD;
 #pragma warning(push)
 #pragma warning(disable: 28210) // Because not all PREFast versions like _Always_ equally.
 
-// The user can request no "Cb" or no "Cch" functions, but not both
+// The user can request no "Cb" or no "Cch" fuctions, but not both
 #if defined(NTSTRSAFE_NO_CB_FUNCTIONS) && defined(NTSTRSAFE_NO_CCH_FUNCTIONS)
 #error cannot specify both NTSTRSAFE_NO_CB_FUNCTIONS and NTSTRSAFE_NO_CCH_FUNCTIONS !!
 #endif
@@ -138,7 +137,7 @@ C_ASSERT(NTSTRSAFE_UNICODE_STRING_MAX_CCH <= (0xffff / sizeof(wchar_t)));
 C_ASSERT(NTSTRSAFE_UNICODE_STRING_MAX_CCH > 1);
 
 
-// Flags for controlling the Ex functions
+// Flags for controling the Ex functions
 //
 //      STRSAFE_FILL_BYTE(0xFF)                         0x000000FF  // bottom byte specifies fill pattern
 #define STRSAFE_IGNORE_NULLS                            0x00000100  // treat null string pointers as TEXT("") -- don't fault on NULL buffers
@@ -147,7 +146,7 @@ C_ASSERT(NTSTRSAFE_UNICODE_STRING_MAX_CCH > 1);
 #define STRSAFE_NULL_ON_FAILURE                         0x00000800  // on failure, set *pszDest = TEXT('\0')
 #define STRSAFE_NO_TRUNCATION                           0x00001000  // instead of returning a truncated result, copy/append nothing to pszDest and null terminate it
 
-// Flags for controlling UNICODE_STRING Ex functions
+// Flags for controling UNICODE_STRING Ex functions
 //
 //      STRSAFE_FILL_BYTE(0xFF)                         0x000000FF  // bottom byte specifies fill pattern
 //      STRSAFE_IGNORE_NULLS                            0x00000100  // don't fault on NULL UNICODE_STRING pointers, and treat null pszSrc as L""
@@ -480,7 +479,9 @@ RtlUnicodeStringExHandleOtherFlags(
 #define __WARNING_RETURN_UNINIT_VAR 6101
 #define __WARNING_DEREF_NULL_PTR 6011
 #define __WARNING_MISSING_ZERO_TERMINATION2 6054
+#define __WARNING_WRITE_OVERRUN 6386
 #define __WARNING_INVALID_PARAM_VALUE_1 6387
+#define __WARNING_UNSAFE_STRING_FUNCTION 25025
 #define __WARNING_INCORRECT_ANNOTATION 26007
 #define __WARNING_POTENTIAL_BUFFER_OVERFLOW_HIGH_PRIORITY 26015
 #define __WARNING_PRECONDITION_NULLTERMINATION_VIOLATION 26035
@@ -6730,7 +6731,7 @@ NTSTRSAFEDDI
   pszSrc.
 
   This function returns an NTSTATUS value.  It returns STATUS_SUCCESS if the
-  counted unicode string was successfully initialized from pszSrc. In failure
+  counted unicode string was sucessfully initialized from pszSrc. In failure
   cases the unicode string buffer will be set to NULL, and the Length and
   MaximumLength members will be set to zero.
 
@@ -6789,7 +6790,7 @@ RtlUnicodeStringInit(
   includes the flags parameter allows additional controls.
 
   This function returns an NTSTATUS value.  It returns STATUS_SUCCESS if the
-  counted unicode string was successfully initialized from pszSrc. In failure
+  counted unicode string was sucessfully initialized from pszSrc. In failure
   cases the unicode string buffer will be set to NULL, and the Length and
   MaximumLength members will be set to zero.
 
@@ -6930,7 +6931,7 @@ failure        -   the operation did not succeed
 
 STATUS_INVALID_PARAMETER
 -   this return value is an indication that the source string
-is not a valid counted unicode string given the flags passed.
+is not a valide counted unicode string given the flags passed.
 
 It is strongly recommended to use the NT_SUCCESS() macro to test the
 return value of this function.
@@ -11814,6 +11815,8 @@ NTSTRSAFEWORKERDDI
             _Out_opt_ _Deref_out_range_(<, cchMax) _Deref_out_range_(<=, _String_length_(psz)) size_t* pcchLength)
 {
     NTSTATUS status = STATUS_SUCCESS;
+
+#if (defined(_M_IX86) && !defined(_M_HYBRID_X86_ARM64)) || (defined(_M_X64) && !defined(_M_ARM64EC))
     size_t cchOriginalMax = cchMax;
 
     while (cchMax && (*psz != '\0'))
@@ -11839,6 +11842,27 @@ NTSTRSAFEWORKERDDI
             *pcchLength = 0;
         }
     }
+#else
+    size_t cchLength = strnlen(psz, cchMax);
+
+    if (cchMax == cchLength)
+    {
+        // the string is longer than cchMax
+        status = STATUS_INVALID_PARAMETER;
+    }
+
+    if (pcchLength)
+    {
+        if (NT_SUCCESS(status))
+        {
+            *pcchLength = cchLength;
+        }
+        else
+        {
+            *pcchLength = 0;
+        }
+    }
+#endif
 
     return status;
 }
@@ -11852,6 +11876,8 @@ NTSTRSAFEWORKERDDI
             _Out_opt_ _Deref_out_range_(<, cchMax) _Deref_out_range_(<=, _String_length_(psz)) size_t* pcchLength)
 {
     NTSTATUS status = STATUS_SUCCESS;
+
+#if (defined(_M_IX86) && !defined(_M_HYBRID_X86_ARM64)) || (defined(_M_X64) && !defined(_M_ARM64EC))
     size_t cchOriginalMax = cchMax;
 
     while (cchMax && (*psz != L'\0'))
@@ -11877,6 +11903,27 @@ NTSTRSAFEWORKERDDI
             *pcchLength = 0;
         }
     }
+#else
+    size_t cchLength = wcsnlen(psz, cchMax);
+
+    if (cchMax == cchLength)
+    {
+        // the string is longer than cchMax
+        status = STATUS_INVALID_PARAMETER;
+    }
+
+    if (pcchLength)
+    {
+        if (NT_SUCCESS(status))
+        {
+            *pcchLength = cchLength;
+        }
+        else
+        {
+            *pcchLength = 0;
+        }
+    }
+#endif
 
     return status;
 }
@@ -11931,7 +11978,7 @@ NTSTRSAFEWORKERDDI
 #pragma warning(disable : __WARNING_MISSING_ZERO_TERMINATION2)
 
 
-_When_(_Old_(*ppszSrc) != NULL, _Unchanged_(*ppszSrc))
+    _When_(_Old_(*ppszSrc) != NULL, _Unchanged_(*ppszSrc))
 _When_(_Old_(*ppszSrc) == NULL, _At_(*ppszSrc, _Post_z_))
     NTSTRSAFEWORKERDDI
     RtlStringExValidateSrcA(
@@ -11963,7 +12010,7 @@ _When_(_Old_(*ppszSrc) == NULL, _At_(*ppszSrc, _Post_z_))
 
 
 
-_When_(_Old_(*ppszSrc) != NULL, _Unchanged_(*ppszSrc))
+    _When_(_Old_(*ppszSrc) != NULL, _Unchanged_(*ppszSrc))
 _When_(_Old_(*ppszSrc) == NULL, _At_(*ppszSrc, _Post_z_))
     NTSTRSAFEWORKERDDI
     RtlStringExValidateSrcW(
@@ -12251,9 +12298,10 @@ NTSTRSAFEWORKERDDI
             _In_ _In_range_(<, NTSTRSAFE_MAX_CCH) size_t cchToCopy)
 {
     NTSTATUS status = STATUS_SUCCESS;
-    size_t cchNewDestLength = 0;
-
     // ASSERT(cchDest != 0);
+
+#if (defined(_M_IX86) && !defined(_M_HYBRID_X86_ARM64)) || (defined(_M_X64) && !defined(_M_ARM64EC))
+    size_t cchNewDestLength = 0;
 
     while (cchDest && cchToCopy && (*pszSrc != '\0'))
     {
@@ -12274,6 +12322,27 @@ NTSTRSAFEWORKERDDI
     }
 
     *pszDest = '\0';
+#else
+    size_t cchNewDestLength = strnlen(pszSrc, cchDest < cchToCopy ? cchDest : cchToCopy);
+
+    if (cchDest == cchNewDestLength)
+    {
+        // we are going to truncate pszDest
+        if (cchNewDestLength > 0)
+        {
+            cchNewDestLength--;
+        }
+
+        status = STATUS_BUFFER_OVERFLOW;
+    }
+
+    memcpy(pszDest, pszSrc, cchNewDestLength * sizeof(*pszSrc));
+#pragma warning(push)
+#pragma warning(disable:__WARNING_WRITE_OVERRUN)
+    // ASSERT(cchNewDestLength < cchDest);
+    pszDest[cchNewDestLength] = '\0';
+#pragma warning(pop)
+#endif
 
     if (pcchNewDestLength)
     {
@@ -12294,9 +12363,10 @@ NTSTRSAFEWORKERDDI
             _In_ _In_range_(<, NTSTRSAFE_MAX_CCH) size_t cchToCopy)
 {
     NTSTATUS status = STATUS_SUCCESS;
-    size_t cchNewDestLength = 0;
-
     // ASSERT(cchDest != 0);
+
+#if (defined(_M_IX86) && !defined(_M_HYBRID_X86_ARM64)) || (defined(_M_X64) && !defined(_M_ARM64EC))
+    size_t cchNewDestLength = 0;
 
     while (cchDest && cchToCopy && (*pszSrc != L'\0'))
     {
@@ -12317,6 +12387,27 @@ NTSTRSAFEWORKERDDI
     }
 
     *pszDest = L'\0';
+#else
+    size_t cchNewDestLength = wcsnlen(pszSrc, cchDest < cchToCopy ? cchDest : cchToCopy);
+
+    if (cchDest == cchNewDestLength)
+    {
+        // we are going to truncate pszDest
+        if (cchNewDestLength > 0)
+        {
+            cchNewDestLength--;
+        }
+
+        status = STATUS_BUFFER_OVERFLOW;
+    }
+
+    memcpy(pszDest, pszSrc, cchNewDestLength * sizeof(*pszSrc));
+#pragma warning(push)
+#pragma warning(disable:__WARNING_WRITE_OVERRUN)
+    // ASSERT(cchNewDestLength < cchDest);
+    pszDest[cchNewDestLength] = L'\0';
+#pragma warning(pop)
+#endif
 
     if (pcchNewDestLength)
     {
@@ -12351,6 +12442,7 @@ NTSTRSAFEWORKERDDI
 #else
 #pragma warning(push)
 #pragma warning(disable: __WARNING_BANNED_API_USAGE)// "STRSAFE not included"
+#pragma warning(disable: __WARNING_UNSAFE_STRING_FUNCTION) // call to dangerous string function '_vsnprintf'.
     iRet = _vsnprintf(pszDest, cchMax, pszFormat, argList);
 #pragma warning(pop)
 #endif
