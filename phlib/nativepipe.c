@@ -245,10 +245,17 @@ NTSTATUS PhCreateNamedPipe(
 
     if (NT_SUCCESS(PhDefaultNpAcl(&pipeAcl)))
     {
-        PhCreateSecurityDescriptor(&securityDescriptor, SECURITY_DESCRIPTOR_REVISION);
-        PhSetDaclSecurityDescriptor(&securityDescriptor, TRUE, pipeAcl, FALSE);
+        status = PhCreateSecurityDescriptor(&securityDescriptor, SECURITY_DESCRIPTOR_REVISION);
 
-        objectAttributes.SecurityDescriptor = &securityDescriptor;
+        if (NT_SUCCESS(status))
+        {
+            status = PhSetDaclSecurityDescriptor(&securityDescriptor, TRUE, pipeAcl, FALSE);
+
+            if (NT_SUCCESS(status))
+            {
+                objectAttributes.SecurityDescriptor = &securityDescriptor;
+            }
+        }
     }
 
     status = NtCreateNamedPipeFile(
@@ -1036,19 +1043,7 @@ NTSTATUS PhDefaultNpAcl(
         APPCONTAINER_SID_TYPE appContainerSidType = InvalidAppContainerSidType;
         PH_TOKEN_APPCONTAINER tokenAppContainer = { 0 };
         PSID appContainerSidParent = NULL;
-
-        ULONG defaultAclSize =
-            sizeof(ACL) +
-            sizeof(ACCESS_ALLOWED_ACE) +
-            PhLengthSid(&PhSeLocalSystemSid) +
-            sizeof(ACCESS_ALLOWED_ACE) +
-            PhLengthSid(PhSeAdministratorsSid()) +
-            sizeof(ACCESS_ALLOWED_ACE) +
-            PhLengthSid(tokenQuery.TokenOwner.Owner) +
-            sizeof(ACCESS_ALLOWED_ACE) +
-            PhLengthSid(&PhSeEveryoneSid) +
-            sizeof(ACCESS_ALLOWED_ACE) +
-            PhLengthSid(&PhSeAnonymousLogonSid);
+        ULONG defaultAclSize;
 
         if (NT_SUCCESS(PhGetTokenAppContainerSid(NtCurrentThreadEffectiveToken(), &tokenAppContainer)))
         {
@@ -1062,31 +1057,70 @@ NTSTATUS PhDefaultNpAcl(
             }
         }
 
+        if (!NT_SUCCESS(status = RtlULongAdd(SECURITY_DESCRIPTOR_MIN_LENGTH, sizeof(ACL), &defaultAclSize)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(&PhSeLocalSystemSid), &defaultAclSize)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(PhSeAdministratorsSid()), &defaultAclSize)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(tokenQuery.TokenOwner.Owner), &defaultAclSize)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(&PhSeEveryoneSid), &defaultAclSize)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(&PhSeAnonymousLogonSid), &defaultAclSize)))
+            goto CleanupExit;
+
         if (tokenAppContainer.AppContainer.Sid)
-            defaultAclSize += (ULONG)sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(tokenAppContainer.AppContainer.Sid);
-        if (appContainerSidParent)
-            defaultAclSize += (ULONG)sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(appContainerSidParent);
-
-        pipeAcl = PhAllocateZero(defaultAclSize);
-        PhCreateAcl(pipeAcl, defaultAclSize, ACL_REVISION);
-        PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, &PhSeLocalSystemSid);
-        PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, PhSeAdministratorsSid());
-
-        if (tokenAppContainer.AppContainer.Sid)
-            PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, tokenAppContainer.AppContainer.Sid);
-        if (appContainerSidParent)
-            PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, appContainerSidParent);
-
-        PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, tokenQuery.TokenOwner.Owner);
-        PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_READ, &PhSeEveryoneSid);
-        PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_READ, &PhSeAnonymousLogonSid);
-
-        *DefaultNpAc = pipeAcl;
+        {
+            if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(tokenAppContainer.AppContainer.Sid), &defaultAclSize)))
+                goto CleanupExit;
+        }
 
         if (appContainerSidParent)
         {
-            RtlFreeSid(appContainerSidParent);
+            if (!NT_SUCCESS(status = RtlULongAdd(defaultAclSize, sizeof(ACCESS_ALLOWED_ACE) + PhLengthSid(appContainerSidParent), &defaultAclSize)))
+                goto CleanupExit;
         }
+
+        if (!(pipeAcl = PhAllocateZeroSafe(defaultAclSize)))
+        {
+            status = STATUS_NO_MEMORY;
+            goto CleanupExit;
+        }
+
+        if (!NT_SUCCESS(status = PhCreateAcl(pipeAcl, defaultAclSize, ACL_REVISION)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, &PhSeLocalSystemSid)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, PhSeAdministratorsSid())))
+            goto CleanupExit;
+
+        if (tokenAppContainer.AppContainer.Sid)
+        {
+            if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, tokenAppContainer.AppContainer.Sid)))
+                goto CleanupExit;
+        }
+
+        if (appContainerSidParent)
+        {
+            if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, appContainerSidParent)))
+                goto CleanupExit;
+        }
+
+        if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_ALL, tokenQuery.TokenOwner.Owner)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_READ, &PhSeEveryoneSid)))
+            goto CleanupExit;
+        if (!NT_SUCCESS(status = PhAddAccessAllowedAce(pipeAcl, ACL_REVISION, GENERIC_READ, &PhSeAnonymousLogonSid)))
+            goto CleanupExit;
+
+        *DefaultNpAc = pipeAcl;
+
+    CleanupExit:
+        if (!NT_SUCCESS(status) && pipeAcl)
+            PhFree(pipeAcl);
+        if (appContainerSidParent)
+            RtlFreeSid(appContainerSidParent);
     }
 
     return status;
