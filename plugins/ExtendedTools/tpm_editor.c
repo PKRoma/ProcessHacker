@@ -183,6 +183,8 @@ INT_PTR CALLBACK EtTpmEditorDlgProc(
                 PhFree(context->Data);
 
             PhFree(context);
+
+            PostQuitMessage(0);
         }
         break;
     case WM_COMMAND:
