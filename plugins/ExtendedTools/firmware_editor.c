@@ -195,6 +195,8 @@ INT_PTR CALLBACK EtFirmwareEditorDlgProc(
                 PhFree(context->VariableValue);
 
             PhFree(context);
+
+            PostQuitMessage(0);
         }
         break;
     case WM_COMMAND:
