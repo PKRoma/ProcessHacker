@@ -106,7 +106,7 @@
                 {
                     ENSURE_BUFFER(bytesInUnicodeString);
 
-                    if (!OK_BUFFER || NT_SUCCESS(RtlMultiByteToUnicodeN(
+                    if (OK_BUFFER && NT_SUCCESS(RtlMultiByteToUnicodeN(
                         buffer,
                         bytesInUnicodeString,
                         NULL,
