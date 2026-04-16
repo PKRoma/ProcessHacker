@@ -7184,16 +7184,17 @@ RtlWalkHeap(
     );
 
 // HEAP_INFORMATION_CLASS
-#define HeapCompatibilityInformation 0x0 // q; s: ULONG
-#define HeapEnableTerminationOnCorruption 0x1 // q; s: NULL
-#define HeapExtendedInformation 0x2 // q; s: HEAP_EXTENDED_INFORMATION
-#define HeapOptimizeResources 0x3 // q; s: HEAP_OPTIMIZE_RESOURCES_INFORMATION
-#define HeapTaggingInformation 0x4 // q: RTLP_HEAP_TAGGING_INFO
-#define HeapStackDatabase 0x5 // q: RTL_HEAP_STACK_QUERY; s: RTL_HEAP_STACK_CONTROL
-#define HeapMemoryLimit 0x6 // since 19H2
-#define HeapTag 0x7 // since 20H1
+#define HeapCompatibilityInformation 0x0            // q; s: ULONG
+#define HeapEnableTerminationOnCorruption 0x1       // q; s: NULL
+#define HeapExtendedInformation 0x2                 // q; s: HEAP_EXTENDED_INFORMATION
+#define HeapOptimizeResources 0x3                   // q; s: HEAP_OPTIMIZE_RESOURCES_INFORMATION
+#define HeapTaggingInformation 0x4                  // q: RTLP_HEAP_TAGGING_INFO
+#define HeapStackDatabase 0x5                       // q: RTL_HEAP_STACK_QUERY; s: RTL_HEAP_STACK_CONTROL
+#define HeapMemoryLimit 0x6                         // q: since 19H2
+#define HeapTag 0x7                                 // q: since 20H1
+#define HeapMemoryUsageInformation 0x8              // q: HEAP_MEMORY_USAGE_INFORMATION // since 26H1
 #define HeapDetailedFailureInformation 0x80000001
-#define HeapSetDebuggingInformation 0x80000002 // q; s: HEAP_DEBUGGING_INFORMATION
+#define HeapSetDebuggingInformation 0x80000002      // q; s: HEAP_DEBUGGING_INFORMATION
 
 typedef enum _HEAP_COMPATIBILITY_MODE
 {
@@ -7420,6 +7421,22 @@ typedef struct _RTL_HEAP_STACK_CONTROL
     USHORT Flags;
     HANDLE ProcessHandle;
 } RTL_HEAP_STACK_CONTROL, *PRTL_HEAP_STACK_CONTROL;
+
+#define HEAP_MEMORY_USAGE_INFO_CURRENT_VERSION 0x1
+
+typedef struct _HEAP_MEMORY_USAGE_ENTRY
+{
+    PVOID HeapHandle;
+    SIZE_T TotalCommittedBytes;
+    SIZE_T TotalReservedBytes;
+} HEAP_MEMORY_USAGE_ENTRY, *PHEAP_MEMORY_USAGE_ENTRY;
+
+typedef struct _HEAP_MEMORY_USAGE_INFORMATION
+{
+    USHORT Version;
+    SIZE_T EntryCount;
+    HEAP_MEMORY_USAGE_ENTRY Entries[ANYSIZE_ARRAY];
+} HEAP_MEMORY_USAGE_INFORMATION, *PHEAP_MEMORY_USAGE_INFORMATION;
 
 // rev
 typedef _Function_class_(RTL_HEAP_DEBUGGING_INTERCEPTOR_ROUTINE)
