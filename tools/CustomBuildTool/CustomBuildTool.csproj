@@ -109,6 +109,9 @@
     <Using Include="System.Buffers" />
     <Using Include="System.Collections.Concurrent" />
     <Using Include="System.Collections.Immutable" />
+    <Using Include="System.CommandLine" />
+    <Using Include="System.CommandLine.Builder" />
+    <Using Include="System.CommandLine.Parsing" />
     <Using Include="System.ComponentModel" />
     <Using Include="System.Diagnostics" />
     <Using Include="System.Diagnostics.CodeAnalysis" />
@@ -149,5 +152,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="SharpCompress" Version="0.47.3" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 </Project>
+

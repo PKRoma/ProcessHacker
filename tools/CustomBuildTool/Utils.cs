@@ -304,6 +304,12 @@ namespace CustomBuildTool
             }
         }
 
+        /// <summary>
+        /// Gets the full path to the vswhere.exe utility if it exists on the system.
+        /// </summary>
+        /// <remarks>Searches common installation directories and the system PATH for
+        /// vswhere.exe.</remarks>
+        /// <returns>The full file path to vswhere.exe, or an empty string if not found.</returns>
         public static string GetVswhereFilePath()
         {
             if (string.IsNullOrWhiteSpace(VsWhereFilePath))
@@ -1066,6 +1072,12 @@ namespace CustomBuildTool
             return null;
         }
 
+        /// <summary>
+        /// Executes a command using the Visual Studio Developer Environment (devenv.exe) and returns the process exit
+        /// code.
+        /// </summary>
+        /// <param name="Command">The command-line arguments to pass to devenv.exe.</param>
+        /// <returns>The exit code of the process, or Int32.MaxValue if the devenv.exe path is invalid.</returns>
         public static int ExecuteDevEnvCommand(string Command)
         {
             string currentDevEnvPath = GetDevEnvPath();
@@ -1131,6 +1143,11 @@ namespace CustomBuildTool
         //    return null;
         //}
 
+        /// <summary>
+        /// Reads all text from the specified file using UTF-8 encoding without a byte order mark (BOM).
+        /// </summary>
+        /// <param name="FileName">The path to the file to read.</param>
+        /// <returns>A string containing all text from the file.</returns>
         public static string ReadAllText(string FileName)
         {
             FileStreamOptions options = new FileStreamOptions
@@ -1148,6 +1165,12 @@ namespace CustomBuildTool
             }
         }
 
+        /// <summary>
+        /// Creates a new file, writes the specified string to the file using UTF-8 encoding without a BOM, and then
+        /// closes the file. Overwrites the file if it already exists.
+        /// </summary>
+        /// <param name="FileName">The path to the file to write.</param>
+        /// <param name="Content">The string to write to the file.</param>
         public static void WriteAllText(string FileName, string Content)
         {
             FileStreamOptions options = new FileStreamOptions
@@ -1165,6 +1188,11 @@ namespace CustomBuildTool
             }
         }
 
+        /// <summary>
+        /// Reads the contents of the specified file into a byte array.
+        /// </summary>
+        /// <param name="FileName">The path to the file to read.</param>
+        /// <returns>A byte array containing the contents of the file.</returns>
         public static byte[] ReadAllBytes(string FileName)
         {
             FileStreamOptions options = new FileStreamOptions
@@ -1189,6 +1217,13 @@ namespace CustomBuildTool
             return buffer;
         }
 
+        /// <summary>
+        /// Writes a byte array to a file, creating or overwriting the file as needed.
+        /// </summary>
+        /// <remarks>If the file already exists, it is overwritten. The file is created if it does not
+        /// exist.</remarks>
+        /// <param name="FileName">The path to the file to write.</param>
+        /// <param name="Buffer">The byte array to write to the file.</param>
         public static void WriteAllBytes(string FileName, byte[] Buffer)
         {
             FileStreamOptions options = new FileStreamOptions
@@ -1208,6 +1243,11 @@ namespace CustomBuildTool
             }
         }
 
+        /// <summary>
+        /// Indicates whether a read-only character span is empty or consists only of white-space characters.
+        /// </summary>
+        /// <param name="value">The read-only character span to evaluate.</param>
+        /// <returns>true if the span is empty or contains only white-space characters; otherwise, false.</returns>
         public static bool IsSpanNullOrWhiteSpace(ReadOnlySpan<char> value)
         {
             if (value.IsEmpty)
@@ -1218,6 +1258,11 @@ namespace CustomBuildTool
             return false;
         }
 
+        /// <summary>
+        /// Returns the absolute path after expanding any environment variables in the specified path string.
+        /// </summary>
+        /// <param name="Name">A path string that may contain environment variables.</param>
+        /// <returns>The fully qualified path with environment variables expanded.</returns>
         public static string ExpandFullPath(string Name)
         {
             string value = Environment.ExpandEnvironmentVariables(Name);
@@ -1227,6 +1272,12 @@ namespace CustomBuildTool
             return value;
         }
 
+        /// <summary>
+        /// Retrieves the system environment variables as a dictionary of key-value pairs.
+        /// </summary>
+        /// <remarks>The environment block is cached after the first retrieval. Subsequent calls return
+        /// the cached dictionary.</remarks>
+        /// <returns>A dictionary containing the system environment variables.</returns>
         public static Dictionary<string, string> GetSystemEnvironmentBlock()
         {
             if (EnvironmentBlock.Count == 0)
@@ -1256,11 +1307,23 @@ namespace CustomBuildTool
             return EnvironmentBlock;
         }
 
+        /// <summary>
+        /// Generates a build log file name based on the solution name, build configuration, and platform.
+        /// </summary>
+        /// <param name="Solution">The path to the solution file.</param>
+        /// <param name="Platform">The target platform for the build.</param>
+        /// <param name="Flags">The build flags indicating the configuration.</param>
+        /// <returns>A string representing the build log file name.</returns>
         public static string GetBuildLogPath(string Solution, string Platform, BuildFlags Flags)
         {
             return $"{Path.GetFileNameWithoutExtension(Solution)}{(Flags.HasFlag(BuildFlags.BuildDebug) ? "Debug" : "Release")}{Platform}";
         }
 
+        /// <summary>
+        /// Converts a FILETIME structure to an equivalent DateTime value.
+        /// </summary>
+        /// <param name="FileTime">The FILETIME structure to convert.</param>
+        /// <returns>A DateTime value that represents the same point in time as the specified FILETIME.</returns>
         public static DateTime FileTimeToDateTime(this System.Runtime.InteropServices.ComTypes.FILETIME FileTime)
         {
             long fileTime = ((long)FileTime.dwHighDateTime << 32) + FileTime.dwLowDateTime;
@@ -1268,6 +1331,12 @@ namespace CustomBuildTool
             return DateTime.FromFileTime(fileTime);
         }
 
+        /// <summary>
+        /// Converts a FILETIME structure to a 64-bit file time value representing the number of 100-nanosecond
+        /// intervals since January 1, 1601 (UTC).
+        /// </summary>
+        /// <param name="FileTime">The FILETIME structure to convert.</param>
+        /// <returns>A 64-bit signed integer representing the file time.</returns>
         public static long FileTimeFromFileTime(this System.Runtime.InteropServices.ComTypes.FILETIME FileTime)
         {
             long fileTime = ((long)FileTime.dwHighDateTime << 32) + FileTime.dwLowDateTime;
@@ -1350,6 +1419,12 @@ namespace CustomBuildTool
             _ => throw new ArgumentException("Unsupported toolchain")
         };
 
+        /// <summary>
+        /// Gets the CMake platform name corresponding to the specified build toolchain.
+        /// </summary>
+        /// <param name="toolchain">The build toolchain for which to retrieve the CMake platform name.</param>
+        /// <returns>The CMake platform name associated with the specified toolchain.</returns>
+        /// <exception cref="ArgumentException">Thrown when the specified toolchain is not supported.</exception>
         public static string CMakeGetPlatform(BuildToolchain toolchain) => toolchain switch
         {
             BuildToolchain.MsvcX86 or BuildToolchain.ClangMsvcX86 => "Win32",
@@ -1358,21 +1433,42 @@ namespace CustomBuildTool
             _ => throw new ArgumentException("Unsupported toolchain")
         };
 
+        /// <summary>
+        /// Determines whether the specified toolchain targets the x86 architecture.
+        /// </summary>
+        /// <param name="toolchain">The build toolchain to evaluate.</param>
+        /// <returns>true if the toolchain targets x86; otherwise, false.</returns>
         public static bool IsX86Toolchain(BuildToolchain toolchain)
         {
             return toolchain == BuildToolchain.MsvcX86 || toolchain == BuildToolchain.ClangMsvcX86;
         }
 
+        /// <summary>
+        /// Determines whether the specified toolchain targets the AMD64 architecture.
+        /// </summary>
+        /// <param name="toolchain">The build toolchain to evaluate.</param>
+        /// <returns>true if the toolchain targets AMD64; otherwise, false.</returns>
         public static bool IsAmd64Toolchain(BuildToolchain toolchain)
         {
             return toolchain == BuildToolchain.MsvcAmd64 || toolchain == BuildToolchain.ClangMsvcAmd64;
         }
 
+        /// <summary>
+        /// Determines whether the specified toolchain targets the ARM64 architecture.
+        /// </summary>
+        /// <param name="toolchain">The build toolchain to evaluate.</param>
+        /// <returns>true if the toolchain targets ARM64; otherwise, false.</returns>
         public static bool IsArm64Toolchain(BuildToolchain toolchain)
         {
             return toolchain == BuildToolchain.MsvcArm64 || toolchain == BuildToolchain.ClangMsvcArm64;
         }
 
+        /// <summary>
+        /// Returns the string representation of the specified build toolchain.
+        /// </summary>
+        /// <param name="toolchain">The build toolchain to convert.</param>
+        /// <returns>A string representing the specified build toolchain.</returns>
+        /// <exception cref="ArgumentException">Thrown when the specified toolchain is not supported.</exception>
         public static string GetToolchainString(BuildToolchain toolchain)
         {
             switch (toolchain)
@@ -1394,6 +1490,12 @@ namespace CustomBuildTool
             throw new ArgumentException("Unsupported toolchain");
         }
 
+        /// <summary>
+        /// Parses a string to determine the corresponding build toolchain.
+        /// </summary>
+        /// <param name="s">The string representation of the build toolchain.</param>
+        /// <returns>A value of the BuildToolchain enumeration that matches the specified string, or ClangMsvcAmd64 if the string
+        /// is null, empty, or unrecognized.</returns>
         public static BuildToolchain GetToolchainFromString(string s)
         {
             if (string.IsNullOrWhiteSpace(s))
@@ -1420,6 +1522,11 @@ namespace CustomBuildTool
             return BuildToolchain.ClangMsvcAmd64;
         }
 
+        /// <summary>
+        /// Parses a string to determine the appropriate build generator.
+        /// </summary>
+        /// <param name="s">The input string representing the build generator.</param>
+        /// <returns>A value of the BuildGenerator enumeration corresponding to the input string.</returns>
         public static BuildGenerator GetGeneratorFromString(string s)
         {
             if (string.IsNullOrWhiteSpace(s))
@@ -1439,6 +1546,12 @@ namespace CustomBuildTool
             return BuildGenerator.Ninja;
         }
 
+        /// <summary>
+        /// Returns the string representation of the specified build generator.
+        /// </summary>
+        /// <param name="gen">The build generator to convert to a string.</param>
+        /// <param name="original">The original string to use for unknown generators. Defaults to null.</param>
+        /// <returns>A string representing the build generator, or the original string if the generator is unknown.</returns>
         public static string GetGeneratorString(BuildGenerator gen, string original = null)
         {
             return gen switch

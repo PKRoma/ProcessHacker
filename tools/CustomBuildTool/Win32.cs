@@ -218,23 +218,26 @@ namespace CustomBuildTool
 
             if (File.Exists(DestinationFile))
             {
-                GetFileBasicInfo(SourceFile, out var sourceCreationTime, out var sourceWriteTime, out var SourceAttributes);
-                GetFileBasicInfo(DestinationFile, out var destinationCreationTime, out var destinationWriteTime, out var DestinationAttributes);
+                Win32.GetFileBasicInfo(SourceFile, out var sourceCreationTime, out var sourceWriteTime, out var SourceAttributes);
+                Win32.GetFileBasicInfo(DestinationFile, out var destinationCreationTime, out var destinationWriteTime, out var DestinationAttributes);
 
-                if (!(sourceCreationTime == destinationCreationTime && sourceWriteTime == destinationWriteTime))
+                if (sourceWriteTime != destinationWriteTime || sourceCreationTime != destinationCreationTime)
                 {
                     if ((DestinationAttributes & FileAttributes.ReadOnly) != 0)
-                        File.SetAttributes(DestinationFile, FileAttributes.Normal);
+                    {
+                        try { File.SetAttributes(DestinationFile, FileAttributes.Normal); } catch { }
+                    }
+
                     File.Copy(SourceFile, DestinationFile, true);
-                    SetFileBasicInfo(DestinationFile, sourceCreationTime, sourceWriteTime, ReadOnly);
+                    Win32.SetFileBasicInfo(DestinationFile, sourceCreationTime, sourceWriteTime, ReadOnly);
                     updated = true;
                 }
             }
             else
             {
-                GetFileBasicInfo(SourceFile, out var sourceCreationTime, out var sourceWriteTime, out _);
+                Win32.GetFileBasicInfo(SourceFile, out var sourceCreationTime, out var sourceWriteTime, out _);
                 File.Copy(SourceFile, DestinationFile, true);
-                SetFileBasicInfo(DestinationFile, sourceCreationTime, sourceWriteTime, ReadOnly);
+                Win32.SetFileBasicInfo(DestinationFile, sourceCreationTime, sourceWriteTime, ReadOnly);
                 updated = true;
             }
 
@@ -242,8 +245,6 @@ namespace CustomBuildTool
             {
                 Program.PrintColorMessage($"[SDK] {SourceFile} copied to {DestinationFile}", ConsoleColor.Green, true, Flags);
             }
-            //else
-            //    Program.PrintColorMessage($"[SDK] Skipped: {SourceFile} same as {DestinationFile}", ConsoleColor.DarkGray, true, Flags);
         }
 
         /// <summary>
@@ -279,18 +280,26 @@ namespace CustomBuildTool
 
             if (File.Exists(DestinationFile))
             {
-                if (
-                    File.GetLastWriteTime(SourceFile) > File.GetLastWriteTime(DestinationFile) ||
-                    Win32.GetFileVersion(SourceFile) > Win32.GetFileVersion(DestinationFile)
-                    )
+                Win32.GetFileBasicInfo(SourceFile, out var sourceCreationTime, out var sourceWriteTime, out _);
+                Win32.GetFileBasicInfo(DestinationFile, out _, out var destinationWriteTime, out var DestinationAttributes);
+
+                if (sourceWriteTime > destinationWriteTime || Win32.GetFileVersion(SourceFile) > Win32.GetFileVersion(DestinationFile))
                 {
+                    if ((DestinationAttributes & FileAttributes.ReadOnly) != 0)
+                    {
+                        try { File.SetAttributes(DestinationFile, FileAttributes.Normal); } catch { }
+                    }
+
                     File.Copy(SourceFile, DestinationFile, true);
+                    Win32.SetFileBasicInfo(DestinationFile, sourceCreationTime, sourceWriteTime, false);
                     updated = true;
                 }
             }
             else
             {
+                Win32.GetFileBasicInfo(SourceFile, out var sourceCreationTime, out var sourceWriteTime, out _);
                 File.Copy(SourceFile, DestinationFile, true);
+                Win32.SetFileBasicInfo(DestinationFile, sourceCreationTime, sourceWriteTime, false);
                 updated = true;
             }
 
@@ -298,8 +307,6 @@ namespace CustomBuildTool
             {
                 Program.PrintColorMessage($"[SDK] {SourceFile} copied to {DestinationFile}", ConsoleColor.Green, true, Flags);
             }
-            //else
-            //    Program.PrintColorMessage($"[SDK] Skipped: {SourceFile} older than {DestinationFile}", ConsoleColor.DarkGray, true, Flags);
         }
 
         /// <summary>
@@ -486,14 +493,21 @@ namespace CustomBuildTool
         /// <returns>The <see cref="Version"/> of the file, or 0.0.0.0 if not found.</returns>
         public static Version GetFileVersion(string FileName)
         {
-            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(FileName);
-
-            if (string.IsNullOrWhiteSpace(versionInfo.FileVersion))
+            try
             {
-                return Version.Parse("0.0.0.0");
-            }
+                FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(FileName);
 
-            return Version.Parse(versionInfo.FileVersion);
+                return new Version(
+                    versionInfo.FileMajorPart,
+                    versionInfo.FileMinorPart,
+                    versionInfo.FileBuildPart,
+                    versionInfo.FilePrivatePart
+                    );
+            }
+            catch (Exception)
+            {
+                return new Version(0, 0, 0, 0);
+            }
         }
 
         /// <summary>

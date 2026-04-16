@@ -11,6 +11,9 @@
 
 namespace CustomBuildTool
 {
+    /// <summary>
+    /// Provides methods for retrieving NuGet package metadata, including the latest available versions, using NuGet v3 APIs.
+    /// </summary>
     public static class NugetMetadataClient
     {
         private const string ServiceIndexUri = "https://api.nuget.org/v3/index.json";
@@ -345,6 +348,10 @@ namespace CustomBuildTool
             return (stable ?? ordered[^1]).Original;
         }
 
+        /// <summary>
+        /// Represents a NuGet-compatible semantic version, supporting parsing and comparison according to semantic
+        /// versioning rules.
+        /// </summary>
         public sealed class NugetSemVer : IComparable<NugetSemVer>
         {
             public string Original { get; init; }

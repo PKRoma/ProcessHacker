@@ -395,9 +395,9 @@ typedef struct _KPH_DYN_CONFIG
         /// <returns>True if successful; otherwise, false.</returns>
         public static bool Execute(string OutDir, bool StrictChecks)
         {
-            string manifestFile = $"{Build.BuildWorkingFolder}\\kphlib\\kphdyn.xml";
-            string headerFile = $"{Build.BuildWorkingFolder}\\kphlib\\include\\kphdyn.h";
-            string sourceFile = $"{Build.BuildWorkingFolder}\\kphlib\\kphdyn.c";
+            string manifestFile = Path.Join([Build.BuildWorkingFolder, "\\kphlib\\kphdyn.xml"]);
+            string headerFile = Path.Join([Build.BuildWorkingFolder, "\\kphlib\\include\\kphdyn.h"]);
+            string sourceFile = Path.Join([Build.BuildWorkingFolder, "\\kphlib\\kphdyn.c"]);
 
             // Check for new or modified content. We don't want to touch the file if it's not needed.
             {
@@ -431,7 +431,7 @@ typedef struct _KPH_DYN_CONFIG
 
             Win32.CreateDirectory(OutDir);
 
-            string configFile = $"{OutDir}\\ksidyn.bin";
+            string configFile = Path.Join([OutDir, "\\ksidyn.bin"]);
 
             if (File.Exists(configFile))
             {
@@ -719,8 +719,9 @@ typedef struct _KPH_DYN_CONFIG
             {
                 BuildVerify.PrintCngPublicKeyInfo(SessionTokenPublicKey, CngKeyBlobFormat.GenericPublicBlob);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Program.PrintColorMessage($"[ERROR] {ex}", ConsoleColor.Red);
                 return false;
             }
 

@@ -118,7 +118,22 @@ namespace CustomBuildTool
             catch (Exception e)
             {
                 Program.PrintColorMessage($"Unable to hash file {Path.GetFileName(FileName)}: {e.Message}", ConsoleColor.Yellow);
-                return string.Empty;
+                return null;
+            }
+        }
+
+        public static string HashData(byte[] Source)
+        {
+            try
+            {
+                byte[] fileHash = SHA256.HashData(Source);
+
+                return Convert.ToHexString(fileHash);
+            }
+            catch (Exception e)
+            {
+                Program.PrintColorMessage($"Unable to hash buffer: {e.Message}", ConsoleColor.Yellow);
+                return null;
             }
         }
 
