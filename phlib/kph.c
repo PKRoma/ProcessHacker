@@ -18,6 +18,9 @@ static CONST PH_STRINGREF KphDefaultPortName = PH_STRINGREF_INIT(KPH_PORT_NAME);
 static PPH_OBJECT_TYPE KphMessageObjectType = NULL;
 static PPH_OBJECT_TYPE KphUserMessageObjectType = NULL;
 
+/**
+ * Initializes the KPH message object types.
+ */
 VOID KphInitialize(
     VOID
     )
@@ -45,6 +48,12 @@ VOID KphInitialize(
         );
 }
 
+/**
+ * Creates a new KPH message object.
+ *
+ * \param Size The size of the message object to create.
+ * \return A pointer to the created message object.
+ */
 PKPH_MESSAGE KphCreateMessage(
     _In_ SIZE_T Size
     )
@@ -54,6 +63,12 @@ PKPH_MESSAGE KphCreateMessage(
     return PhCreateObject(Size, KphMessageObjectType);
 }
 
+/**
+ * Creates a new KPH user message object.
+ *
+ * \param MessageId The message identifier for the new message.
+ * \return A pointer to the created message object.
+ */
 PKPH_MESSAGE KphCreateUserMessage(
     _In_ KPH_MESSAGE_ID MessageId
     )
@@ -69,6 +84,12 @@ PKPH_MESSAGE KphCreateUserMessage(
     return msg;
 }
 
+/**
+ * Connects to the service.
+ *
+ * \param Config Configuration parameters for the connection.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphConnect(
     _In_ PKPH_CONFIG_PARAMETERS Config
     )
@@ -93,7 +114,11 @@ NTSTATUS KphConnect(
 
         if (NT_SUCCESS(status))
         {
-            status = KphCommsStart(portName, Config->Callback, Config->RingBufferLength);
+            status = KphCommsStart(
+                portName,
+                Config->Callback,
+                Config->RingBufferLength
+                );
         }
 
         return status;
@@ -101,7 +126,11 @@ NTSTATUS KphConnect(
 
     // Try to start the service, if it exists.
 
-    status = PhOpenService(&serviceHandle, SERVICE_START | SERVICE_QUERY_STATUS, PhGetStringRefZ(Config->ServiceName));
+    status = PhOpenService(
+        &serviceHandle,
+        SERVICE_START | SERVICE_QUERY_STATUS,
+        PhGetStringRefZ(Config->ServiceName)
+        );
 
     if (NT_SUCCESS(status))
     {
@@ -109,7 +138,11 @@ NTSTATUS KphConnect(
 
         if (NT_SUCCESS(status))
         {
-            status = PhWaitForServiceStatus(serviceHandle, SERVICE_RUNNING, 5000);
+            status = PhWaitForServiceStatus(
+                serviceHandle,
+                SERVICE_RUNNING,
+                5000
+                );
         }
 
         PhCloseServiceHandle(serviceHandle);
@@ -118,7 +151,11 @@ NTSTATUS KphConnect(
         if (!NT_SUCCESS(status))
             goto CreateAndConnectEnd;
 
-        status = KphCommsStart(portName, Config->Callback, Config->RingBufferLength);
+        status = KphCommsStart(
+            portName,
+            Config->Callback,
+            Config->RingBufferLength
+            );
 
         goto CreateAndConnectEnd;
     }
@@ -185,6 +222,12 @@ CreateAndConnectEnd:
     return status;
 }
 
+/**
+ * Sets service parameters in the registry.
+ *
+ * \param Config Configuration parameters for the service.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphpSetParametersService(
     _In_ PKPH_CONFIG_PARAMETERS Config
     )
@@ -251,6 +294,12 @@ CleanupExit:
 #endif
 }
 
+/**
+ * Sets optional driver parameters.
+ *
+ * \param Config Configuration parameters.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSetParameters(
     _In_ PKPH_CONFIG_PARAMETERS Config
     )
@@ -443,6 +492,13 @@ static BOOLEAN NTAPI KsiLoadUnloadServiceCleanupKeyCallback(
     return TRUE;
 }
 
+/**
+ * Loads or unloads the service.
+ *
+ * \param Config Configuration parameters for the service.
+ * \param LoadDriver TRUE to load the driver, FALSE to unload.
+ * \return Successful or errant status.
+ */
 NTSTATUS KsiLoadUnloadService(
     _In_ PKPH_CONFIG_PARAMETERS Config,
     _In_ BOOLEAN LoadDriver
@@ -484,17 +540,28 @@ NTSTATUS KsiLoadUnloadService(
     if (NT_SUCCESS(status) && disposition == REG_CREATED_NEW_KEY)
     {
         fullServiceFileName = PhConcatStringRef2(&PhNtDosDevicesPrefix, Config->FileName);
-        PhSetValueKeyUlong(serviceKeyHandle, L"ErrorControl", SERVICE_ERROR_NORMAL);
-        PhSetValueKeyUlong(serviceKeyHandle, L"Type", SERVICE_KERNEL_DRIVER);
-        PhSetValueKeyUlong(serviceKeyHandle, L"Start", SERVICE_DISABLED);
-        PhSetValueKeyStringZ(serviceKeyHandle, L"ImagePath", &fullServiceFileName->sr);
-        PhSetValueKeyStringZ(serviceKeyHandle, L"ObjectName", Config->ObjectName);
+
+        if (!NT_SUCCESS(status = PhSetValueKeyUlong(serviceKeyHandle, L"ErrorControl", SERVICE_ERROR_NORMAL)) ||
+            !NT_SUCCESS(status = PhSetValueKeyUlong(serviceKeyHandle, L"Type", SERVICE_KERNEL_DRIVER)) ||
+            !NT_SUCCESS(status = PhSetValueKeyUlong(serviceKeyHandle, L"Start", SERVICE_DISABLED)) ||
+            !NT_SUCCESS(status = PhSetValueKeyStringZ(serviceKeyHandle, L"ImagePath", &fullServiceFileName->sr)) ||
+            !NT_SUCCESS(status = PhSetValueKeyStringZ(serviceKeyHandle, L"ObjectName", Config->ObjectName)) ||
+            !NT_SUCCESS(status = KphSetParameters(Config)))
+        {
+            PhDereferenceObject(fullServiceFileName);
+            NtClose(serviceKeyHandle);
+            goto CleanupExit;
+        }
+
         PhDereferenceObject(fullServiceFileName);
-
-        KphSetParameters(Config);
-
         NtClose(serviceKeyHandle);
     }
+
+CleanupExit:
+    PhDereferenceObject(fullServiceKeyName);
+
+    if (!NT_SUCCESS(status))
+        return status;
 
     if (LoadDriver)
     {
@@ -551,6 +618,12 @@ NTSTATUS KsiLoadUnloadService(
 #endif
 }
 
+/**
+ * Stops the KPH service.
+ *
+ * \param Config Configuration parameters for the service.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphServiceStop(
     _In_ PKPH_CONFIG_PARAMETERS Config
     )
@@ -850,6 +923,13 @@ NTSTATUS KphEnumerateProcessHandles(
     return status;
 }
 
+/**
+ * Enumerates handles for a process.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param Handles Pointer to receive the handle information buffer.
+ * \return Successful or errant status.
+ */
 NTSTATUS KsiEnumerateProcessHandles(
     _In_ HANDLE ProcessHandle,
     _Out_ PKPH_PROCESS_HANDLE_INFORMATION *Handles
@@ -922,6 +1002,14 @@ NTSTATUS KphQueryInformationObject(
     return status;
 }
 
+/**
+ * Queries the name of a thread object.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param Handle Handle to the thread object.
+ * \param ThreadName Pointer to receive the thread name string.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQueryObjectThreadName(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE Handle,
@@ -935,7 +1023,8 @@ NTSTATUS KphQueryObjectThreadName(
 
     returnLength = 0;
     bufferSize = 0x100;
-    buffer = PhAllocate(bufferSize);
+    buffer = PhAllocateStack(bufferSize);
+    if (!buffer) return STATUS_NO_MEMORY;
 
     status = KphQueryInformationObject(
         ProcessHandle,
@@ -948,9 +1037,9 @@ NTSTATUS KphQueryObjectThreadName(
 
     if (status == STATUS_BUFFER_TOO_SMALL && returnLength > 0)
     {
-        PhFree(buffer);
+        PhFreeStack(buffer);
         bufferSize = returnLength;
-        buffer = PhAllocate(returnLength);
+        buffer = PhAllocateStack(returnLength);
 
         status = KphQueryInformationObject(
             ProcessHandle,
@@ -967,11 +1056,19 @@ NTSTATUS KphQueryObjectThreadName(
         *ThreadName = PhCreateStringFromUnicodeString(&buffer->ThreadName);
     }
 
-    PhFree(buffer);
+    PhFreeStack(buffer);
 
     return status;
 }
 
+/**
+ * Queries section mapping information for an object.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param Handle Handle to the object.
+ * \param Info Pointer to receive the section mapping information.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQueryObjectSectionMappingsInfo(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE Handle,
@@ -988,12 +1085,15 @@ NTSTATUS KphQueryObjectSectionMappingsInfo(
 
     while (TRUE)
     {
-        status = KphQueryInformationObject(ProcessHandle,
-                                           Handle,
-                                           KphObjectSectionMappingsInformation,
-                                           buffer,
-                                           bufferSize,
-                                           &bufferSize);
+        status = KphQueryInformationObject(
+            ProcessHandle,
+            Handle,
+            KphObjectSectionMappingsInformation,
+            buffer,
+            bufferSize,
+            &bufferSize
+            );
+
         if (status == STATUS_BUFFER_TOO_SMALL)
         {
             PhFree(buffer);
@@ -1016,6 +1116,16 @@ NTSTATUS KphQueryObjectSectionMappingsInfo(
     return status;
 }
 
+/**
+ * Sets information for the object.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param Handle Handle to the object.
+ * \param ObjectInformationClass Information class to set.
+ * \param ObjectInformation Buffer containing the information to set.
+ * \param ObjectInformationLength Length of the buffer.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSetInformationObject(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE Handle,
@@ -1044,6 +1154,14 @@ NTSTATUS KphSetInformationObject(
     return status;
 }
 
+/**
+ * Opens a handle to the driver.
+ *
+ * \param DriverHandle Pointer to receive the handle to the driver.
+ * \param DesiredAccess Desired access rights.
+ * \param ObjectAttributes Object attributes for the driver.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphOpenDriver(
     _Out_ PHANDLE DriverHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -1124,6 +1242,12 @@ NTSTATUS KphQueryInformationProcess(
     return status;
 }
 
+/**
+ * Gets the process state for a given process handle.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \return The process state value.
+ */
 KPH_PROCESS_STATE KphGetProcessState(
     _In_ HANDLE ProcessHandle
     )
@@ -1145,6 +1269,11 @@ KPH_PROCESS_STATE KphGetProcessState(
     return state;
 }
 
+/**
+ * Gets the process state for the current process.
+ *
+ * \return The process state value.
+ */
 KPH_PROCESS_STATE KphGetCurrentProcessState(
     VOID
     )
@@ -1152,6 +1281,12 @@ KPH_PROCESS_STATE KphGetCurrentProcessState(
     return KphGetProcessState(NtCurrentProcess());
 }
 
+/**
+ * Gets the KPH access level for a process.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \return The KPH access level.
+ */
 KPH_LEVEL KphProcessLevel(
     _In_ HANDLE ProcessHandle
     )
@@ -1186,6 +1321,12 @@ KPH_LEVEL KphProcessLevel(
     return KphLevelNone;
 }
 
+/**
+ * Gets the KPH access level, optionally using a cached value.
+ *
+ * \param Cached Whether to use the cached value.
+ * \return The KPH access level.
+ */
 KPH_LEVEL KphLevelEx(
     _In_ BOOLEAN Cached
     )
@@ -1198,6 +1339,10 @@ KPH_LEVEL KphLevelEx(
     return level;
 }
 
+/**
+ * Gets the access level for the current process (cached).
+ * \return The access level.
+ */
 KPH_LEVEL KsiLevel(
     VOID
     )
@@ -1205,6 +1350,15 @@ KPH_LEVEL KsiLevel(
     return KphLevelEx(TRUE);
 }
 
+/**
+ * Sets information for a proces.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param ProcessInformationClass The information class to set.
+ * \param ProcessInformation Buffer containing the information to set.
+ * \param ProcessInformationLength Length of the buffer.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSetInformationProcess(
     _In_ HANDLE ProcessHandle,
     _In_ KPH_PROCESS_INFORMATION_CLASS ProcessInformationClass,
@@ -1231,6 +1385,15 @@ NTSTATUS KphSetInformationProcess(
     return status;
 }
 
+/**
+ * Sets information for a thread.
+ *
+ * \param ThreadHandle Handle to the thread.
+ * \param ThreadInformationClass The information class to set.
+ * \param ThreadInformation Buffer containing the information to set.
+ * \param ThreadInformationLength Length of the buffer.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSetInformationThread(
     _In_ HANDLE ThreadHandle,
     _In_ KPH_THREAD_INFORMATION_CLASS ThreadInformationClass,
@@ -1257,6 +1420,14 @@ NTSTATUS KphSetInformationThread(
     return status;
 }
 
+/**
+ * Sends a system control command.
+ *
+ * \param SystemControlClass The system control class.
+ * \param SystemControlInfo Buffer containing the control information.
+ * \param SystemControlInfoLength Length of the buffer.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSystemControl(
     _In_ KPH_SYSTEM_CONTROL_CLASS SystemControlClass,
     _In_reads_bytes_(SystemControlInfoLength) PVOID SystemControlInfo,
@@ -1281,6 +1452,17 @@ NTSTATUS KphSystemControl(
     return status;
 }
 
+/**
+ * Queries ALPC information for the object.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param PortHandle Handle to the ALPC port.
+ * \param AlpcInformationClass The ALPC information class.
+ * \param AlpcInformation Buffer to receive the information.
+ * \param AlpcInformationLength Length of the buffer.
+ * \param ReturnLength Pointer to receive the length of data returned.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphAlpcQueryInformation(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE PortHandle,
@@ -1311,6 +1493,14 @@ NTSTATUS KphAlpcQueryInformation(
     return status;
 }
 
+/**
+ * Queries ALPC communication names information.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param PortHandle Handle to the ALPC port.
+ * \param Names Pointer to receive the communication names information.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphAlpcQueryCommunicationsNamesInfo(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE PortHandle,
@@ -1383,6 +1573,17 @@ NTSTATUS KphQueryInformationFile(
     return status;
 }
 
+/**
+ * Queries volume information for a file.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param FileHandle Handle to the file.
+ * \param FsInformationClass Information class to query.
+ * \param FsInformation Buffer for the information.
+ * \param FsInformationLength Length of the buffer.
+ * \param IoStatusBlock Pointer to the I/O status block.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQueryVolumeInformationFile(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE FileHandle,
@@ -1413,6 +1614,15 @@ NTSTATUS KphQueryVolumeInformationFile(
     return status;
 }
 
+/**
+ * Duplicates an object handle.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param SourceHandle Source handle.
+ * \param DesiredAccess Desired access rights.
+ * \param TargetHandle Pointer to receive the target handle.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphDuplicateObject(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE SourceHandle,
@@ -1439,6 +1649,13 @@ NTSTATUS KphDuplicateObject(
     return status;
 }
 
+/**
+ * Queries the performance counter and frequency.
+ *
+ * \param PerformanceCounter Pointer to receive the performance counter value.
+ * \param PerformanceFrequency Pointer to receive the performance frequency value (optional).
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQueryPerformanceCounter(
     _Out_ PLARGE_INTEGER PerformanceCounter,
     _Out_opt_ PLARGE_INTEGER PerformanceFrequency
@@ -1471,6 +1688,23 @@ NTSTATUS KphQueryPerformanceCounter(
     return status;
 }
 
+/**
+ * Creates or opens a file.
+ *
+ * \param FileHandle Pointer to receive the file handle.
+ * \param DesiredAccess Desired access rights.
+ * \param ObjectAttributes Object attributes for the file.
+ * \param IoStatusBlock Pointer to the I/O status block.
+ * \param AllocationSize Optional allocation size.
+ * \param FileAttributes File attributes.
+ * \param ShareAccess Share access flags.
+ * \param CreateDisposition Create disposition value.
+ * \param CreateOptions Create options flags.
+ * \param EaBuffer Optional extended attributes buffer.
+ * \param EaLength Length of the extended attributes buffer.
+ * \param Options Additional options.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphCreateFile(
     _Out_ PHANDLE FileHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -1513,6 +1747,16 @@ NTSTATUS KphCreateFile(
     return status;
 }
 
+/**
+ * Queries information about a thread.
+ *
+ * \param ThreadHandle Handle to the thread.
+ * \param ThreadInformationClass The information class to query.
+ * \param ThreadInformation Buffer to receive the information.
+ * \param ThreadInformationLength Length of the buffer.
+ * \param ReturnLength Pointer to receive the length of data returned (optional).
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQueryInformationThread(
     _In_ HANDLE ThreadHandle,
     _In_ KPH_THREAD_INFORMATION_CLASS ThreadInformationClass,
@@ -1541,6 +1785,16 @@ NTSTATUS KphQueryInformationThread(
     return status;
 }
 
+/**
+ * Queries information about a section object using the KPH driver.
+ *
+ * \param SectionHandle Handle to the section.
+ * \param SectionInformationClass The information class to query.
+ * \param SectionInformation Buffer to receive the information.
+ * \param SectionInformationLength Length of the buffer.
+ * \param ReturnLength Pointer to receive the length of data returned (optional).
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQuerySection(
     _In_ HANDLE SectionHandle,
     _In_ KPH_SECTION_INFORMATION_CLASS SectionInformationClass,
@@ -1569,6 +1823,13 @@ NTSTATUS KphQuerySection(
     return status;
 }
 
+/**
+ * Queries section mapping information for a section object.
+ *
+ * \param SectionHandle Handle to the section.
+ * \param Info Pointer to receive the section mapping information.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQuerySectionMappingsInfo(
     _In_ HANDLE SectionHandle,
     _Out_ PKPH_SECTION_MAPPINGS_INFORMATION* Info
@@ -1611,6 +1872,14 @@ NTSTATUS KphQuerySectionMappingsInfo(
     return status;
 }
 
+/**
+ * Compares two object handles for equality using the KPH driver.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param FirstObjectHandle First object handle.
+ * \param SecondObjectHandle Second object handle.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphCompareObjects(
     _In_ HANDLE ProcessHandle,
     _In_ HANDLE FirstObjectHandle,
@@ -1635,6 +1904,12 @@ NTSTATUS KphCompareObjects(
     return status;
 }
 
+/**
+ * Gets the informer client settings.
+ *
+ * \param Settings Pointer to receive the informer client settings.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphGetInformerClientSettings(
     _Out_ PKPH_INFORMER_CLIENT_SETTINGS Settings
     )
@@ -1655,6 +1930,12 @@ NTSTATUS KphGetInformerClientSettings(
     return status;
 }
 
+/**
+ * Sets the informer client settings in the KPH driver.
+ *
+ * \param Settings Pointer to the informer client settings to set.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSetInformerClientSettings(
     _Out_ PKPH_INFORMER_CLIENT_SETTINGS Settings
     )
@@ -1675,6 +1956,13 @@ NTSTATUS KphSetInformerClientSettings(
     return status;
 }
 
+/**
+ * Acquires driver unload protection.
+ *
+ * \param PreviousCount Pointer to receive the previous count (optional).
+ * \param ClientPreviousCount Pointer to receive the client previous count (optional).
+ * \return Successful or errant status.
+ */
 NTSTATUS KphAcquireDriverUnloadProtection(
     _Out_opt_ PLONG PreviousCount,
     _Out_opt_ PLONG ClientPreviousCount
@@ -1710,6 +1998,13 @@ NTSTATUS KphAcquireDriverUnloadProtection(
     return status;
 }
 
+/**
+ * Releases driver unload protection.
+ *
+ * \param PreviousCount Pointer to receive the previous count (optional).
+ * \param ClientPreviousCount Pointer to receive the client previous count (optional).
+ * \return Successful or errant status.
+ */
 NTSTATUS KphReleaseDriverUnloadProtection(
     _Out_opt_ PLONG PreviousCount,
     _Out_opt_ PLONG ClientPreviousCount
@@ -1739,6 +2034,12 @@ NTSTATUS KphReleaseDriverUnloadProtection(
     return status;
 }
 
+/**
+ * Gets the number of connected clients to the KPH driver.
+ *
+ * \param Count Pointer to receive the client count.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphGetConnectedClientCount(
     _Out_ PULONG Count
     )
@@ -1758,6 +2059,15 @@ NTSTATUS KphGetConnectedClientCount(
     return status;
 }
 
+/**
+ * Activates dynamic data.
+ *
+ * \param DynData Pointer to the dynamic data.
+ * \param DynDataLength Length of the dynamic data.
+ * \param Signature Pointer to the signature.
+ * \param SignatureLength Length of the signature.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphActivateDynData(
     _In_ PBYTE DynData,
     _In_ ULONG DynDataLength,
@@ -1784,6 +2094,12 @@ NTSTATUS KphActivateDynData(
     return status;
 }
 
+/**
+ * Checks if dynamic data is active.
+ *
+ * \param IsActive Pointer to receive the active state.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphIsDynDataActive(
     _Out_ PBOOLEAN IsActive
     )
@@ -1809,6 +2125,15 @@ NTSTATUS KphIsDynDataActive(
     return status;
 }
 
+/**
+ * Requests a session access token.
+ *
+ * \param AccessToken Pointer to receive the access token.
+ * \param Expiry Pointer to the expiry time.
+ * \param Privileges Privileges to assign.
+ * \param Uses Number of uses for the token.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphRequestSessionAccessToken(
     _Out_ PKPH_SESSION_ACCESS_TOKEN AccessToken,
     _In_ PLARGE_INTEGER Expiry,
@@ -1838,6 +2163,14 @@ NTSTATUS KphRequestSessionAccessToken(
     return status;
 }
 
+/**
+ * Assigns a session token to a process.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param Signature Pointer to the signature.
+ * \param SignatureLength Length of the signature.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphAssignProcessSessionToken(
     _In_ HANDLE ProcessHandle,
     _In_ PBYTE Signature,
@@ -1862,6 +2195,14 @@ NTSTATUS KphAssignProcessSessionToken(
     return status;
 }
 
+/**
+ * Assigns a session token to a thread.
+ *
+ * \param ThreadHandle Handle to the thread.
+ * \param Signature Pointer to the signature.
+ * \param SignatureLength Length of the signature.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphAssignThreadSessionToken(
     _In_ HANDLE ThreadHandle,
     _In_ PBYTE Signature,
@@ -1886,6 +2227,13 @@ NTSTATUS KphAssignThreadSessionToken(
     return status;
 }
 
+/**
+ * Gets the informer settings for a process.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param Settings Pointer to receive the informer settings.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphGetInformerProcessSettings(
     _In_ HANDLE ProcessHandle,
     _Out_ PKPH_INFORMER_SETTINGS Settings
@@ -1908,6 +2256,13 @@ NTSTATUS KphGetInformerProcessSettings(
     return status;
 }
 
+/**
+ * Sets the informer settings for a process.
+ *
+ * \param ProcessHandle Handle to the process (optional).
+ * \param Settings Pointer to the informer settings to set.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphSetInformerProcessSettings(
     _In_opt_ HANDLE ProcessHandle,
     _In_ PKPH_INFORMER_SETTINGS Settings
@@ -1930,6 +2285,14 @@ NTSTATUS KphSetInformerProcessSettings(
     return status;
 }
 
+/**
+ * Strips protected process masks.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param ProcessAllowedMask Allowed process access mask.
+ * \param ThreadAllowedMask Allowed thread access mask.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphStripProtectedProcessMasks(
     _In_ HANDLE ProcessHandle,
     _In_ ACCESS_MASK ProcessAllowedMask,
@@ -1954,6 +2317,17 @@ NTSTATUS KphStripProtectedProcessMasks(
     return status;
 }
 
+/**
+ * Queries virtual memory information for a process.
+ *
+ * \param ProcessHandle Handle to the process.
+ * \param BaseAddress Optional base address.
+ * \param MemoryInformationClass The memory information class to query.
+ * \param MemoryInformation Buffer to receive the information.
+ * \param MemoryInformationLength Length of the buffer.
+ * \param ReturnLength Pointer to receive the length of data returned (optional).
+ * \return Successful or errant status.
+ */
 NTSTATUS KphQueryVirtualMemory(
     _In_ HANDLE ProcessHandle,
     _In_opt_ PVOID BaseAddress,
@@ -1984,6 +2358,14 @@ NTSTATUS KphQueryVirtualMemory(
     return status;
 }
 
+/**
+ * Queries hash information for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param HashInformation Pointer to the hash information structure.
+ * \param HashInformationLength Length of the hash information structure.
+ * \return Successful or errant status.
+ */
 NTSTATUS KsiQueryHashInformationFile(
     _In_ HANDLE FileHandle,
     _Inout_ PKPH_HASH_INFORMATION HashInformation,
@@ -2008,6 +2390,14 @@ NTSTATUS KsiQueryHashInformationFile(
     return status;
 }
 
+/**
+ * Opens a device.
+ *
+ * \param DeviceHandle Pointer to receive the device handle.
+ * \param DesiredAccess Desired access rights.
+ * \param ObjectAttributes Object attributes for the device.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphOpenDevice(
     _Out_ PHANDLE DeviceHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -2032,6 +2422,14 @@ NTSTATUS KphOpenDevice(
     return status;
 }
 
+/**
+ * Opens a device driver.
+ *
+ * \param DeviceHandle Handle to the device.
+ * \param DesiredAccess Desired access rights.
+ * \param DriverHandle Pointer to receive the driver handle.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphOpenDeviceDriver(
     _In_ HANDLE DeviceHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -2056,6 +2454,14 @@ NTSTATUS KphOpenDeviceDriver(
     return status;
 }
 
+/**
+ * Opens the base device for a device.
+ *
+ * \param DeviceHandle Handle to the device.
+ * \param DesiredAccess Desired access rights.
+ * \param BaseDeviceHandle Pointer to receive the base device handle.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphOpenDeviceBaseDevice(
     _In_ HANDLE DeviceHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -2080,6 +2486,13 @@ NTSTATUS KphOpenDeviceBaseDevice(
     return status;
 }
 
+/**
+ * Gets informer statistics.
+ *
+ * \param ProcessHandle Optional handle to the process.
+ * \param Stats Pointer to receive the informer statistics.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphGetInformerStats(
     _In_opt_ HANDLE ProcessHandle,
     _Out_ PKPH_INFORMER_STATS Stats
@@ -2102,6 +2515,12 @@ NTSTATUS KphGetInformerStats(
     return status;
 }
 
+/**
+ * Gets informer client statistics.
+ *
+ * \param Stats Pointer to receive the informer client statistics.
+ * \return Successful or errant status.
+ */
 NTSTATUS KphGetInformerClientStats(
     _Out_ PKPH_INFORMER_CLIENT_STATS Stats
     )
