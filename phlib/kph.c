@@ -419,48 +419,68 @@ CleanupExit:
 #endif
 }
 
-VOID KphSetServiceSecurity(
+/**
+ * Sets the security descriptor for the KPH service.
+ *
+ * \param ServiceHandle Handle to the service.
+ * \return Successful or errant status.
+ */
+NTSTATUS KphSetServiceSecurity(
     _In_ SC_HANDLE ServiceHandle
     )
 {
+    NTSTATUS status;
     PSID administratorsSid = PhSeAdministratorsSid();
     UCHAR securityDescriptorBuffer[SECURITY_DESCRIPTOR_MIN_LENGTH + 0x80];
     PSECURITY_DESCRIPTOR securityDescriptor;
     ULONG sdAllocationLength;
     PACL dacl;
 
-    sdAllocationLength = SECURITY_DESCRIPTOR_MIN_LENGTH +
-        (ULONG)sizeof(ACL) +
-        (ULONG)sizeof(ACCESS_ALLOWED_ACE) +
-        PhLengthSid(&PhSeServiceSid) +
-        (ULONG)sizeof(ACCESS_ALLOWED_ACE) +
-        PhLengthSid(administratorsSid) +
-        (ULONG)sizeof(ACCESS_ALLOWED_ACE) +
-        PhLengthSid(&PhSeInteractiveSid);
+    if (!NT_SUCCESS(status = RtlULongAdd(SECURITY_DESCRIPTOR_MIN_LENGTH, (ULONG)sizeof(ACL), &sdAllocationLength)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, (ULONG)sizeof(ACCESS_ALLOWED_ACE), &sdAllocationLength)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, PhLengthSid(&PhSeServiceSid), &sdAllocationLength)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, (ULONG)sizeof(ACCESS_ALLOWED_ACE), &sdAllocationLength)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, PhLengthSid(administratorsSid), &sdAllocationLength)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, (ULONG)sizeof(ACCESS_ALLOWED_ACE), &sdAllocationLength)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, PhLengthSid(&PhSeInteractiveSid), &sdAllocationLength)))
+        goto CleanupExit;
 
     securityDescriptor = (PSECURITY_DESCRIPTOR)securityDescriptorBuffer;
+    
+    if (!NT_SUCCESS(status = PhCreateSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)))
+        goto CleanupExit;
+
     dacl = PTR_ADD_OFFSET(securityDescriptor, SECURITY_DESCRIPTOR_MIN_LENGTH);
 
-    PhCreateSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION);
-    PhCreateAcl(dacl, sdAllocationLength - SECURITY_DESCRIPTOR_MIN_LENGTH, ACL_REVISION);
-    PhAddAccessAllowedAce(dacl, ACL_REVISION, SERVICE_ALL_ACCESS, &PhSeServiceSid);
-    PhAddAccessAllowedAce(dacl, ACL_REVISION, SERVICE_ALL_ACCESS, administratorsSid);
-    PhAddAccessAllowedAce(dacl, ACL_REVISION,
-        SERVICE_QUERY_CONFIG |
-        SERVICE_QUERY_STATUS |
-        SERVICE_START |
-        SERVICE_STOP |
-        SERVICE_INTERROGATE |
-        DELETE,
-        &PhSeInteractiveSid
-        );
-    PhSetDaclSecurityDescriptor(securityDescriptor, TRUE, dacl, FALSE);
+    if (!NT_SUCCESS(status = PhCreateAcl(dacl, sdAllocationLength - SECURITY_DESCRIPTOR_MIN_LENGTH, ACL_REVISION)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = PhAddAccessAllowedAce(dacl, ACL_REVISION, SERVICE_ALL_ACCESS, &PhSeServiceSid)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = PhAddAccessAllowedAce(dacl, ACL_REVISION, SERVICE_ALL_ACCESS, administratorsSid)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = PhAddAccessAllowedAce(dacl, ACL_REVISION, SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS | SERVICE_START | SERVICE_STOP | SERVICE_INTERROGATE | DELETE, &PhSeInteractiveSid)))
+        goto CleanupExit;
+    if (!NT_SUCCESS(status = PhSetDaclSecurityDescriptor(securityDescriptor, TRUE, dacl, FALSE)))
+        goto CleanupExit;
 
-    PhSetServiceObjectSecurity(ServiceHandle, DACL_SECURITY_INFORMATION, securityDescriptor);
+    status = PhSetServiceObjectSecurity(
+        ServiceHandle,
+        DACL_SECURITY_INFORMATION,
+        securityDescriptor
+        );
 
     NT_ASSERT(RtlValidSecurityDescriptor(securityDescriptor));
     NT_ASSERT(sdAllocationLength < sizeof(securityDescriptorBuffer));
     NT_ASSERT(RtlLengthSecurityDescriptor(securityDescriptor) < sizeof(securityDescriptorBuffer));
+
+CleanupExit:
+    return status;
 }
 
 _Function_class_(PH_ENUM_KEY_CALLBACK)
