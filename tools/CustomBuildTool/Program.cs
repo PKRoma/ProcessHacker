@@ -577,6 +577,14 @@ namespace CustomBuildTool
             var x64Opt = new Option<bool>("-x64", "x64");
             var arm64Opt = new Option<bool>("-arm64", "arm64");
 
+            debugOpt.AddAlias("-debug");
+            releaseOpt.AddAlias("-Release");
+            win32Opt.AddAlias("-win32");
+            win32Opt.AddAlias("-WIN32");
+            x64Opt.AddAlias("-X64");
+            arm64Opt.AddAlias("-Arm64");
+            arm64Opt.AddAlias("-ARM64");
+
             cmd.AddOption(cmakeOpt); cmd.AddOption(debugOpt); cmd.AddOption(releaseOpt);
             cmd.AddOption(win32Opt); cmd.AddOption(x64Opt); cmd.AddOption(arm64Opt);
             cmd.SetHandler((bool verbose, bool cmake, bool debug, bool release, bool win32, bool x64, bool arm64) =>
