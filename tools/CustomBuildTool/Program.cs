@@ -238,12 +238,14 @@ namespace CustomBuildTool
         private static Command CreateDynDataCommand()
         {
             var cmd = new Command("-dyndata", "Builds dynamic data.");
-            var arg = new Argument<string>("arg", "Dynamic data argument");
+            var arg = new Argument<string>("arg", () => "", "Dynamic data argument (optional)");
             cmd.AddArgument(arg);
             cmd.SetHandler((string a) =>
             {
                 BuildToolsId.CheckForOutOfDateTools();
-                if (!Build.BuildDynamicData(a)) Environment.Exit(1);
+
+                if (!Build.BuildDynamicData(a))
+                    Environment.Exit(1);
             }, arg);
             return cmd;
         }
@@ -691,7 +693,7 @@ namespace CustomBuildTool
 
                 var generator = Utils.GetGeneratorFromString(generatorArg);
                 var toolchain = Utils.GetToolchainFromString(toolchainArg);
-                
+
                 if (!Build.BuildSolutionCMake("SystemInformer", generator, toolchain, flags)) Environment.Exit(1);
                 if (!Build.BuildSolutionCMake("Plugins", generator, toolchain, flags)) Environment.Exit(1);
 
