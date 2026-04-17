@@ -676,8 +676,8 @@ namespace CustomBuildTool
         {
             Program.PrintColorMessage("Building dynamic data...", ConsoleColor.Cyan);
 
-            if (!DynData.IsValidSessionKey())
-                return false;
+            //if (!DynData.IsValidSessionKey())
+            //    return false;
 
             try
             {
