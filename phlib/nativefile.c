@@ -1037,7 +1037,7 @@ NTSTATUS PhEnumDirectoryFileEx(
 
         while (TRUE)
         {
-            CONST FILE_DIRECTORY_NEXT_INFORMATION* information = PTR_ADD_OFFSET(buffer, i);
+            CONST PFILE_DIRECTORY_NEXT_INFORMATION information = PTR_ADD_OFFSET(buffer, i);
 
             if (!Callback(FileHandle, information, Context))
             {
