@@ -628,7 +628,7 @@ static HRESULT PhQueryProcessSystemIdentification(
     // or verify their capabilities/sandboxing/token permissions are setup correctly (dmex)
 
     status = PhDetoursPackageSystemIdentificationInitialize(
-        systemIdStatics->lpVtbl,
+        (PVOID)systemIdStatics->lpVtbl,
         Context
         );
 
