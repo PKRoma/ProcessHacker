@@ -46,7 +46,23 @@ VOID EtUpdatePoolTagTable(
             PhUpdateDelta(&node->PoolItem->FreesDelta, poolTagInfo.PagedFrees + poolTagInfo.NonPagedFrees);
             PhUpdateDelta(&node->PoolItem->CurrentDelta, (poolTagInfo.PagedAllocs - poolTagInfo.PagedFrees) + (poolTagInfo.NonPagedAllocs - poolTagInfo.NonPagedFrees));
             PhUpdateDelta(&node->PoolItem->TotalSizeDelta, poolTagInfo.PagedUsed + poolTagInfo.NonPagedUsed);
-            node->PoolItem->HaveFirstSample = TRUE;
+
+            if (!node->PoolItem->HaveFirstSample)
+            {
+                node->PoolItem->PagedAllocsDelta.Delta = 0;
+                node->PoolItem->PagedFreesDelta.Delta = 0;
+                node->PoolItem->PagedCurrentDelta.Delta = 0;
+                node->PoolItem->PagedTotalSizeDelta.Delta = 0;
+                node->PoolItem->NonPagedAllocsDelta.Delta = 0;
+                node->PoolItem->NonPagedFreesDelta.Delta = 0;
+                node->PoolItem->NonPagedCurrentDelta.Delta = 0;
+                node->PoolItem->NonPagedTotalSizeDelta.Delta = 0;
+                node->PoolItem->AllocsDelta.Delta = 0;
+                node->PoolItem->FreesDelta.Delta = 0;
+                node->PoolItem->CurrentDelta.Delta = 0;
+                node->PoolItem->TotalSizeDelta.Delta = 0;
+                node->PoolItem->HaveFirstSample = TRUE;
+            }
 
             EtUpdatePoolTagNode(Context, node);
         }
@@ -70,6 +86,20 @@ VOID EtUpdatePoolTagTable(
             PhUpdateDelta(&entry->FreesDelta, poolTagInfo.PagedFrees + poolTagInfo.NonPagedFrees);
             PhUpdateDelta(&entry->CurrentDelta, (poolTagInfo.PagedAllocs - poolTagInfo.PagedFrees) + (poolTagInfo.NonPagedAllocs - poolTagInfo.NonPagedFrees));
             PhUpdateDelta(&entry->TotalSizeDelta, poolTagInfo.PagedUsed + poolTagInfo.NonPagedUsed);
+
+            entry->PagedAllocsDelta.Delta = 0;
+            entry->PagedFreesDelta.Delta = 0;
+            entry->PagedCurrentDelta.Delta = 0;
+            entry->PagedTotalSizeDelta.Delta = 0;
+            entry->NonPagedAllocsDelta.Delta = 0;
+            entry->NonPagedFreesDelta.Delta = 0;
+            entry->NonPagedCurrentDelta.Delta = 0;
+            entry->NonPagedTotalSizeDelta.Delta = 0;
+            entry->AllocsDelta.Delta = 0;
+            entry->FreesDelta.Delta = 0;
+            entry->CurrentDelta.Delta = 0;
+            entry->TotalSizeDelta.Delta = 0;
+            entry->HaveFirstSample = TRUE;
 
             EtUpdatePoolTagBinaryName(Context, entry, poolTagInfo.TagUlong);
 
@@ -176,6 +206,7 @@ INT_PTR CALLBACK EtPoolMonDlgProc(
             context->ParentWindowHandle = (HWND)lParam;
             context->TreeNewHandle = GetDlgItem(hwndDlg, IDC_POOLTREE);
             context->SearchboxHandle = GetDlgItem(hwndDlg, IDC_POOLSEARCH);
+            context->WindowFont = PhDuplicateFont(SystemInformer_GetFont());
 
             PhSetApplicationWindowIcon(hwndDlg);
 
@@ -186,6 +217,8 @@ INT_PTR CALLBACK EtPoolMonDlgProc(
                 EtPoolMonSearchControlCallback,
                 context
                 );
+
+            SetWindowFont(context->TreeNewHandle, context->WindowFont, FALSE);
 
             EtInitializePoolTagTree(context);
 
@@ -238,6 +271,8 @@ INT_PTR CALLBACK EtPoolMonDlgProc(
 
             EtDeletePoolTagTree(context);
             EtFreePoolTagDatabase(context);
+
+            if (context->WindowFont) DeleteFont(context->WindowFont);
 
             PhFree(context);
 

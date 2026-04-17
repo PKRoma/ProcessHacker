@@ -672,7 +672,7 @@ BOOLEAN NTAPI WtcWaitTreeNewCallback(
             {
                 if (!node)
                 {
-                    static PVOID sortFunctions[] =
+                    static CONST _CoreCrtSecureSearchSortCompareFunction sortFunctions[] =
                     {
                         SORT_FUNCTION(Type),
                         SORT_FUNCTION(Status),
@@ -684,7 +684,7 @@ BOOLEAN NTAPI WtcWaitTreeNewCallback(
                         SORT_FUNCTION(WaitTime),
                         SORT_FUNCTION(ContextSwitch),
                     };
-                    int (__cdecl* sortFunction)(void*, void const*, void const*);
+                    _CoreCrtSecureSearchSortCompareFunction sortFunction;
 
                     static_assert(RTL_NUMBER_OF(sortFunctions) == TREE_COLUMN_ITEM_MAXIMUM, "SortFunctions must equal maximum.");
 

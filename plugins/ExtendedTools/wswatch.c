@@ -30,6 +30,7 @@ typedef struct _WS_WATCH_CONTEXT
     ULONG BufferSize;
 
     PH_LAYOUT_MANAGER LayoutManager;
+    HFONT WindowFont;
 
     PPH_SYMBOL_PROVIDER SymbolProvider;
     HANDLE LoadingSymbolsForProcessId;
@@ -460,11 +461,13 @@ INT_PTR CALLBACK EtpWsWatchDlgProc(
         {
             context->WindowHandle = hwndDlg;
             context->ListViewHandle = GetDlgItem(hwndDlg, IDC_LIST);
+            context->WindowFont = PhDuplicateFont(SystemInformer_GetFont());
 
             PhSetApplicationWindowIcon(hwndDlg);
 
             PhSetListViewStyle(context->ListViewHandle, TRUE, TRUE);
             PhSetControlTheme(context->ListViewHandle, L"explorer");
+            SetWindowFont(context->ListViewHandle, context->WindowFont, FALSE);
             PhAddListViewColumn(context->ListViewHandle, 0, 0, 0, LVCFMT_LEFT, 250, L"Instruction");
             PhAddListViewColumn(context->ListViewHandle, 1, 1, 1, LVCFMT_LEFT, 80, L"Filename");
             PhAddListViewColumn(context->ListViewHandle, 2, 2, 2, LVCFMT_LEFT, 80, L"Count");
@@ -529,6 +532,9 @@ INT_PTR CALLBACK EtpWsWatchDlgProc(
 
             PhSaveListViewColumnsToSetting(SETTING_NAME_WSWATCH_COLUMNS, context->ListViewHandle);
             PhSaveWindowPlacementToSetting(SETTING_NAME_WSWATCH_WINDOW_POSITION, SETTING_NAME_WSWATCH_WINDOW_SIZE, hwndDlg);
+
+            if (context->WindowFont)
+                DeleteFont(context->WindowFont);
 
             PhDereferenceObject(context->Hashtable);
 

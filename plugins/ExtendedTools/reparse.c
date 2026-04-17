@@ -500,7 +500,7 @@ NTSTATUS NTAPI EtEnumVolumeReparseCallback(
         PH_FILE_ID_DESCRIPTOR fileName;
 
         fileName.Type = FileIdType;
-        fileName.FileId.QuadPart = entry->FileReference;
+        fileName.FileId.QuadPart = entry->FileReference.QuadPart;
 
         status = PhOpenFileById(
             &reparseHandle,
@@ -550,7 +550,7 @@ NTSTATUS NTAPI EtEnumVolumeReparseCallback(
             }
 
             result = PhAllocateZero(sizeof(REPARSE_LISTVIEW_ENTRY));
-            result->FileReference = entry->FileReference;
+            result->FileReference = entry->FileReference.QuadPart;
             result->Tag = entry->Tag;
             result->RootDirectory = rootFileName;
             PhSetReference(&result->BestObjectName, bestObjectName);
@@ -581,7 +581,7 @@ NTSTATUS NTAPI EtEnumVolumeObjectIdCallback(
         PH_FILE_ID_DESCRIPTOR fileName;
 
         fileName.Type = FileIdType;
-        fileName.FileId.QuadPart = entry->FileReference;
+        fileName.FileId.QuadPart = entry->FileReference.QuadPart;
 
         status = PhOpenFileById(
             &reparseHandle,
@@ -613,7 +613,7 @@ NTSTATUS NTAPI EtEnumVolumeObjectIdCallback(
             }
 
             result = PhAllocateZero(sizeof(REPARSE_LISTVIEW_ENTRY));
-            result->FileReference = entry->FileReference;
+            result->FileReference = entry->FileReference.QuadPart;
             result->RootDirectory = rootFileName;
             PhSetReference(&result->BestObjectName, bestObjectName);
             memcpy_s(result->ObjectId, sizeof(entry->ObjectId), entry->ObjectId, sizeof(entry->ObjectId));

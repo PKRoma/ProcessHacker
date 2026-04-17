@@ -392,7 +392,8 @@ typedef struct _ET_PROCESS_BLOCK
     PPH_PROCESS_ITEM ProcessItem;
     PPH_PROCESS_NODE ProcessNode;
 
-    BOOLEAN HaveFirstSample;
+    BOOLEAN HaveDiskSample;
+    BOOLEAN HaveNetworkSample;
 
     // Disk/Network
 
@@ -499,6 +500,7 @@ typedef struct _ET_NETWORK_BLOCK
 {
     LIST_ENTRY ListEntry;
     PPH_NETWORK_ITEM NetworkItem;
+    BOOLEAN HaveFirstSample;
 
     ULONG64 ReceiveCount;
     ULONG64 SendCount;
@@ -1639,6 +1641,7 @@ typedef struct _UEFI_WINDOW_CONTEXT
     HWND ListViewHandle;
     HWND ParentWindowHandle;
     PH_LAYOUT_MANAGER LayoutManager;
+    HFONT WindowFont;
 } UEFI_WINDOW_CONTEXT, *PUEFI_WINDOW_CONTEXT;
 
 typedef struct _EFI_ENTRY

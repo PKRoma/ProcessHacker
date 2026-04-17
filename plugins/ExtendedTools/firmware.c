@@ -236,11 +236,13 @@ INT_PTR CALLBACK EtFirmwareDlgProc(
             context->WindowHandle = hwndDlg;
             context->ListViewHandle = GetDlgItem(hwndDlg, IDC_FIRMWARE_BOOT_LIST);
             context->ParentWindowHandle = (HWND)lParam;
+            context->WindowFont = PhDuplicateFont(SystemInformer_GetFont());
 
             PhSetApplicationWindowIcon(hwndDlg);
 
             PhSetListViewStyle(context->ListViewHandle, TRUE, TRUE);
             PhSetControlTheme(context->ListViewHandle, L"explorer");
+            SetWindowFont(context->ListViewHandle, context->WindowFont, FALSE);
             PhAddListViewColumn(context->ListViewHandle, 0, 0, 0, LVCFMT_LEFT, 100, L"Name");
             PhAddListViewColumn(context->ListViewHandle, 1, 1, 1, LVCFMT_LEFT, 140, L"Attributes");
             PhAddListViewColumn(context->ListViewHandle, 2, 2, 2, LVCFMT_LEFT, 140, L"Guid Name");
@@ -273,6 +275,9 @@ INT_PTR CALLBACK EtFirmwareDlgProc(
         {
             FreeListViewFirmwareEntries(context);
 
+            if (context->WindowFont)
+                DeleteFont(context->WindowFont);
+
             PhSaveListViewColumnsToSetting(SETTING_NAME_FIRMWARE_LISTVIEW_COLUMNS, context->ListViewHandle);
             PhSaveWindowPlacementToSetting(SETTING_NAME_FIRMWARE_WINDOW_POSITION, SETTING_NAME_FIRMWARE_WINDOW_SIZE, hwndDlg);
             PhDeleteLayoutManager(&context->LayoutManager);
@@ -302,9 +307,10 @@ INT_PTR CALLBACK EtFirmwareDlgProc(
                 }
                 break;
             case IDCANCEL:
-            case IDOK:
                 EndDialog(hwndDlg, IDOK);
                 break;
+            case IDOK:
+                return TRUE; 
             }
         }
         break;
@@ -392,6 +398,19 @@ INT_PTR CALLBACK EtFirmwareDlgProc(
                 }
 
                 PhFree(listviewItems);
+            }
+        }
+        break;
+    case WM_GETDLGCODE:
+        {
+            if (wParam != VK_ESCAPE)
+            {
+                if (wParam == VK_RETURN)
+                {
+                    return DLGC_WANTMESSAGE;
+                }
+
+                return DLGC_WANTALLKEYS;
             }
         }
         break;

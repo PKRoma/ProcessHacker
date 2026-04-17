@@ -342,6 +342,19 @@ VOID NTAPI EtEtwProcessesUpdatedCallback(
         PhUpdateDelta(&block->NetworkSendDelta, block->NetworkSendCount);
         PhUpdateDelta(&block->NetworkSendRawDelta, block->NetworkSendRaw);
 
+        if (!block->HaveDiskSample)
+        {
+            block->DiskReadDelta.Delta = 0;
+            block->DiskReadRawDelta.Delta = 0;
+            block->DiskWriteDelta.Delta = 0;
+            block->DiskWriteRawDelta.Delta = 0;
+            block->NetworkReceiveDelta.Delta = 0;
+            block->NetworkReceiveRawDelta.Delta = 0;
+            block->NetworkSendDelta.Delta = 0;
+            block->NetworkSendRawDelta.Delta = 0;
+            block->HaveDiskSample = TRUE;
+        }
+
         if (maxDiskValue < block->DiskReadRawDelta.Delta + block->DiskWriteRawDelta.Delta)
         {
             maxDiskValue = block->DiskReadRawDelta.Delta + block->DiskWriteRawDelta.Delta;
@@ -442,6 +455,15 @@ VOID NTAPI EtEtwNetworkItemsUpdatedCallback(
         PhUpdateDelta(&block->ReceiveRawDelta, block->ReceiveRaw);
         PhUpdateDelta(&block->SendDelta, block->SendCount);
         PhUpdateDelta(&block->SendRawDelta, block->SendRaw);
+
+        if (!block->HaveFirstSample)
+        {
+            block->ReceiveDelta.Delta = 0;
+            block->ReceiveRawDelta.Delta = 0;
+            block->SendDelta.Delta = 0;
+            block->SendRawDelta.Delta = 0;
+            block->HaveFirstSample = TRUE;
+        }
 
         if (memcmp(oldDeltas, block->Deltas, sizeof(block->Deltas)))
         {

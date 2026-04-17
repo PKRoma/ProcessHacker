@@ -21,6 +21,7 @@ typedef struct _UNLOADED_DLLS_CONTEXT
     PVOID CapturedEventTrace;
     HANDLE ProcessId;
     HANDLE QueryHandle;
+    HFONT WindowFont;
 } UNLOADED_DLLS_CONTEXT, *PUNLOADED_DLLS_CONTEXT;
 
 INT_PTR CALLBACK EtpUnloadedDllsDlgProc(
@@ -481,11 +482,13 @@ INT_PTR CALLBACK EtpUnloadedDllsDlgProc(
             HWND lvHandle;
 
             context->ListViewHandle = lvHandle = GetDlgItem(hwndDlg, IDC_LIST);
+            context->WindowFont = PhDuplicateFont(SystemInformer_GetFont());
 
             PhSetApplicationWindowIcon(hwndDlg);
 
             PhSetListViewStyle(lvHandle, TRUE, TRUE);
             PhSetControlTheme(lvHandle, L"explorer");
+            SetWindowFont(lvHandle, context->WindowFont, FALSE);
             PhAddListViewColumn(lvHandle, 0, 0, 0, LVCFMT_LEFT, 40, L"No.");
             PhAddListViewColumn(lvHandle, 1, 1, 1, LVCFMT_LEFT, 120, L"Name");
             PhAddListViewColumn(lvHandle, 2, 2, 2, LVCFMT_LEFT, 100, L"Base Address");
@@ -530,6 +533,9 @@ INT_PTR CALLBACK EtpUnloadedDllsDlgProc(
             PhSaveWindowPlacementToSetting(SETTING_NAME_UNLOADED_WINDOW_POSITION, SETTING_NAME_UNLOADED_WINDOW_SIZE, hwndDlg);
 
             PhDeleteLayoutManager(&context->LayoutManager);
+
+            if (context->WindowFont)
+                DeleteFont(context->WindowFont);
 
             if (context->CapturedEventTrace)
                 PhFree(context->CapturedEventTrace);
