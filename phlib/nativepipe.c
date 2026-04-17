@@ -1030,7 +1030,7 @@ NTSTATUS PhDefaultNpAcl(
     )
 {
     NTSTATUS status;
-    PACL pipeAcl;
+    PACL pipeAcl = NULL;
     PH_TOKEN_OWNER tokenQuery;
 
     status = PhGetTokenOwner(
