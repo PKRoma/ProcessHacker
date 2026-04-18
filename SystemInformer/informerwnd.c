@@ -3325,8 +3325,6 @@ VOID PhpInformerUpdateDetailsFromPostOp(
     case KphMsgFilePostCreateNamedPipe:
     case KphMsgFilePostCreateMailslot:
         {
-            ULONG_PTR information;
-            PCPH_STRINGREF resultName;
             ACCESS_MASK granted;
             PPH_STRING accessStr = NULL;
             PH_FORMAT format[8];
@@ -3335,8 +3333,6 @@ VOID PhpInformerUpdateDetailsFromPostOp(
             if (!NT_SUCCESS(PostMsg->Kernel.File.Post.IoStatus.Status))
                 break;
 
-            information = PostMsg->Kernel.File.Post.IoStatus.Information;
-            resultName = PhpInformerGetOpenResultName(information);
 
             if (msgId == KphMsgFilePostCreate)
                 granted = PostMsg->Kernel.File.Post.Create.SecurityContext.PreviouslyGrantedAccess;
@@ -3357,8 +3353,20 @@ VOID PhpInformerUpdateDetailsFromPostOp(
             PhInitFormatSR(&format[count++], accessStr->sr);
             PhInitFormatSR(&format[count++], separator);
 
-            PhInitFormatSR(&format[count++], openResultPrefix);
-            PhInitFormatSR(&format[count++], *resultName);
+            if (PostMsg->Kernel.File.Post.IoStatus.Status == STATUS_SUCCESS)
+            {
+                ULONG_PTR information;
+                PCPH_STRINGREF resultName;
+
+                information = PostMsg->Kernel.File.Post.IoStatus.Information;
+                resultName = PhpInformerGetOpenResultName(information);
+
+                PhInitFormatSR(&format[count++], openResultPrefix);
+                if (resultName)
+                    PhInitFormatSR(&format[count++], *resultName);
+                else
+                    PhInitFormatI64U(&format[count++], information);
+            }
 
             PhMoveReference(&PreNode->DetailsText, PhFormat(format, count, 100));
             PhClearReference(&PreNode->TooltipText);
