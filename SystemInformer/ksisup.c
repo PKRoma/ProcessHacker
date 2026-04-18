@@ -1561,7 +1561,16 @@ NTSTATUS KsiConnect(
         }
     }
 
-    if (status == STATUS_SI_KSIDLL_VERSION_MISMATCH)
+    //
+    // An explicit check for KSIDLL version mismatch or a missing procedure
+    // indicates the loaded KSIDLL is out of date relative to the driver.
+    // STATUS_PROCEDURE_NOT_FOUND could in theory occur if the driver imported
+    // something absent from the kernel, but in practice it means the new
+    // driver depends on a new export from KSIDLL and the updated KSIDLL has
+    // not been loaded yet - the user must reboot.
+    //
+    if ((status == STATUS_SI_KSIDLL_VERSION_MISMATCH) ||
+        (status == STATUS_PROCEDURE_NOT_FOUND))
     {
         PhShowKsiMessageEx(
             NULL,
@@ -1571,7 +1580,7 @@ NTSTATUS KsiConnect(
             L"Unable to load kernel driver",
             L"The last System Informer update requires a reboot."
             );
-            goto CleanupExit;
+        goto CleanupExit;
     }
 
     if (!NT_SUCCESS(status))
