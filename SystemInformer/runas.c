@@ -359,6 +359,7 @@ PPH_STRING PhpGetCurrentDesktopInfo(
  * \param Context The combo box handle.
  * \return TRUE to continue enumeration.
  */
+_Function_class_(PH_ENUM_MRULIST_CALLBACK)
 BOOLEAN PhpEnumerateRecentProgramsToComboBox(
     _In_ PPH_STRINGREF Command,
     _In_ PVOID Context
@@ -375,6 +376,7 @@ BOOLEAN PhpEnumerateRecentProgramsToComboBox(
  * \param Context The combo box handle.
  * \return STATUS_SUCCESS.
  */
+_Function_class_(PH_ENUM_ACCOUNT_CALLBACK)
 NTSTATUS PhpEnumerateAccountsToComboBox(
     _In_ PPH_STRINGREF AccountName,
     _In_ PVOID Context
@@ -384,11 +386,6 @@ NTSTATUS PhpEnumerateAccountsToComboBox(
     return STATUS_SUCCESS;
 }
 
-/**
- * Adds recent programs to the specified combo box.
- *
- * \param ComboBoxHandle The combo box handle.
- */
 /**
  * Adds recent programs to the specified combo box.
  *
@@ -408,11 +405,6 @@ static VOID PhpAddProgramsToComboBox(
  *
  * \param ComboBoxHandle The combo box handle.
  */
-/**
- * Adds user accounts to the specified combo box.
- *
- * \param ComboBoxHandle The combo box handle.
- */
 static VOID PhpAddAccountsToComboBox(
     _In_ HWND ComboBoxHandle
     )
@@ -426,11 +418,6 @@ static VOID PhpAddAccountsToComboBox(
     PhEnumerateAccounts(PhpEnumerateAccountsToComboBox, ComboBoxHandle);
 }
 
-/**
- * Frees all session items in the specified combo box.
- *
- * \param ComboBoxHandle The combo box handle.
- */
 /**
  * Frees all session items in the specified combo box.
  *
@@ -460,11 +447,6 @@ static VOID PhpFreeSessionsComboBox(
     ComboBox_ResetContent(ComboBoxHandle);
 }
 
-/**
- * Adds available sessions to the specified combo box.
- *
- * \param ComboBoxHandle The combo box handle.
- */
 /**
  * Adds available sessions to the specified combo box.
  *
@@ -621,13 +603,6 @@ typedef struct _RUNAS_DIALOG_DESKTOP_CALLBACK
  * \param Context Pointer to RUNAS_DIALOG_DESKTOP_CALLBACK.
  * \return TRUE to continue enumeration.
  */
-/**
- * Callback for EnumDesktops to add desktop names to a list.
- *
- * \param DesktopName The desktop name.
- * \param Context Pointer to RUNAS_DIALOG_DESKTOP_CALLBACK.
- * \return TRUE to continue enumeration.
- */
 static BOOL CALLBACK EnumDesktopsCallback(
     _In_ PWSTR DesktopName,
     _In_ LPARAM Context
@@ -645,11 +620,6 @@ static BOOL CALLBACK EnumDesktopsCallback(
     return TRUE;
 }
 
-/**
- * Frees all desktop items in the specified combo box.
- *
- * \param ComboBoxHandle The combo box handle.
- */
 /**
  * Frees all desktop items in the specified combo box.
  *
@@ -679,11 +649,6 @@ static VOID PhpFreeDesktopsComboBox(
     ComboBox_ResetContent(ComboBoxHandle);
 }
 
-/**
- * Adds available desktops to the specified combo box.
- *
- * \param ComboBoxHandle The combo box handle.
- */
 /**
  * Adds available desktops to the specified combo box.
  *

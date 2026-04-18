@@ -2121,7 +2121,7 @@ PVOID PhCreateKsiSettingsBlob(
  *
  * \param[out] Duration      Total measured duration.
  * \param[out] DurationDown  Time spent sending the request to the kernel.
- * \param[out] DurationUp    Time spent recieving the response from the kernel.
+ * \param[out] DurationUp    Time spent receiving the response from the kernel.
  * \return NTSTATUS from KphQueryPerformanceCounter, or STATUS_UNSUCCESSFUL.
  * \remarks Use this function when you need a kernel-reported high-resolution
  * timebase to measure or correlate user/kernel timing.
@@ -2583,7 +2583,7 @@ HRESULT CALLBACK KsiKernelSupportCheckDialogCallbackProc(
                     {
                         config.pszMainInstruction = L"Kernel version not supported";
                         config.pszContent = L"This kernel version is not yet supported. "
-                            L"Your kernel version is pending review review on the development branch.";
+                            L"Your kernel version is pending review on the development branch.";
                     }
                     else
                     {
