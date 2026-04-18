@@ -2475,7 +2475,7 @@ static ULONG WINAPI RunAsServiceHandlerEx(
     {
     case SERVICE_CONTROL_STOP:
         {
-            PhSvcAlpcStop(&RunAsServiceStop);
+            PhSvcStop(&RunAsServiceStop);
         }
         return NO_ERROR;
     case SERVICE_CONTROL_INTERROGATE:
@@ -2514,7 +2514,7 @@ static VOID WINAPI RunAsServiceMain(
         RunAsServiceName->Buffer
         );
 
-    status = PhSvcAlpcMain(portName, &RunAsServiceStop);
+    status = PhSvcMain(portName, &RunAsServiceStop);
 
     SetRunAsServiceStatus(SERVICE_STOPPED);
 }
