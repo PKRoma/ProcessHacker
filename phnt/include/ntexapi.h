@@ -7746,7 +7746,7 @@ typedef struct _SYSTEM_RUNTIME_REPORT_INPUT
     UCHAR Nonce[32];
 } SYSTEM_RUNTIME_REPORT_INPUT, *PSYSTEM_RUNTIME_REPORT_INPUT;
 
-#if !defined(NTDDI_WIN11_GE) || (NTDDI_VERSION < NTDDI_WIN11_GE)
+#if defined(SYSTEM_RUNTIME_REPORT)
 //
 // ===============================================
 // Runtime Report Package Format:
@@ -8185,7 +8185,7 @@ typedef struct _CODE_INTEGRITY_REPORT_RECORD_HEADER
     ULONG SipaEventCode;
 
 } CODE_INTEGRITY_REPORT_RECORD_HEADER;
-#endif // #if !defined(NTDDI_WIN11_GE) || (NTDDI_VERSION < NTDDI_WIN11_GE)
+#endif // #if defined(SYSTEM_RUNTIME_REPORT)
 
 /**
  * The SYSTEM_POOLTAG2 structure describes allocation statistics for a single
