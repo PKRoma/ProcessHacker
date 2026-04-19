@@ -316,6 +316,19 @@ VOID HybridAnalysisFreeFileReport(
     _In_ PHYBRIDANALYSIS_FILE_REPORT FileReport
     );
 
+NTSTATUS HybridAnalysisSubmitFile(
+    _In_ PPH_STRING FileName,
+    _In_opt_ PPH_STRING ApiKey,
+    _Out_ PPH_STRING* Id,
+    _Out_ PBOOLEAN Finished
+    );
+
+NTSTATUS HybridAnalysisSubmitFinished(
+    _In_ PPH_STRING Id,
+    _In_opt_ PPH_STRING ApiKey,
+    _Out_ PBOOLEAN Finished
+    );
+
 // scan
 
 #define MENUITEM_VIRUSTOTAL_SCAN_PROCESS 200
