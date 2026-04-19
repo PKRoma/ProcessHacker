@@ -35,6 +35,7 @@ ULONG ScanStartupDelay = 0;
 BOOLEAN ScanningInitialized = FALSE;
 BOOLEAN ScanningEnabled = FALSE;
 BOOLEAN AutoScanningEnabled = FALSE;
+BOOLEAN AutoSubmitEnabled = FALSE;
 LIST_ENTRY ScanExtensionsListHead = { &ScanExtensionsListHead, &ScanExtensionsListHead };
 PH_QUEUED_LOCK ScanExtensionsListLock = PH_QUEUED_LOCK_INIT;
 
@@ -46,6 +47,7 @@ VOID NTAPI LoadCallback(
 {
     ScanningEnabled = !!PhGetIntegerSetting(SETTING_NAME_SCAN_ENABLED);
     AutoScanningEnabled = !!PhGetIntegerSetting(SETTING_NAME_AUTO_SCAN_ENABLED);
+    AutoSubmitEnabled = !!PhGetIntegerSetting(SETTING_NAME_AUTO_SUBMIT_ENABLED);
     ScanMaxFileSize = PhGetIntegerSetting(SETTING_NAME_SCAN_MAX_FILE_SIZE);
     ScanStartupDelay = PhGetIntegerSetting(SETTING_NAME_SCAN_STARTUP_DELAY);
     if (ScanningEnabled)
@@ -1025,6 +1027,7 @@ LOGICAL DllMain(
             {
                 { IntegerSettingType, SETTING_NAME_SCAN_ENABLED, L"0" },
                 { IntegerSettingType, SETTING_NAME_AUTO_SCAN_ENABLED, L"0" },
+                { IntegerSettingType, SETTING_NAME_AUTO_SUBMIT_ENABLED, L"0" },
                 { IntegerSettingType, SETTING_NAME_SCAN_MAX_FILE_SIZE, L"8000000" }, // 128 MiB
                 { IntegerSettingType, SETTING_NAME_SCAN_STARTUP_DELAY, L"1E" }, // 30 sec
                 { IntegerSettingType, SETTING_NAME_VIRUSTOTAL_DEFAULT_ACTION, L"0" },
