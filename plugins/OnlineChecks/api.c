@@ -419,9 +419,9 @@ NTSTATUS HybridAnalysisSubmitFile(
     PPH_HTTP_CONTEXT httpContext = NULL;
     PPH_STRING postBoundary = NULL;
     PPH_STRING baseFileName = NULL;
-    PH_STRING_BUILDER httpRequestHeaders = { 0 };
-    PH_STRING_BUILDER httpPostHeader = { 0 };
-    PH_STRING_BUILDER httpPostFooter = { 0 };
+    PH_STRING_BUILDER httpRequestHeaders;
+    PH_STRING_BUILDER httpPostHeader;
+    PH_STRING_BUILDER httpPostFooter;
     BOOLEAN buildersInitialized = FALSE;
     PPH_BYTES asciiPostData = NULL;
     PPH_BYTES asciiFooterData = NULL;
@@ -436,9 +436,9 @@ NTSTATUS HybridAnalysisSubmitFile(
     *Id = NULL;
     *Finished = FALSE;
 
-    if (!NT_SUCCESS(status = PhCreateFile(
+    if (!NT_SUCCESS(status = PhCreateFileWin32(
         &fileHandle,
-        &FileName->sr,
+        PhGetString(FileName),
         FILE_GENERIC_READ,
         FILE_ATTRIBUTE_NORMAL,
         FILE_SHARE_READ | FILE_SHARE_DELETE,
@@ -611,7 +611,8 @@ CleanupExit:
     PhClearReference(&postBoundary);
     PhClearReference(&baseFileName);
 
-    PhHttpDestroy(httpContext);
+    if (httpContext)
+        PhHttpDestroy(httpContext);
 
     if (fileHandle)
         NtClose(fileHandle);

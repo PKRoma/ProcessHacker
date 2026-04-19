@@ -29,6 +29,7 @@
 #define SETTING_NAME_AUTO_SUBMIT_ENABLED (PLUGIN_NAME L".EnableAutoSubmit")
 #define SETTING_NAME_SCAN_MAX_FILE_SIZE (PLUGIN_NAME L".ScanMaxFileSize")
 #define SETTING_NAME_SCAN_STARTUP_DELAY (PLUGIN_NAME L".ScanStartupDelay")
+#define SETTING_NAME_SCAN_SUBMIT_TIMEOUT (PLUGIN_NAME L".ScanSubmitTimeout")
 #define SETTING_NAME_VIRUSTOTAL_DEFAULT_ACTION (PLUGIN_NAME L".VirusTotalDefautAction")
 #define SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT (PLUGIN_NAME L".VirusTotalDefautPAT")
 #define SETTING_NAME_HYBRIDANAL_DEFAULT_PAT (PLUGIN_NAME L".HybridAnalysisDefautPAT")
@@ -42,6 +43,7 @@
 
 extern PPH_PLUGIN PluginInstance;
 extern ULONG ScanMaxFileSize;
+extern ULONG ScanSubmitTimeout;
 
 typedef struct _SERVICE_INFO
 {
@@ -357,6 +359,7 @@ VOID InitializeScanContext(
 
 #define SCAN_FLAG_RESCAN        0x00000001
 #define SCAN_FLAG_LOCAL_ONLY    0x00000002
+#define SCAN_FLAG_SUBMIT        0x00000004
 
 typedef
 _Function_class_(SCAN_COMPLETE_CALLBACK)

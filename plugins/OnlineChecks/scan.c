@@ -29,6 +29,8 @@ typedef struct _SCAN_HASH
     PH_QUEUED_LOCK Lock;
     NTSTATUS Status;
     PPH_STRING Sha256;
+    BOOLEAN SubmitGate;
+    BOOLEAN Submitted;
 } SCAN_HASH, *PSCAN_HASH;
 
 typedef struct _SCAN_ITEM
@@ -50,8 +52,10 @@ static PPH_OBJECT_TYPE ScanItemObjectType;
 static PPH_OBJECT_TYPE ScanHashObjectType;
 static PH_WORK_QUEUE ScanItemWorkQueue;
 static PH_WORK_QUEUE ScanItemWorkPriorityQueue;
+static PH_WORK_QUEUE ScanItemSubmitWorkQueue;
 static SLIST_HEADER ScanItemQueueListHead;
 static SLIST_HEADER ScanItemPriorityQueueListHead;
+static SLIST_HEADER ScanItemSubmitQueueListHead;
 static PH_QUEUED_LOCK ScanHashHashtableLock = PH_QUEUED_LOCK_INIT;
 static PPH_HASHTABLE ScanHashHashtable = NULL;
 static PPH_STRING ScanVirusTotalPAT = NULL;
@@ -62,6 +66,7 @@ static PPH_STRING ScanCleanString = NULL;
 static PPH_STRING ScanRateLimitedString = NULL;
 static PPH_STRING ScanUnknownString = NULL;
 static PPH_STRING ScanFileTooLarge = NULL;
+static PPH_STRING ScanSubmittingString = NULL;
 static const LONG64 ScanOKExpMin = (10LL * 24 * 60 * 60 * 10000000); // 10 days
 static const LONG64 ScanOKExpMax = (14LL * 24 * 60 * 60 * 10000000); // 14 days
 static const LONG64 ScanRateLmtExpMin = (15LL * 60 * 10000000); // 15 minutes
@@ -167,6 +172,88 @@ static const SQL_STMT ScanDBSQLSmts[] =
         "WHERE sha256 = ?;"
     }
 };
+
+VOID
+ProcessScanItemsList(
+    _In_ PSLIST_ENTRY First
+    );
+
+VOID
+ProcessScanItemsSubmitList(
+    _In_ PSLIST_ENTRY First
+    );
+
+_Function_class_(USER_THREAD_START_ROUTINE)
+NTSTATUS ScanItemWorkerRoutine(
+    _In_ PVOID Parameter
+    )
+{
+    PSLIST_ENTRY first;
+    KPRIORITY threadPriority;
+    IO_PRIORITY_HINT ioPriority;
+    ULONG pagePriority = ULONG_MAX;
+
+    PhGetThreadBasePriority(NtCurrentThread(), &threadPriority);
+    PhGetThreadIoPriority(NtCurrentThread(), &ioPriority);
+    PhGetThreadPagePriority(NtCurrentThread(), &pagePriority);
+
+    PhSetThreadBasePriority(NtCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+    PhSetThreadIoPriority(NtCurrentThread(), IoPriorityLow);
+    PhSetThreadPagePriority(NtCurrentThread(), MEMORY_PRIORITY_LOW);
+
+    first = RtlInterlockedFlushSList(&ScanItemQueueListHead);
+    if (first)
+        ProcessScanItemsList(first);
+
+    PhSetThreadPagePriority(NtCurrentThread(), pagePriority);
+    PhSetThreadIoPriority(NtCurrentThread(), ioPriority);
+    PhSetThreadBasePriority(NtCurrentThread(), threadPriority);
+
+    return STATUS_SUCCESS;
+}
+
+_Function_class_(USER_THREAD_START_ROUTINE)
+NTSTATUS ScanItemPriorityWorkerRoutine(
+    _In_ PVOID Parameter
+    )
+{
+    PSLIST_ENTRY first;
+
+    first = RtlInterlockedFlushSList(&ScanItemPriorityQueueListHead);
+    if (first)
+        ProcessScanItemsList(first);
+
+    return STATUS_SUCCESS;
+}
+
+_Function_class_(USER_THREAD_START_ROUTINE)
+NTSTATUS ScanItemSubmitWorkerRoutine(
+    _In_ PVOID Parameter
+    )
+{
+    PSLIST_ENTRY first;
+    KPRIORITY threadPriority;
+    IO_PRIORITY_HINT ioPriority;
+    ULONG pagePriority = ULONG_MAX;
+
+    PhGetThreadBasePriority(NtCurrentThread(), &threadPriority);
+    PhGetThreadIoPriority(NtCurrentThread(), &ioPriority);
+    PhGetThreadPagePriority(NtCurrentThread(), &pagePriority);
+
+    PhSetThreadBasePriority(NtCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+    PhSetThreadIoPriority(NtCurrentThread(), IoPriorityLow);
+    PhSetThreadPagePriority(NtCurrentThread(), MEMORY_PRIORITY_LOW);
+
+    first = RtlInterlockedFlushSList(&ScanItemSubmitQueueListHead);
+    if (first)
+        ProcessScanItemsSubmitList(first);
+
+    PhSetThreadPagePriority(NtCurrentThread(), pagePriority);
+    PhSetThreadIoPriority(NtCurrentThread(), ioPriority);
+    PhSetThreadBasePriority(NtCurrentThread(), threadPriority);
+
+    return STATUS_SUCCESS;
+}
 
 LONG64 MakeExpiry(
     _In_ PLARGE_INTEGER SystemTime,
@@ -553,6 +640,15 @@ VOID ProcessHybridAnalysis(
     {
         SetScanResult(Item, PhReferenceObject(ScanUnauthorizedString));
     }
+    else if (report->HttpStatus == 404 &&
+             FlagOn(Item->Flags, SCAN_FLAG_SUBMIT) &&
+             !ReadAcquire8(&Item->FileHash->Submitted))
+    {
+        SetScanResult(Item, PhReferenceObject(ScanSubmittingString));
+        PhReferenceObject(Item);
+        if (!RtlInterlockedPushEntrySList(&ScanItemSubmitQueueListHead, &Item->Entry))
+            PhQueueItemWorkQueue(&ScanItemSubmitWorkQueue, ScanItemSubmitWorkerRoutine, NULL);
+    }
     else
     {
         httpStatus = report->HttpStatus;
@@ -633,6 +729,105 @@ VOID ProcessScanItems(
                 );
         }
     }
+}
+
+VOID ProcessScanItemsSubmit(
+    _In_count_(Count) PSCAN_ITEM* Items,
+    _In_ ULONG Count
+    )
+{
+    PPH_STRING* ids = PhAllocateZero(sizeof(PPH_STRING) * Count);
+    LARGE_INTEGER deadline;
+
+    for (ULONG i = 0; i < Count; i++)
+    {
+        PSCAN_ITEM item = Items[i];
+        PPH_STRING id = NULL;
+        BOOLEAN finished = FALSE;
+
+        //
+        // Only support Hybrid Analysis submissions for now.
+        //
+        NT_ASSERT(item->Type == SCAN_TYPE_HYBRIDANALYSIS);
+
+        if (ReadAcquire8(&item->Abort))
+            continue;
+
+        if (InterlockedExchange8(&item->FileHash->SubmitGate, TRUE))
+            continue;
+
+        if (NT_SUCCESS(HybridAnalysisSubmitFile(
+            item->FileHash->FileName,
+            ScanHybridAnalysisPAT,
+            &id,
+            &finished
+            )))
+        {
+            if (!finished)
+                ids[i] = PhReferenceObject(id);
+        }
+
+        PhClearReference(&id);
+    }
+
+    PhQuerySystemTime(&deadline);
+    deadline.QuadPart += UInt32x32To64(ScanSubmitTimeout, PH_TICKS_PER_SEC);
+
+    for (;;)
+    {
+        BOOLEAN pending = FALSE;
+        LARGE_INTEGER systemTime;
+
+        for (ULONG i = 0; i < Count; i++)
+        {
+            BOOLEAN finished;
+
+            if (!ids[i])
+                continue;
+
+            if (NT_SUCCESS(HybridAnalysisSubmitFinished(
+                ids[i],
+                ScanHybridAnalysisPAT,
+                &finished
+                )))
+            {
+                if (!finished)
+                {
+                    pending = TRUE;
+                    continue;
+                }
+            }
+
+            PhClearReference(&ids[i]);
+        }
+
+        if (!pending)
+            break;
+
+        PhQuerySystemTime(&systemTime);
+        if (systemTime.QuadPart >= deadline.QuadPart)
+            break;
+
+        PhDelayExecution(500);
+    }
+
+    for (ULONG i = 0; i < Count; i++)
+    {
+        PSCAN_ITEM item = Items[i];
+
+        if (ReadAcquire8(&item->Abort))
+            continue;
+
+        WriteRelease8(&item->FileHash->Submitted, TRUE);
+        PhReferenceObject(item);
+        if (!RtlInterlockedPushEntrySList(&ScanItemQueueListHead, &item->Entry))
+            PhQueueItemWorkQueue(&ScanItemWorkQueue, ScanItemWorkerRoutine, NULL);
+    }
+
+    for (ULONG i = 0; i < Count; i++)
+        PhClearReference(&ids[i]);
+
+    PhFree(ids);
 }
 
 int _cdecl CompareScanHashPointers(
@@ -1047,47 +1242,31 @@ VOID ProcessScanItemsList(
     PhFree(scanItems);
 }
 
-_Function_class_(USER_THREAD_START_ROUTINE)
-NTSTATUS ScanItemWorkerRoutine(
-    _In_ PVOID Parameter
+VOID ProcessScanItemsSubmitList(
+    _In_ PSLIST_ENTRY First
     )
 {
-    PSLIST_ENTRY first;
-    KPRIORITY threadPriority;
-    IO_PRIORITY_HINT ioPriority;
-    ULONG pagePriority = ULONG_MAX;
+    ULONG count;
+    PSCAN_ITEM* scanItems;
 
-    PhGetThreadBasePriority(NtCurrentThread(), &threadPriority);
-    PhGetThreadIoPriority(NtCurrentThread(), &ioPriority);
-    PhGetThreadPagePriority(NtCurrentThread(), &pagePriority);
+    count = 0;
+    for (PSLIST_ENTRY entry = First; entry; entry = entry->Next)
+        count++;
 
-    PhSetThreadBasePriority(NtCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
-    PhSetThreadIoPriority(NtCurrentThread(), IoPriorityLow);
-    PhSetThreadPagePriority(NtCurrentThread(), MEMORY_PRIORITY_LOW);
+    scanItems = PhAllocate(count * sizeof(PSCAN_ITEM));
+    count = 0;
+    for (PSLIST_ENTRY entry = First; entry; entry = entry->Next)
+    {
+        scanItems[count] = CONTAINING_RECORD(entry, SCAN_ITEM, Entry);
+        count++;
+    }
 
-    first = RtlInterlockedFlushSList(&ScanItemQueueListHead);
-    if (first)
-        ProcessScanItemsList(first);
+    ProcessScanItemsSubmit(scanItems, count);
 
-    PhSetThreadPagePriority(NtCurrentThread(), pagePriority);
-    PhSetThreadIoPriority(NtCurrentThread(), ioPriority);
-    PhSetThreadBasePriority(NtCurrentThread(), threadPriority);
+    for (ULONG i = 0; i < count; i++)
+        PhDereferenceObject(scanItems[i]);
 
-    return STATUS_SUCCESS;
-}
-
-_Function_class_(USER_THREAD_START_ROUTINE)
-NTSTATUS ScanItemPriorityWorkerRoutine(
-    _In_ PVOID Parameter
-    )
-{
-    PSLIST_ENTRY first;
-
-    first = RtlInterlockedFlushSList(&ScanItemPriorityQueueListHead);
-    if (first)
-        ProcessScanItemsList(first);
-
-    return STATUS_SUCCESS;
+    PhFree(scanItems);
 }
 
 PSCAN_ITEM CreateAndEnqueueScanItem(
@@ -1511,6 +1690,7 @@ BOOLEAN InitializeScanning(
     ScanUnknownString = PhCreateString(L"Unknown");
     ScanRateLimitedString = PhCreateString(L"Rate limited...");
     ScanFileTooLarge = PhCreateString(L"File too large");
+    ScanSubmittingString = PhCreateString(L"Submitting...");
 
     result = FALSE;
     if (!!SystemInformer_IsPortableMode())
@@ -1523,8 +1703,10 @@ BOOLEAN InitializeScanning(
     ScanHashObjectType = PhCreateObjectType(L"ScanHash", 0, ScanHashDeleteProcedure);
     PhInitializeWorkQueue(&ScanItemWorkQueue, 0, 3, 500);
     PhInitializeWorkQueue(&ScanItemWorkPriorityQueue, 0, 3, 500);
+    PhInitializeWorkQueue(&ScanItemSubmitWorkQueue, 0, 3, 500);
     RtlInitializeSListHead(&ScanItemQueueListHead);
     RtlInitializeSListHead(&ScanItemPriorityQueueListHead);
+    RtlInitializeSListHead(&ScanItemSubmitQueueListHead);
     ScanHashHashtable = PhCreateHashtable(
         sizeof(PSCAN_HASH),
         ScanHashHashtableEqualFunction,

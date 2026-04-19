@@ -32,6 +32,7 @@ PH_CALLBACK_REGISTRATION ServiceTreeNewInitializingCallbackRegistration;
 
 ULONG ScanMaxFileSize = 0;
 ULONG ScanStartupDelay = 0;
+ULONG ScanSubmitTimeout = 0;
 BOOLEAN ScanningInitialized = FALSE;
 BOOLEAN ScanningEnabled = FALSE;
 BOOLEAN AutoScanningEnabled = FALSE;
@@ -50,6 +51,7 @@ VOID NTAPI LoadCallback(
     AutoSubmitEnabled = !!PhGetIntegerSetting(SETTING_NAME_AUTO_SUBMIT_ENABLED);
     ScanMaxFileSize = PhGetIntegerSetting(SETTING_NAME_SCAN_MAX_FILE_SIZE);
     ScanStartupDelay = PhGetIntegerSetting(SETTING_NAME_SCAN_STARTUP_DELAY);
+    ScanSubmitTimeout = PhGetIntegerSetting(SETTING_NAME_SCAN_SUBMIT_TIMEOUT);
     if (ScanningEnabled)
         ScanningInitialized = InitializeScanning();
 }
@@ -71,12 +73,18 @@ VOID ProcessesUpdatedCallback(
     )
 {
     LARGE_INTEGER systemTime;
+    ULONG scanFlags = 0;
 
     if (!ScanningInitialized)
         return;
 
     if (PtrToUlong(Parameter) < ScanStartupDelay)
         return;
+
+    if (!AutoScanningEnabled)
+        SetFlag(scanFlags, SCAN_FLAG_LOCAL_ONLY);
+    if (AutoSubmitEnabled)
+        SetFlag(scanFlags, SCAN_FLAG_SUBMIT);
 
     PhQuerySystemTime(&systemTime);
 
@@ -123,7 +131,7 @@ VOID ProcessesUpdatedCallback(
             &systemTime,
             &extension->ScanContext,
             extension->FileName,
-            AutoScanningEnabled ? 0 : SCAN_FLAG_LOCAL_ONLY
+            scanFlags
             );
     }
 
@@ -1030,6 +1038,7 @@ LOGICAL DllMain(
                 { IntegerSettingType, SETTING_NAME_AUTO_SUBMIT_ENABLED, L"0" },
                 { IntegerSettingType, SETTING_NAME_SCAN_MAX_FILE_SIZE, L"8000000" }, // 128 MiB
                 { IntegerSettingType, SETTING_NAME_SCAN_STARTUP_DELAY, L"1E" }, // 30 sec
+                { IntegerSettingType, SETTING_NAME_SCAN_SUBMIT_TIMEOUT, L"A" }, // 10 sec
                 { IntegerSettingType, SETTING_NAME_VIRUSTOTAL_DEFAULT_ACTION, L"0" },
                 { StringSettingType, SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT, L"" },
                 { StringSettingType, SETTING_NAME_HYBRIDANAL_DEFAULT_PAT, L"" },
