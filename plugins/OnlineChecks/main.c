@@ -350,11 +350,16 @@ VOID NTAPI MenuItemCallback(
 
     if (fileName)
     {
+        ULONG scanFlags = SCAN_FLAG_RESCAN;
+
+        if (AutoSubmitEnabled)
+            SetFlag(scanFlags, SCAN_FLAG_SUBMIT);
+
         EnqueueScan(
             &extension->ScanContext,
             scanType,
             fileName,
-            SCAN_FLAG_RESCAN,
+            scanFlags,
             ScanCompleteCallback,
             extension
             );
