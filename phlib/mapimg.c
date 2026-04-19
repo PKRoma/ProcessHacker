@@ -4487,7 +4487,7 @@ NTSTATUS PhGetMappedImageProdIdExtents(
         PBYTE currentAddress;
         PBYTE currentEnd;
         PBYTE offset;
-        ULONG computedChecksum = 0;
+        ULONG computedChecksum;
         ULONG i;
 
         currentAddress = PTR_ADD_OFFSET(richHeaderStart, 0);
@@ -4500,9 +4500,15 @@ NTSTATUS PhGetMappedImageProdIdExtents(
         }
 
         // Generate and validate the Rich header checksum.
-        // The checksum is computed by:
-        // 1. Starting with the DOS header and stub (excluding e_lfanew field)
-        // 2. Adding each Rich entry's contribution (product ID and build rotated by count)
+        // Checksum algorithm:
+        // 1. Initialize the accumulator with the Rich header byte offset from image base.
+        // 2. Add rotated byte values from the DOS header/stub up to Rich start, excluding IMAGE_DOS_HEADER.e_lfanew.
+        // 3. For each decoded Rich entry, add:
+        //     _rotl((ProdidFromDwProdid(prodid) << 16) | WBuildFromDwProdid(prodid), count & 0x1F)
+        //    skipping entries where count is 0 or equals richHeaderKey (these are extra padding).
+        // 4. The computed checksum must match richHeaderKey.
+
+        computedChecksum = richHeaderStartOffset;
 
         __try
         {
