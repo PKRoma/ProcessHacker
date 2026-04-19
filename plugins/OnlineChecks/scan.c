@@ -759,6 +759,7 @@ VOID ProcessScanHashes(
         // work. They are released when we're finished. This is to avoid doing
         // the same expensive hash calculation multiple times for the same file.
         //
+        _Analysis_assume_lock_not_held_(&context->ScanHash->Lock);
         PhAcquireQueuedLockExclusive(&context->ScanHash->Lock);
         if (context->ScanHash->Status != STATUS_PENDING)
         {
