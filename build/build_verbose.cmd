@@ -10,7 +10,6 @@ REM ----------------------------------------------------------------------------
 REM Initialize script state, tool discovery values, and logger settings.
 set "ExitCode=0"
 set "IsCI=false"
-set "TLG=auto"
 set "TLV=normal"
 set "VSINSTALLPATH="
 set "VS_ARM64_SUPPORT=false"
@@ -76,7 +75,7 @@ REM ----------------------------------------------------------------------------
 :RunMsBuild
 echo:
 echo Building %~4
-msbuild /m %~1 -t:rebuild -p:Configuration=%~2 -p:Platform=%~3 -verbosity:%TLV% -terminalLogger:%TLG%
+msbuild /m %~1 -t:rebuild -p:Configuration=%~2 -p:Platform=%~3 -verbosity:%TLV% -terminalLogger:false
 exit /b %errorlevel%
 
 REM -----------------------------------------------------------------------------
