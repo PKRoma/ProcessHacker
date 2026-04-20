@@ -91,6 +91,20 @@ NTSTATUS PhCreateFileWin32(
  * \li \c FILE_DOES_NOT_EXIST The file was not opened because it did not exist and \c FILE_OPEN or
  * \c FILE_OVERWRITE was specified in \a CreateDisposition.
  */
+/**
+ * Creates or opens a file with extended options.
+ *
+ * \param FileHandle A variable that receives the file handle.
+ * \param FileName The Win32 file name.
+ * \param DesiredAccess The desired access to the file.
+ * \param AllocationSize The initial allocation size if the file is being created, overwritten, or superseded.
+ * \param FileAttributes File attributes applied if the file is created or overwritten.
+ * \param ShareAccess The file access granted to other threads.
+ * \param CreateDisposition The action to perform if the file does or does not exist.
+ * \param CreateOptions The options to apply when the file is opened or created.
+ * \param CreateStatus A variable that receives creation information.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhCreateFileWin32Ex(
     _Out_ PHANDLE FileHandle,
     _In_ PCWSTR FileName,
@@ -775,7 +789,7 @@ NTSTATUS PhReOpenFile(
 
     if (
         status == STATUS_SHARING_VIOLATION &&
-        (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&     
+        (DesiredAccess & KPH_FILE_READ_ACCESS) == DesiredAccess &&
         KsiLevel() >= KphLevelMed
         )
     {
@@ -3678,6 +3692,13 @@ NTSTATUS PhGetFileIoPriorityHint(
     return status;
 }
 
+/**
+ * Sets the I/O priority hint for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param IoPriorityHint I/O priority hint value to set.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileIoPriorityHint(
     _In_ HANDLE FileHandle,
     _In_ IO_PRIORITY_HINT IoPriorityHint
@@ -3708,7 +3729,7 @@ NTSTATUS PhSetFileIoPriorityHint(
  * - Commit all pending metadata changes for the given file from the Windows in-memory cache.
  * - Send a SYNC command to the storage device to commit in-memory cache to persistent storage.
  * \param FileHandle Handle to the file.
- * \return NTSTATUS Status code.
+ * \return NTSTATUS Successful or errant status.
  */
 NTSTATUS PhFlushBuffersFile(
     _In_ HANDLE FileHandle
@@ -3729,6 +3750,13 @@ NTSTATUS PhFlushBuffersFile(
     return status;
 }
 
+/**
+ * Queries the normalized file name for a file handle.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileName Receives the allocated file name string.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileHandleName(
     _In_ HANDLE FileHandle,
     _Out_ PPH_STRING *FileName
@@ -3779,6 +3807,13 @@ NTSTATUS PhGetFileHandleName(
     return status;
 }
 
+/**
+ * Queries the network physical path for a file handle.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileName Receives the allocated network physical file name string.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileNetworkPhysicalName(
     _In_ HANDLE FileHandle,
     _Out_ PPH_STRING* FileName
@@ -3829,6 +3864,13 @@ NTSTATUS PhGetFileNetworkPhysicalName(
     return status;
 }
 
+/**
+ * Queries all available information classes for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileInformation Receives a pointer to the allocated FILE_ALL_INFORMATION buffer.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileAllInformation(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_ALL_INFORMATION *FileInformation
@@ -3841,6 +3883,13 @@ NTSTATUS PhGetFileAllInformation(
         );
 }
 
+/**
+ * Queries the file ID information for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param FileId Receives FILE_ID_INFORMATION for the file.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileId(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_ID_INFORMATION FileId
@@ -3857,6 +3906,13 @@ NTSTATUS PhGetFileId(
         );
 }
 
+/**
+ * Queries the process IDs currently using a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param ProcessIdsUsingFile Receives a pointer to the allocated process-ID list.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetProcessIdsUsingFile(
     _In_ HANDLE FileHandle,
     _Out_ PFILE_PROCESS_IDS_USING_FILE_INFORMATION *ProcessIdsUsingFile
@@ -3869,6 +3925,14 @@ NTSTATUS PhGetProcessIdsUsingFile(
         );
 }
 
+/**
+ * Queries the process IDs currently using a file by name.
+ *
+ * \param FileName File name to open and query.
+ * \param RootDirectory Optional root directory for relative file names.
+ * \param ProcessIdsUsingFile Receives a pointer to the allocated process-ID list.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetProcessIdsUsingFileByName(
     _In_ PCPH_STRINGREF FileName,
     _In_opt_ HANDLE RootDirectory,
@@ -3902,6 +3966,13 @@ NTSTATUS PhGetProcessIdsUsingFileByName(
     return status;
 }
 
+/**
+ * Queries the process IDs currently using a volume or file handle.
+ *
+ * \param VolumeOrFileHandle Handle to a volume or file.
+ * \param Information Receives a pointer to the allocated process-ID list.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetProcessesUsingVolumeOrFile(
     _In_ HANDLE VolumeOrFileHandle,
     _Out_ PFILE_PROCESS_IDS_USING_FILE_INFORMATION *Information
@@ -3946,6 +4017,13 @@ NTSTATUS PhGetProcessesUsingVolumeOrFile(
     return status;
 }
 
+/**
+ * Queries the USN for a file.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Usn Receives the file USN value.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhGetFileUsn(
     _In_ HANDLE FileHandle,
     _Out_ PUSN Usn
@@ -3994,6 +4072,13 @@ NTSTATUS PhGetFileUsn(
     return status;
 }
 
+/**
+ * Enables or disables BypassIO for a file handle.
+ *
+ * \param FileHandle Handle to the file.
+ * \param Enable TRUE to enable BypassIO, FALSE to disable it.
+ * \return NTSTATUS Successful or errant status.
+ */
 NTSTATUS PhSetFileBypassIO(
     _In_ HANDLE FileHandle,
     _In_ BOOLEAN Enable
