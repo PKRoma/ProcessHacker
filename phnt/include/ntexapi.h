@@ -9437,18 +9437,18 @@ typedef struct _KUSER_SHARED_DATA
     // It helps in determining which bits of the pointer are used for authentication in user mode.
     //
 
-    ULONG64 UserPointerAuthMask;
+    // ULONG64 UserPointerAuthMask;
 
     //
     // Extended processor state configuration (ARM64). The reserved space for
     // other architectures is not available for reuse.
     //
 
-#if defined(_ARM64_)
-    XSTATE_CONFIGURATION XStateArm64;
-#else
-    ULONG Reserved10[210];
-#endif
+// #if defined(_ARM64_)
+//     XSTATE_CONFIGURATION XStateArm64;
+// #else
+//     ULONG Reserved10[210];
+// #endif
 } KUSER_SHARED_DATA, *PKUSER_SHARED_DATA;
 
 static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, TickCountLowDeprecated)               == 0x000, "KUSER_SHARED_DATA.TickCountLowDeprecated offset is incorrect");
@@ -9546,14 +9546,14 @@ static_assert(sizeof(KUSER_SHARED_DATA)                                         
 #else
 //static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, FeatureConfigurationChangeStamp)      == 0x720, "KUSER_SHARED_DATA.FeatureConfigurationChangeStamp offset is incorrect");
 //static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, UserPointerAuthMask)                  == 0x730, "KUSER_SHARED_DATA.UserPointerAuthMask offset is incorrect");
-#if defined(_ARM64_)
-static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, XStateArm64)                          == 0x738, "KUSER_SHARED_DATA.XStateArm64 offset is incorrect");
-#else
+//#if defined(_ARM64_)
+//static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, XStateArm64)                          == 0x738, "KUSER_SHARED_DATA.XStateArm64 offset is incorrect");
+//#else
 //static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, Reserved10)                           == 0x738, "KUSER_SHARED_DATA.Reserved10 offset is incorrect");
-#endif
-#if !defined(WINDOWS_IGNORE_PACKING_MISMATCH)
+//#endif
+//#if !defined(WINDOWS_IGNORE_PACKING_MISMATCH)
 //static_assert(sizeof(KUSER_SHARED_DATA)                                             == 0xa80, "KUSER_SHARED_DATA size is incorrect (expected 0xa80)");
-#endif
+//#endif
 #endif
 
 /**
