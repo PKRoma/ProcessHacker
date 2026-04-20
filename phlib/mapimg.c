@@ -748,7 +748,7 @@ CleanupExit:
 }
 
 /**
- * Maps ped image prefetch.
+ * Maps PE image prefetch.
  *
  * \param MappedImage The MappedImage parameter.
  */
@@ -1080,7 +1080,7 @@ PVOID PhGetMappedImageDirectoryEntry(
 }
 
 /**
- * p Get Mapped Image Load Config.
+ * Retrieves the load configuration directory for a mapped PE image (internal helper).
  *
  * \param MappedImage The MappedImage parameter.
  * \param Magic The Magic parameter.
@@ -4226,12 +4226,16 @@ NTSTATUS PhGetMappedImageProdIdHeader(
                 PhDereferenceObject(hashRawContentString);
                 return STATUS_NO_MEMORY;
             }
-            memcpy(richHeaderContentBuffer, richHeaderStart, richHeaderContentLength);
-            richHeaderContentBufferEnd = (PULONG)PTR_ADD_OFFSET(richHeaderContentBuffer, richHeaderContentLength);
 
-            for (PULONG p = richHeaderContentBuffer; p < richHeaderContentBufferEnd; p++)
             {
-                *p ^= richHeaderKey;
+                richHeaderContentBufferEnd = (PULONG)PTR_ADD_OFFSET(richHeaderContentBuffer, richHeaderContentLength);
+
+                memcpy(richHeaderContentBuffer, richHeaderStart, richHeaderContentLength);
+
+                for (PULONG p = richHeaderContentBuffer; p < richHeaderContentBufferEnd; p++)
+                {
+                    *p ^= richHeaderKey;
+                }
             }
 
             if (NT_SUCCESS(PhInitializeHash(&hashContext, Md5HashAlgorithm)))
@@ -4545,7 +4549,7 @@ NTSTATUS PhGetMappedImageProdIdExtents(
                 {
                     // Combine product ID (high word) and build number (low word)
                     ULONG combined = (ProdidFromDwProdid(prodid) << 16) | WBuildFromDwProdid(prodid);
-                    
+
                     // Rotate left by count and add to checksum
                     computedChecksum += _rotl(combined, count & 0x1F);
                 }
@@ -5427,14 +5431,14 @@ NTSTATUS PhGetMappedImageDynamicRelocationsTable(
 }
 
 /**
- * p Fill Dynamic Relocations.
+ * Fills dynamic relocation entries for a relocation symbol from a base relocation range.
  *
- * \param MappedImage The MappedImage parameter.
- * \param Symbol The Symbol parameter.
- * \param BaseRelocs The BaseRelocs parameter.
- * \param BaseRelocsEnd The BaseRelocsEnd parameter.
- * \param Callback The Callback parameter.
- * \param Context The Context parameter.
+ * \param MappedImage A pointer to the mapped image used for bounds checking and RVA resolution.
+ * \param Symbol The dynamic relocation symbol identifier that determines how entries are interpreted.
+ * \param BaseRelocs A pointer to the first IMAGE_BASE_RELOCATION block to process.
+ * \param BaseRelocsEnd A pointer to the end of the relocation block range (one past the last valid byte).
+ * \param Callback A caller-supplied routine invoked for each decoded dynamic relocation entry.
+ * \param Context Optional caller-defined context passed through to Callback on each invocation.
  * \return NTSTATUS Successful or errant status.
  */
 NTSTATUS PhpFillDynamicRelocations(
@@ -6730,7 +6734,7 @@ NTSTATUS PhGetMappedImageVolatileMetadata(
 }
 
 /**
- * Maps ped image update hash data.
+ * Maps PE image update hash data.
  *
  * \param HashContext The HashContext parameter.
  * \param Buffer The Buffer parameter.
@@ -7233,9 +7237,8 @@ ULONG PhGetMappedImageCHPEVersion(
     return 0;
 }
 
-
 /**
- * Maps ped image parse tlg provider blob.
+ * Maps ETW TraceLogging provider blobs.
  *
  * \param Address The Address parameter.
  * \param EndAddress The EndAddress parameter.
@@ -7315,7 +7318,7 @@ NTSTATUS PhMappedImageParseTlgProviderBlob(
 }
 
 /**
- * Maps ped image parse tlg provider3 blob.
+ * Maps ETW TraceLogging provider3 blobs.
  *
  * \param Address The Address parameter.
  * \param EndAddress The EndAddress parameter.
@@ -7398,7 +7401,7 @@ NTSTATUS PhMappedImageParseTlgProvider3Blob(
 }
 
 /**
- * Maps ped image parse tlg event blob.
+ * Maps ETW TraceLogging event blobs.
  *
  * \param BlobType The BlobType parameter.
  * \param HeaderStart The HeaderStart parameter.
@@ -7534,7 +7537,7 @@ NTSTATUS PhMappedImageParseTlgEventBlob(
 }
 
 /**
- * Maps ped image parse trace logging block.
+ * Maps ETW TraceLogging blocks.
  *
  * \param ViewBase The ViewBase parameter.
  * \param ViewSize The ViewSize parameter.
