@@ -324,8 +324,6 @@ TpDisassociateCallback(
  *
  * \param[in,out] Instance A pointer to a TP_CALLBACK_INSTANCE structure that defines the callback instance.
  * \param[in,out] Context Optional application-defined data passed to the callback.
- * \return None.
- * \sa https://learn.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nc-threadpoolapiset-ptp_simple_callback
  */
 typedef _Function_class_(TP_CALLBACK_ROUTINE)
 VOID NTAPI TP_CALLBACK_ROUTINE(
