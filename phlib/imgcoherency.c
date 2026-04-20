@@ -313,7 +313,7 @@ static NTSTATUS NTAPI PhImageCoherencyDynamicRelocationCallback(
 }
 
 _Function_class_(PH_READ_VIRTUAL_MEMORY_CALLBACK)
-static NTSTATUS PhImageCoherencyReadVirtualMemoryCallback(
+static NTSTATUS NTAPI PhImageCoherencyReadVirtualMemoryCallback(
     _In_ HANDLE ProcessHandle,
     _In_ PVOID BaseAddress,
     _Out_writes_bytes_(BufferSize) PVOID Buffer,
@@ -497,12 +497,14 @@ NTSTATUS PhpAnalyzeImageCoherencyInspect(
     if (LeftBuffer && RightBuffer)
     {
         ULONG length = min(LeftCount, RightCount);
+        ULONG i = 0;
 
-        for (ULONG i = 0; i < length; i++)
+        while (i < length)
         {
             if (SkipCallback)
             {
                 ULONG skip = SkipCallback(Rva + i, SkipCallbackContext);
+
                 if (skip != 0)
                 {
                     ULONG remaining = length - i;
@@ -530,6 +532,8 @@ NTSTATUS PhpAnalyzeImageCoherencyInspect(
                 status = GetExceptionCode();
                 break;
             }
+
+            i++;
         }
     }
 
