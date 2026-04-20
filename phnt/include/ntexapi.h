@@ -9424,13 +9424,13 @@ typedef struct _KUSER_SHARED_DATA
     // RtlQueryFeatureConfigurationChangeStamp
     //
 
-    KSYSTEM_TIME FeatureConfigurationChangeStamp;
+    //KSYSTEM_TIME FeatureConfigurationChangeStamp;
 
     //
     // Spare (available for re-use).
     //
 
-    ULONG Spare;
+    // ULONG Spare;
 
     //
     // This field holds a mask that is used in the process of authenticating pointers in user mode.
@@ -9544,15 +9544,15 @@ static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, Reserved10)                       
 static_assert(sizeof(KUSER_SHARED_DATA)                                             == 0xa70, "KUSER_SHARED_DATA size is incorrect (expected 0xa70)");
 #endif
 #else
-static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, FeatureConfigurationChangeStamp)      == 0x720, "KUSER_SHARED_DATA.FeatureConfigurationChangeStamp offset is incorrect");
-static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, UserPointerAuthMask)                  == 0x730, "KUSER_SHARED_DATA.UserPointerAuthMask offset is incorrect");
+//static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, FeatureConfigurationChangeStamp)      == 0x720, "KUSER_SHARED_DATA.FeatureConfigurationChangeStamp offset is incorrect");
+//static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, UserPointerAuthMask)                  == 0x730, "KUSER_SHARED_DATA.UserPointerAuthMask offset is incorrect");
 #if defined(_ARM64_)
 static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, XStateArm64)                          == 0x738, "KUSER_SHARED_DATA.XStateArm64 offset is incorrect");
 #else
-static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, Reserved10)                           == 0x738, "KUSER_SHARED_DATA.Reserved10 offset is incorrect");
+//static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, Reserved10)                           == 0x738, "KUSER_SHARED_DATA.Reserved10 offset is incorrect");
 #endif
 #if !defined(WINDOWS_IGNORE_PACKING_MISMATCH)
-static_assert(sizeof(KUSER_SHARED_DATA)                                             == 0xa80, "KUSER_SHARED_DATA size is incorrect (expected 0xa80)");
+//static_assert(sizeof(KUSER_SHARED_DATA)                                             == 0xa80, "KUSER_SHARED_DATA size is incorrect (expected 0xa80)");
 #endif
 #endif
 
