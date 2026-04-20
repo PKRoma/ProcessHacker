@@ -835,7 +835,7 @@ NTSTATUS PhD3DKMTGetProcessSchedulingPriorityClass(
     }
 
     if (!D3DKMTGetProcessSchedulingPriorityClass_I)
-        return FALSE;
+        return STATUS_NOT_SUPPORTED;
 
     return D3DKMTGetProcessSchedulingPriorityClass_I(ProcessHandle, SchedulingPriorityClass);
 }
