@@ -281,6 +281,7 @@ PKPH_OBJECT_TYPE KphGetObjectType(
  *
  * \param[in,out] ObjectRef The object reference to acquire the lock for.
  */
+_IRQL_requires_min_(DISPATCH_LEVEL)
 _IRQL_requires_max_(HIGH_LEVEL)
 _Requires_lock_not_held_(*ObjectRef)
 _Acquires_lock_(*ObjectRef)
@@ -291,7 +292,7 @@ VOID KphpAtomicAcquireObjectLockShared(
 {
     ULONG_PTR object;
 
-    KPH_NPAGED_CODE_HIGH_MAX();
+    KPH_NPAGED_CODE_DISPATCH_MIN();
 
     object = ReadULongPtrAcquire(&ObjectRef->Object);
 
@@ -325,6 +326,7 @@ VOID KphpAtomicAcquireObjectLockShared(
  *
  * \param[in,out] ObjectRef The object reference to release the lock of.
  */
+_IRQL_requires_min_(DISPATCH_LEVEL)
 _IRQL_requires_max_(HIGH_LEVEL)
 _Requires_lock_held_(*ObjectRef)
 _Releases_lock_(*ObjectRef)
@@ -335,7 +337,7 @@ VOID KphpAtomicReleaseObjectLockShared(
 {
     ULONG_PTR object;
 
-    KPH_NPAGED_CODE_HIGH_MAX();
+    KPH_NPAGED_CODE_DISPATCH_MIN();
 
     object = InterlockedDecrementULongPtr(&ObjectRef->Object);
 
@@ -349,6 +351,7 @@ VOID KphpAtomicReleaseObjectLockShared(
  *
  * \param[in,out] ObjectRef The object reference to acquire the lock for.
  */
+_IRQL_requires_min_(DISPATCH_LEVEL)
 _IRQL_requires_max_(HIGH_LEVEL)
 _Requires_lock_not_held_(*ObjectRef)
 _Acquires_lock_(*ObjectRef)
@@ -359,7 +362,7 @@ VOID KphpAtomicAcquireObjectLockExclusive(
 {
     ULONG_PTR object;
 
-    KPH_NPAGED_CODE_HIGH_MAX();
+    KPH_NPAGED_CODE_DISPATCH_MIN();
 
     object = ReadULongPtrAcquire(&ObjectRef->Object);
 
@@ -393,10 +396,11 @@ VOID KphpAtomicAcquireObjectLockExclusive(
 }
 
 /**
- * \brief Releases the atomic object reference lock shared.
+ * \brief Releases the atomic object reference lock exclusive.
  *
  * \param[in,out] ObjectRef The object reference to release the lock of.
  */
+_IRQL_requires_min_(DISPATCH_LEVEL)
 _IRQL_requires_max_(HIGH_LEVEL)
 _Requires_lock_held_(*ObjectRef)
 _Releases_lock_(*ObjectRef)
@@ -407,7 +411,7 @@ VOID KphpAtomicReleaseObjectLockExclusive(
 {
     BOOLEAN result;
 
-    KPH_NPAGED_CODE_HIGH_MAX();
+    KPH_NPAGED_CODE_DISPATCH_MIN();
 
     result = InterlockedBitTestAndResetULongPtr(&ObjectRef->Object,
                                                 KPH_ATOMIC_OBJECT_REF_EXCLUSIVE_BIT);
@@ -439,10 +443,17 @@ PVOID KphAtomicReferenceObject(
     _In_ PKPH_ATOMIC_OBJECT_REF ObjectRef
     )
 {
+    KIRQL previousIrql;
     ULONG_PTR value;
     PVOID object;
 
     KPH_NPAGED_CODE_HIGH_MAX();
+
+    previousIrql = KeGetCurrentIrql();
+    if (previousIrql < DISPATCH_LEVEL)
+    {
+        previousIrql = KeRaiseIrqlToDpcLevel();
+    }
 
     KphpAtomicAcquireObjectLockShared(ObjectRef);
 
@@ -454,6 +465,11 @@ PVOID KphAtomicReferenceObject(
     }
 
     KphpAtomicReleaseObjectLockShared(ObjectRef);
+
+    if (previousIrql < DISPATCH_LEVEL)
+    {
+        KeLowerIrql(previousIrql);
+    }
 
     return object;
 }
@@ -473,6 +489,7 @@ PVOID KphpAtomicStoreObjectReference(
     _In_opt_ PVOID Object
     )
 {
+    KIRQL previousIrql;
     PVOID previous;
     ULONG_PTR value;
     ULONG_PTR object;
@@ -480,6 +497,12 @@ PVOID KphpAtomicStoreObjectReference(
     KPH_NPAGED_CODE_HIGH_MAX();
 
     NT_ASSERT(((ULONG_PTR)Object & KPH_ATOMIC_OBJECT_REF_LOCK_MASK) == 0);
+
+    previousIrql = KeGetCurrentIrql();
+    if (previousIrql < DISPATCH_LEVEL)
+    {
+        previousIrql = KeRaiseIrqlToDpcLevel();
+    }
 
     KphpAtomicAcquireObjectLockExclusive(ObjectRef);
 
@@ -491,6 +514,11 @@ PVOID KphpAtomicStoreObjectReference(
     InterlockedExchangeULongPtr(&ObjectRef->Object, object);
 
     KphpAtomicReleaseObjectLockExclusive(ObjectRef);
+
+    if (previousIrql < DISPATCH_LEVEL)
+    {
+        KeLowerIrql(previousIrql);
+    }
 
     return previous;
 }
