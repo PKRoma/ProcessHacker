@@ -285,10 +285,7 @@ VOID NTAPI MenuItemCallback(
             extension = PhPluginGetObjectExtension(PluginInstance, menuItem->Context, EmProcessItemType);
             scanType = SCAN_TYPE_VIRUSTOTAL;
             if (extension->ProcessItem->FileName)
-            {
                 fileName = PhGetFileName(extension->ProcessItem->FileName);
-                extension->ProcessItem->FileName = fileName;
-            }
         }
         break;
     case MENUITEM_VIRUSTOTAL_SCAN_MODULE:
@@ -296,10 +293,7 @@ VOID NTAPI MenuItemCallback(
             extension = PhPluginGetObjectExtension(PluginInstance, menuItem->Context, EmModuleItemType);
             scanType = SCAN_TYPE_VIRUSTOTAL;
             if (extension->ModuleItem->FileName)
-            {
                 fileName = PhGetFileName(extension->ModuleItem->FileName);
-                extension->ModuleItem->FileName = fileName;
-            }
         }
         break;
     case MENUITEM_VIRUSTOTAL_SCAN_SERVICE:
@@ -307,10 +301,7 @@ VOID NTAPI MenuItemCallback(
             extension = PhPluginGetObjectExtension(PluginInstance, menuItem->Context, EmServiceItemType);
             scanType = SCAN_TYPE_VIRUSTOTAL;
             if (extension->ServiceItem->FileName)
-            {
                 fileName = PhGetFileName(extension->ServiceItem->FileName);
-                extension->ServiceItem->FileName = fileName;
-            }
         }
         break;
     case MENUITEM_HYBRIDANALYSIS_SCAN_PROCESS:
@@ -318,10 +309,7 @@ VOID NTAPI MenuItemCallback(
             extension = PhPluginGetObjectExtension(PluginInstance, menuItem->Context, EmProcessItemType);
             scanType = SCAN_TYPE_HYBRIDANALYSIS;
             if (extension->ProcessItem->FileName)
-            {
                 fileName = PhGetFileName(extension->ProcessItem->FileName);
-                extension->ProcessItem->FileName = fileName;
-            }
         }
         break;
     case MENUITEM_HYBRIDANALYSIS_SCAN_MODULE:
@@ -329,10 +317,7 @@ VOID NTAPI MenuItemCallback(
             extension = PhPluginGetObjectExtension(PluginInstance, menuItem->Context, EmModuleItemType);
             scanType = SCAN_TYPE_HYBRIDANALYSIS;
             if (extension->ModuleItem->FileName)
-            {
                 fileName = PhGetFileName(extension->ModuleItem->FileName);
-                extension->ModuleItem->FileName = fileName;
-            }
         }
         break;
     case MENUITEM_HYBRIDANALYSIS_SCAN_SERVICE:
@@ -340,10 +325,7 @@ VOID NTAPI MenuItemCallback(
             extension = PhPluginGetObjectExtension(PluginInstance, menuItem->Context, EmServiceItemType);
             scanType = SCAN_TYPE_HYBRIDANALYSIS;
             if (extension->ServiceItem->FileName)
-            {
                 fileName = PhGetFileName(extension->ServiceItem->FileName);
-                extension->ServiceItem->FileName = fileName;
-            }
         }
         break;
     }
@@ -363,6 +345,8 @@ VOID NTAPI MenuItemCallback(
             ScanCompleteCallback,
             extension
             );
+
+        PhDereferenceObject(fileName);
     }
 }
 
