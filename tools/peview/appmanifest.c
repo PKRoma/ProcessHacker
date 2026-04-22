@@ -108,7 +108,7 @@ VOID PvpShowAppManifest(
 
         IXmlWriter_Flush(streamWriter);
 
-        if (SUCCEEDED(dataOutputStream->lpVtbl->Stat(dataOutputStream, &statstg, STATFLAG_NONAME)))
+        if (SUCCEEDED(IStream_Stat(dataOutputStream, &statstg, STATFLAG_NONAME)))
         {
             ULONG bufferLength = statstg.cbSize.LowPart;
             PVOID buffer = PhAllocate(bufferLength);
@@ -121,20 +121,20 @@ VOID PvpShowAppManifest(
                 {
                     PPH_STRING manifestString;
 
-                    manifestString = PhConvertUtf8ToUtf16Ex((PCSTR)buffer, bufferLength);
-
-                    SendMessage(Context->EditWindow, WM_SETREDRAW, FALSE, 0);
-                    SendMessage(Context->EditWindow, WM_SETTEXT, FALSE, (LPARAM)manifestString->Buffer);
-                    SendMessage(Context->EditWindow, WM_SETREDRAW, TRUE, 0);
-
-                    PhDereferenceObject(manifestString);
+                    if (manifestString = PhConvertUtf8ToUtf16Ex((PCSTR)buffer, bufferLength))
+                    {
+                        SendMessage(Context->EditWindow, WM_SETREDRAW, FALSE, 0);
+                        SendMessage(Context->EditWindow, WM_SETTEXT, FALSE, (LPARAM)manifestString->Buffer);
+                        SendMessage(Context->EditWindow, WM_SETREDRAW, TRUE, 0);
+                        PhDereferenceObject(manifestString);
+                    }
                 }
                 PhFree(buffer);
             }
         }
 
     Cleanup:
-        if (streamWriter) IStream_Release(streamWriter);
+        if (streamWriter) IXmlWriter_Release(streamWriter);
         if (dataOutputStream) dataOutputStream->lpVtbl->Release(dataOutputStream);
         if (streamReader) IXmlReader_Release(streamReader);
         if (dataInputStream) dataInputStream->lpVtbl->Release(dataInputStream);
@@ -142,11 +142,15 @@ VOID PvpShowAppManifest(
 
     Fallback:
         {
-            PPH_STRING manifestString = PhConvertUtf8ToUtf16Ex(manifestBuffer, manifestLength);
-            SendMessage(Context->EditWindow, WM_SETREDRAW, FALSE, 0);
-            SendMessage(Context->EditWindow, WM_SETTEXT, FALSE, (LPARAM)manifestString->Buffer);
-            SendMessage(Context->EditWindow, WM_SETREDRAW, TRUE, 0);
-            PhDereferenceObject(manifestString);
+            PPH_STRING manifestString;
+
+            if (manifestString = PhConvertUtf8ToUtf16Ex(manifestBuffer, manifestLength))
+            {
+                SendMessage(Context->EditWindow, WM_SETREDRAW, FALSE, 0);
+                SendMessage(Context->EditWindow, WM_SETTEXT, FALSE, (LPARAM)manifestString->Buffer);
+                SendMessage(Context->EditWindow, WM_SETREDRAW, TRUE, 0);
+                PhDereferenceObject(manifestString);
+            }
         }
         goto Cleanup;
     }

@@ -416,6 +416,11 @@ INT_PTR CALLBACK PvColumnsDlgProc(
         break;
     case WM_DPICHANGED:
         {
+            HFONT controlFont;
+
+            if (controlFont = PvColumnsGetCurrentFont(hwndDlg))
+                PhReplaceWindowFont(&context->ControlFont, NULL, controlFont, FALSE);
+
             PvSetListHeight(context, hwndDlg);
         }
         break;

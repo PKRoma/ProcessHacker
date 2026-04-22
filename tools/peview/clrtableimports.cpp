@@ -794,6 +794,7 @@ EXTERN_C HRESULT PvClrImageEnumTables(
     if (!SUCCEEDED(status))
     {
         metaDataTables->Release();
+        metaDataImport->Release();
         return status;
     }
 
