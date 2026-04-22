@@ -311,6 +311,7 @@
     <ClCompile Include="prpgtok.c" />
     <ClCompile Include="prpgwmi.c" />
     <ClCompile Include="runas.c" />
+    <ClCompile Include="runaspkg.c" />
     <ClCompile Include="searchbox.c" />
     <ClCompile Include="sessprp.c" />
     <ClCompile Include="sessshad.c" />

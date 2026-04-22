@@ -1462,6 +1462,13 @@ PhGetApplicationDataFileName(
     _In_ BOOLEAN NativeFileName
     );
 
+PHLIBAPI
+PPH_STRING
+NTAPI
+PhGetHomeDrivePath(
+    _In_ BOOLEAN Elevated
+    );
+
 #define PH_FOLDERID_LocalAppData 1
 #define PH_FOLDERID_RoamingAppData 2
 #define PH_FOLDERID_ProgramFiles 3

@@ -4463,6 +4463,50 @@ PPH_STRING PhGetApplicationDataFileName(
     return applicationDataFileName;
 }
 
+/**
+ * Queries the parent directory to use for a new process, depending on elevation.
+ *
+ * \param Elevated TRUE if the process is elevated, FALSE otherwise.
+ * \return The parent directory string.
+ */
+PPH_STRING PhGetHomeDrivePath(
+    _In_ BOOLEAN Elevated
+    )
+{
+    // Note: Explorer creates new processes with the parent directory as SystemRoot when elevated or
+    // the below environment variables when not elevated. (dmex)
+    if (!Elevated)
+    {
+        static CONST PH_STRINGREF homeDriveNameSr = PH_STRINGREF_INIT(L"HOMEDRIVE");
+        static CONST PH_STRINGREF homePathNameSr = PH_STRINGREF_INIT(L"HOMEPATH");
+        PPH_STRING parentDirectoryString = NULL;
+        PPH_STRING homeDriveNameString = NULL;
+        PPH_STRING homePathNameString = NULL;
+
+        PhQueryEnvironmentVariable(NULL, &homeDriveNameSr, &homeDriveNameString);
+        PhQueryEnvironmentVariable(NULL, &homePathNameSr, &homePathNameString);
+
+        if (homeDriveNameString && homePathNameString)
+        {
+            parentDirectoryString = PhConcatStringRef2(
+                &homeDriveNameString->sr,
+                &homePathNameString->sr
+                );
+        }
+
+        if (homeDriveNameString)
+            PhDereferenceObject(homeDriveNameString);
+        if (homePathNameString)
+            PhDereferenceObject(homePathNameString);
+
+        return parentDirectoryString;
+    }
+    else
+    {
+        return PhGetSystemDirectory();
+    }
+}
+
 #if defined(PH_SHGETFOLDERPATH)
 /**
  * Gets a known location as a file name.
