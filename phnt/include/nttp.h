@@ -377,7 +377,6 @@ TpAllocWork(
  * Closes the specified work object.
  *
  * \param[in,out] Work A pointer to a TP_WORK structure that defines the work object.
- * \return No return value.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-closethreadpoolwork
  */
 NTSYSAPI
@@ -392,7 +391,6 @@ TpReleaseWork(
  * Submits a work object to the thread pool.
  *
  * \param[in,out] Work A pointer to a TP_WORK structure that defines the work object.
- * \return No return value.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-submitthreadpoolwork
  */
 NTSYSAPI
@@ -408,7 +406,6 @@ TpPostWork(
  *
  * \param[in,out] Work A pointer to a TP_WORK structure that defines the work object.
  * \param[in] CancelPendingCallbacks If TRUE, pending callbacks that have not started are canceled.
- * \return No return value.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-waitforthreadpoolworkcallbacks
  */
 NTSYSAPI
@@ -462,7 +459,6 @@ TpReleaseTimer(
  * \param[in] DueTime A pointer to a FILETIME-based value that specifies when the timer expires.
  * \param[in] Period The period, in milliseconds, for periodic timer callbacks.
  * \param[in] WindowLength The maximum amount of time, in milliseconds, that can elapse before the timer callback is invoked.
- * \return No return value.
  * \sa https://learn.microsoft.com/en-us/windows/win32/api/threadpoolapiset/nf-threadpoolapiset-setthreadpooltimer
  */
 NTSYSAPI
@@ -833,7 +829,6 @@ typedef enum _TP_TRACE_TYPE
  * Captures caller context for thread pool tracing.
  *
  * \param[in] Type The trace operation type.
- * \return No return value.
  */
 NTSYSAPI
 VOID
@@ -847,7 +842,6 @@ TpCaptureCaller(
  * Checks whether a worker thread should terminate.
  *
  * \param[in] Thread A handle to the worker thread.
- * \return No return value.
  */
 NTSYSAPI
 VOID
