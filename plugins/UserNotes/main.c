@@ -861,7 +861,7 @@ NTSTATUS PhD3DKMTSetProcessSchedulingPriorityClass(
     }
 
     if (!D3DKMTSetProcessSchedulingPriorityClass_I)
-        return FALSE;
+        return STATUS_NOINTERFACE;
 
     return D3DKMTSetProcessSchedulingPriorityClass_I(ProcessHandle, SchedulingPriorityClass);
 }
@@ -1225,7 +1225,7 @@ VOID NTAPI MenuItemCallback(
                 else
                 {
                     NTSTATUS status = STATUS_ACCESS_DENIED;
-                    IO_PRIORITY_HINT ioPriority = PHAPP_ID_IOPRIORITY_NORMAL;
+                    IO_PRIORITY_HINT ioPriority = IoPriorityNormal;
 
                     if (processItem->QueryHandle)
                     {
