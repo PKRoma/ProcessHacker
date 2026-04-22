@@ -1309,6 +1309,16 @@ PhSetHandleInformationRemote(
 PHLIBAPI
 NTSTATUS
 NTAPI
+PhCreateJobObject(
+    _Out_ PHANDLE JobObject,
+    _In_ ACCESS_MASK DesiredAccess,
+    _In_opt_ HANDLE RootDirectory,
+    _In_opt_ PCPH_STRINGREF ObjectName
+    );
+
+PHLIBAPI
+NTSTATUS
+NTAPI
 PhOpenJobObject(
     _Out_ PHANDLE JobHandle,
     _In_ ACCESS_MASK DesiredAccess,

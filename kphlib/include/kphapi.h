@@ -19,6 +19,7 @@
 
 // Process
 
+_Enum_is_bitflag_
 typedef enum _KPH_PROCESS_STATE
 {
     KPH_PROCESS_SECURELY_CREATED                   = 0x00000001,
@@ -77,6 +78,7 @@ typedef enum _KPH_PROCESS_STATE
                                  KPH_PROCESS_NO_FILE_TRANSACTION              |\
                                  KPH_PROCESS_NO_WRITABLE_FILE_OBJECT),
 } KPH_PROCESS_STATE, *PKPH_PROCESS_STATE;
+DEFINE_ENUM_FLAG_OPERATORS(KPH_PROCESS_STATE);
 C_ASSERT(sizeof(KPH_PROCESS_STATE) == sizeof(ULONG));
 
 typedef enum _KPH_PROCESS_INFORMATION_CLASS

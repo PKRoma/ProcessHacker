@@ -102,6 +102,7 @@ typedef enum tagPROPDESC_CONTROL_TYPE
     PROP_DESC_CONTROL_TYPE_TEXTBOX = 3
 } PROPCTL_CONTROL_TYPE;
 
+_Enum_is_bitflag_
 typedef enum _LV_SUBITEM_EDIT_MODE
 {
     LV_SUBITEM_EDIT_MODE_NONE = 0x00000000,
@@ -109,7 +110,9 @@ typedef enum _LV_SUBITEM_EDIT_MODE
     LV_SUBITEM_EDIT_MODE_COMMIT = 0x00000002,
     LV_SUBITEM_EDIT_MODE_CANCEL = 0x00000004
 } LV_SUBITEM_EDIT_MODE;
+DEFINE_ENUM_FLAG_OPERATORS(LV_SUBITEM_EDIT_MODE);
 
+_Enum_is_bitflag_
 typedef enum _LV_PROPERTY_CONTROL_FLAGS
 {
     LV_PROPERTY_CONTROL_FLAG_NONE = 0x00000000,
@@ -117,7 +120,9 @@ typedef enum _LV_PROPERTY_CONTROL_FLAGS
     LV_PROPERTY_CONTROL_FLAG_READONLY = 0x00000002,
     LV_PROPERTY_CONTROL_FLAG_HIGHLIGHT = 0x00000004
 } LV_PROPERTY_CONTROL_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_PROPERTY_CONTROL_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_PROPERTY_CONTROL_FORMAT_FLAGS
 {
     LV_PROPERTY_CONTROL_FORMAT_FLAG_NONE = 0x00000000,
@@ -125,39 +130,51 @@ typedef enum _LV_PROPERTY_CONTROL_FORMAT_FLAGS
     LV_PROPERTY_CONTROL_FORMAT_FLAG_FILENAME = 0x00000002,
     LV_PROPERTY_CONTROL_FORMAT_FLAG_ALWAYS_KB = 0x00000004
 } LV_PROPERTY_CONTROL_FORMAT_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_PROPERTY_CONTROL_FORMAT_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_DRAWPCTL_WINDOWLESS_DRAW_MODE
 {
     LV_DRAWPCTL_WINDOWLESS_DRAW_MODE_NONE = 0x00000000,
     LV_DRAWPCTL_WINDOWLESS_DRAW_MODE_HOT = 0x00000001
 } LV_DRAWPCTL_WINDOWLESS_DRAW_MODE;
+DEFINE_ENUM_FLAG_OPERATORS(LV_DRAWPCTL_WINDOWLESS_DRAW_MODE);
 
+_Enum_is_bitflag_
 typedef enum _LV_DRAWPCTL_TOOLTIP_FLAGS
 {
     LV_DRAWPCTL_TOOLTIP_FLAG_NONE = 0x00000000,
     LV_DRAWPCTL_TOOLTIP_FLAG_CLIPPED = 0x00000001,
     LV_DRAWPCTL_TOOLTIP_FLAG_CUSTOM = 0x00000002
 } LV_DRAWPCTL_TOOLTIP_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_DRAWPCTL_TOOLTIP_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_LISTVIEW_SELECTION_FLAGS
 {
     LV_LISTVIEW_SELECTION_FLAG_NONE = 0x00000000,
     LV_LISTVIEW_SELECTION_FLAG_KEEP_SELECTION_VISIBLE = 0x00000001
 } LV_LISTVIEW_SELECTION_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_LISTVIEW_SELECTION_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_LISTVIEW_TYPEAHEAD_FLAGS
 {
     LV_LISTVIEW_TYPEAHEAD_FLAG_NONE = 0x00000000,
     LV_LISTVIEW_TYPEAHEAD_FLAG_ENABLED = 0x00000001,
     LV_LISTVIEW_TYPEAHEAD_FLAG_PREFIX_MATCH = 0x00000002
 } LV_LISTVIEW_TYPEAHEAD_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_LISTVIEW_TYPEAHEAD_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_LISTVIEW_ICON_BULLYING_MODE
 {
     LV_LISTVIEW_ICON_BULLYING_DISABLED = 0,
     LV_LISTVIEW_ICON_BULLYING_ENABLED = 1
 } LV_LISTVIEW_ICON_BULLYING_MODE;
+DEFINE_ENUM_FLAG_OPERATORS(LV_LISTVIEW_ICON_BULLYING_MODE);
 
+_Enum_is_bitflag_
 typedef enum _LV_LISTVIEW_QUIRKS_FLAGS
 {
     LV_LISTVIEW_QUIRK_NONE = 0x00000000,
@@ -165,7 +182,9 @@ typedef enum _LV_LISTVIEW_QUIRKS_FLAGS
     LV_LISTVIEW_QUIRK_WORKAREAS_DPI = 0x00000002,
     LV_LISTVIEW_QUIRK_LEGACY_COMPAT = 0x00000004
 } LV_LISTVIEW_QUIRKS_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_LISTVIEW_QUIRKS_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_PROPERTY_CONTROL_CREATE_FLAGS
 {
     LV_PROPERTY_CONTROL_CREATE_FLAG_NONE = 0x00000000,
@@ -175,14 +194,18 @@ typedef enum _LV_PROPERTY_CONTROL_CREATE_FLAGS
     LV_PROPERTY_CONTROL_CREATE_FLAG_ACTIVE = 0x00000008, // triggers v_CreateActiveWindow (in-place edit)
     LV_PROPERTY_CONTROL_CREATE_FLAG_TRACKING = 0x00000010 // mouse tracking / focus timer
 } LV_PROPERTY_CONTROL_CREATE_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_PROPERTY_CONTROL_CREATE_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_LISTVIEW_SETITEMCOUNT_FLAGS
 {
     LV_LISTVIEW_SETITEMCOUNT_FLAG_NONE = 0x00000000,
     LV_LISTVIEW_SETITEMCOUNT_FLAG_NOINVALIDATEALL = 0x00000001, // LVSICF_NOINVALIDATEALL
     LV_LISTVIEW_SETITEMCOUNT_FLAG_NOSCROLL = 0x00000002         // LVSICF_NOSCROLL
 } LV_LISTVIEW_SETITEMCOUNT_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_LISTVIEW_SETITEMCOUNT_FLAGS);
 
+_Enum_is_bitflag_
 typedef enum _LV_LISTVIEW_ITEM_STATE_FLAGS
 {
     LV_LISTVIEW_ITEM_STATE_NONE = 0x00000000,
@@ -193,6 +216,7 @@ typedef enum _LV_LISTVIEW_ITEM_STATE_FLAGS
     LV_LISTVIEW_ITEM_STATE_CHECKED2 = 0x00000010,   // state image mask 0x3000 (extended check state)
     LV_LISTVIEW_ITEM_STATE_ACTIVATED = 0x00000020   // item activation state
 } LV_LISTVIEW_ITEM_STATE_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(LV_LISTVIEW_ITEM_STATE_FLAGS);
 
 #undef INTERFACE
 #define INTERFACE IOwnerDataCallback
@@ -324,85 +348,85 @@ DECLARE_INTERFACE_(ISubItemCallback, IUnknown)
     // ISubItemCallback
     //
 
-     /**
-      * Retrieves the title of a subitem.
-      *
-      * \param SubItemIndex Zero-based subitem index.
-      * \param Buffer Wide-character buffer to receive the title.
-      * \param BufferSize Buffer size in characters.
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, GetSubItemTitle)
-     STDMETHOD(GetSubItemTitle)(THIS_ _In_ LONG SubItemIndex, _Out_writes_(BufferSize) PWSTR Buffer, _In_ LONG BufferSize) PURE;
+    /**
+     * Retrieves the title of a subitem.
+     *
+     * \param SubItemIndex Zero-based subitem index.
+     * \param Buffer Wide-character buffer to receive the title.
+     * \param BufferSize Buffer size in characters.
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, GetSubItemTitle)
+    STDMETHOD(GetSubItemTitle)(THIS_ _In_ LONG SubItemIndex, _Out_writes_(BufferSize) PWSTR Buffer, _In_ LONG BufferSize) PURE;
 
-     /**
-      * Retrieves a control interface for a specific subitem.
-      *
-      * \param ItemIndex Zero-based item index.
-      * \param SubItemIndex Zero-based subitem index.
-      * \param RequiredInterface IID of the required control interface.
-      * \param ppObject Receives the interface pointer for the subitem control.
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, GetSubItemControl)
-     STDMETHOD(GetSubItemControl)(THIS_ _In_ LONG ItemIndex, _In_ LONG SubItemIndex, _In_ REFIID RequiredInterface, _COM_Outptr_ void** ppObject) PURE; // IPropertyControl
+    /**
+     * Retrieves a control interface for a specific subitem.
+     *
+     * \param ItemIndex Zero-based item index.
+     * \param SubItemIndex Zero-based subitem index.
+     * \param RequiredInterface IID of the required control interface.
+     * \param ppObject Receives the interface pointer for the subitem control.
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, GetSubItemControl)
+    STDMETHOD(GetSubItemControl)(THIS_ _In_ LONG ItemIndex, _In_ LONG SubItemIndex, _In_ REFIID RequiredInterface, _COM_Outptr_ void** ppObject) PURE; // IPropertyControl
 
-     /**
-      * Begins editing a subitem.
-      *
-      * \param ItemIndex Zero-based item index.
-      * \param SubItemIndex Zero-based subitem index.
-      * \param Mode Edit mode flags.
-      * \param RequiredInterface IID of the required editing control interface.
-      * \param ppObject Receives the interface pointer for the editing control.
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, BeginSubItemEdit)
-     STDMETHOD(BeginSubItemEdit)(THIS_ _In_ LONG ItemIndex, _In_ LONG SubItemIndex, _In_ LV_SUBITEM_EDIT_MODE Mode, _In_ REFIID RequiredInterface, _COM_Outptr_ void** ppObject) PURE; // IPropertyControl
+    /**
+     * Begins editing a subitem.
+     *
+     * \param ItemIndex Zero-based item index.
+     * \param SubItemIndex Zero-based subitem index.
+     * \param Mode Edit mode flags.
+     * \param RequiredInterface IID of the required editing control interface.
+     * \param ppObject Receives the interface pointer for the editing control.
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, BeginSubItemEdit)
+    STDMETHOD(BeginSubItemEdit)(THIS_ _In_ LONG ItemIndex, _In_ LONG SubItemIndex, _In_ LV_SUBITEM_EDIT_MODE Mode, _In_ REFIID RequiredInterface, _COM_Outptr_ void** ppObject) PURE; // IPropertyControl
 
-     /**
-      * Ends editing of a subitem.
-      *
-      * \param ItemIndex Zero-based item index.
-      * \param SubItemIndex Zero-based subitem index.
-      * \param Mode Edit mode flags.
-      * \param pPropertyControl The property control used during editing.
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, EndSubItemEdit)
-     STDMETHOD(EndSubItemEdit)(THIS_ _In_ LONG ItemIndex, _In_ LONG SubItemIndex, _In_ LV_SUBITEM_EDIT_MODE Mode, _Inout_opt_ void** ppObject) PURE; // IPropertyControl
+    /**
+     * Ends editing of a subitem.
+     *
+     * \param ItemIndex Zero-based item index.
+     * \param SubItemIndex Zero-based subitem index.
+     * \param Mode Edit mode flags.
+     * \param pPropertyControl The property control used during editing.
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, EndSubItemEdit)
+    STDMETHOD(EndSubItemEdit)(THIS_ _In_ LONG ItemIndex, _In_ LONG SubItemIndex, _In_ LV_SUBITEM_EDIT_MODE Mode, _Inout_opt_ void** ppObject) PURE; // IPropertyControl
 
-     /**
-      * Begins editing a group.
-      *
-      * \param GroupIndex Zero-based group index.
-      * \param RequiredInterface IID of the required editing control interface.
-      * \param ppObject Receives the interface pointer for the editing control.
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, BeginGroupEdit)
-     STDMETHOD(BeginGroupEdit)(THIS_ _In_ LONG GroupIndex, _In_ REFIID RequiredInterface, _COM_Outptr_ void** ppObject) PURE; // IPropertyControl
+    /**
+     * Begins editing a group.
+     *
+     * \param GroupIndex Zero-based group index.
+     * \param RequiredInterface IID of the required editing control interface.
+     * \param ppObject Receives the interface pointer for the editing control.
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, BeginGroupEdit)
+    STDMETHOD(BeginGroupEdit)(THIS_ _In_ LONG GroupIndex, _In_ REFIID RequiredInterface, _COM_Outptr_ void** ppObject) PURE; // IPropertyControl
 
-     /**
-      * Ends editing of a group.
-      *
-      * \param GroupIndex Zero-based group index.
-      * \param Mode Edit mode flags.
-      * \param pPropertyControl The property control used during editing.
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, EndGroupEdit)
-     STDMETHOD(EndGroupEdit)(THIS_ _In_ LONG GroupIndex, _In_ LV_SUBITEM_EDIT_MODE Mode, _Inout_opt_ void** ppObject) PURE; // IPropertyControl
+    /**
+     * Ends editing of a group.
+     *
+     * \param GroupIndex Zero-based group index.
+     * \param Mode Edit mode flags.
+     * \param pPropertyControl The property control used during editing.
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, EndGroupEdit)
+    STDMETHOD(EndGroupEdit)(THIS_ _In_ LONG GroupIndex, _In_ LV_SUBITEM_EDIT_MODE Mode, _Inout_opt_ void** ppObject) PURE; // IPropertyControl
 
-     /**
-      * Invokes a custom verb on a subitem.
-      *
-      * \param ItemIndex Zero-based item index.
-      * \param Verb The verb to invoke (wide string).
-      * \return HRESULT indicating success or failure.
-      */
-     DECLSPEC_XFGVIRT(ISubItemCallback, OnInvokeVerb)
-     STDMETHOD(OnInvokeVerb)(THIS_ _In_ LONG ItemIndex, _In_ LPCWSTR Verb) PURE;
+    /**
+     * Invokes a custom verb on a subitem.
+     *
+     * \param ItemIndex Zero-based item index.
+     * \param Verb The verb to invoke (wide string).
+     * \return HRESULT indicating success or failure.
+     */
+    DECLSPEC_XFGVIRT(ISubItemCallback, OnInvokeVerb)
+    STDMETHOD(OnInvokeVerb)(THIS_ _In_ LONG ItemIndex, _In_ LPCWSTR Verb) PURE;
 
     END_INTERFACE
 };
@@ -950,8 +974,8 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
      * \param[out] Color Pointer to a COLORREF variable that receives the current text color.
      * \return HRESULT indicating success or failure.
      */
-    DECLSPEC_XFGVIRT(IListView, GetTextColor)
-    STDMETHOD(GetTextColor)(THIS_ _Out_ COLORREF* Color) PURE;
+    DECLSPEC_XFGVIRT(IListView, GetForegroundColor)
+    STDMETHOD(GetForegroundColor)(THIS_ _Out_ COLORREF* Color) PURE;
 
     /**
      * \brief Sets the foreground (text) color for the list view.
@@ -959,8 +983,8 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
      * \param[in] Color The COLORREF value specifying the new text color.
      * \return HRESULT indicating success or failure.
      */
-    DECLSPEC_XFGVIRT(IListView, SetForeColor)
-    STDMETHOD(SetForeColor)(THIS_ _In_ COLORREF Color) PURE;
+    DECLSPEC_XFGVIRT(IListView, SetForegroundColor)
+    STDMETHOD(SetForegroundColor)(THIS_ _In_ COLORREF Color) PURE;
 
     /**
      * \brief Retrieves the current background color used for the text in the list view.
@@ -1151,8 +1175,8 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
     DECLSPEC_XFGVIRT(IListView, GetViewRect)
     STDMETHOD(GetViewRect)(THIS_ _Out_ RECT* Rectangle) PURE;
 
-    DECLSPEC_XFGVIRT(IListView, GetClientRect)
-    STDMETHOD(GetClientRect)(THIS_ _In_ BOOL StyleAndClientRect, _Out_ RECT* ClientRectangle) PURE;
+    DECLSPEC_XFGVIRT(IListView, GetClientRectangle)
+    STDMETHOD(GetClientRectangle)(THIS_ _In_ BOOL StyleAndClientRect, _Out_ RECT* ClientRectangle) PURE;
 
     DECLSPEC_XFGVIRT(IListView, GetColumnWidth)
     STDMETHOD(GetColumnWidth)(THIS_ _In_ LONG ColumnIndex, _Out_ PLONG Width) PURE;
@@ -1486,10 +1510,10 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
     ((This)->lpVtbl->GetBackgroundColor(This, Color))
 #define IListView_SetBackgroundColor(This, Color) \
     ((This)->lpVtbl->SetBackgroundColor(This, Color))
-#define IListView_GetTextColor(This, Color) \
-    ((This)->lpVtbl->GetTextColor(This, Color))
-#define IListView_SetTextColor(This, Color) \
-    ((This)->lpVtbl->SetTextColor(This, Color))
+#define IListView_GetForegroundColor(This, Color) \
+    ((This)->lpVtbl->GetForegroundColor(This, Color))
+#define IListView_SetForegroundColor(This, Color) \
+    ((This)->lpVtbl->SetForegroundColor(This, Color))
 #define IListView_GetTextBackgroundColor(This, Color) \
     ((This)->lpVtbl->GetTextBackgroundColor(This, Color))
 #define IListView_SetTextBackgroundColor(This, Color) \
@@ -1608,8 +1632,8 @@ DECLARE_INTERFACE_(IListView, IUnknown) // real name is IListView2
     ((This)->lpVtbl->CreateDragImage(This, ItemIndex, UpperLeft, HImageList))
 #define IListView_GetViewRect(This, Rectangle) \
     ((This)->lpVtbl->GetViewRect(This, Rectangle))
-#define IListView_GetClientRect(This, unknown, ClientRectangle) \
-    ((This)->lpVtbl->GetClientRect(This, unknown, ClientRectangle))
+#define IListView_GetClientRectangle(This, unknown, ClientRectangle) \
+    ((This)->lpVtbl->GetClientRectangle(This, unknown, ClientRectangle))
 #define IListView_GetColumnWidth(This, columnIndex, Width) \
     ((This)->lpVtbl->GetColumnWidth(This, columnIndex, Width))
 #define IListView_SetColumnWidth(This, columnIndex, width) \

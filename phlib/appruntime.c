@@ -1025,6 +1025,7 @@ CleanupExit:
     return success;
 }
 
+_Enum_is_bitflag_
 typedef enum _PH_QUERY_PACKAGE_INFO_TYPE
 {
     PH_QUERY_PACKAGE_INFO_NAME = 1,
@@ -1035,6 +1036,7 @@ typedef enum _PH_QUERY_PACKAGE_INFO_TYPE
     PH_QUERY_PACKAGE_INFO_LOGO = 32,
     PH_QUERY_PACKAGE_INFO_LOCATION = 64,
 } PH_QUERY_PACKAGE_INFO_TYPE;
+DEFINE_ENUM_FLAG_OPERATORS(PH_QUERY_PACKAGE_INFO_TYPE);
 
 BOOLEAN PhQueryApplicationModelPackageInformation(
     _In_ PPH_LIST PackageList,

@@ -432,7 +432,7 @@ NTSTATUS KphSetServiceSecurity(
     NTSTATUS status;
     PSID administratorsSid = PhSeAdministratorsSid();
     UCHAR securityDescriptorBuffer[SECURITY_DESCRIPTOR_MIN_LENGTH + 0x80];
-    PSECURITY_DESCRIPTOR securityDescriptor;
+    PSECURITY_DESCRIPTOR securityDescriptor = (PSECURITY_DESCRIPTOR)securityDescriptorBuffer;
     ULONG sdAllocationLength;
     PACL dacl;
 
@@ -451,13 +451,10 @@ NTSTATUS KphSetServiceSecurity(
     if (!NT_SUCCESS(status = RtlULongAdd(sdAllocationLength, PhLengthSid(&PhSeInteractiveSid), &sdAllocationLength)))
         goto CleanupExit;
 
-    securityDescriptor = (PSECURITY_DESCRIPTOR)securityDescriptorBuffer;
-    
-    if (!NT_SUCCESS(status = PhCreateSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)))
-        goto CleanupExit;
-
     dacl = PTR_ADD_OFFSET(securityDescriptor, SECURITY_DESCRIPTOR_MIN_LENGTH);
 
+    if (!NT_SUCCESS(status = PhCreateSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)))
+        goto CleanupExit;
     if (!NT_SUCCESS(status = PhCreateAcl(dacl, sdAllocationLength - SECURITY_DESCRIPTOR_MIN_LENGTH, ACL_REVISION)))
         goto CleanupExit;
     if (!NT_SUCCESS(status = PhAddAccessAllowedAce(dacl, ACL_REVISION, SERVICE_ALL_ACCESS, &PhSeServiceSid)))

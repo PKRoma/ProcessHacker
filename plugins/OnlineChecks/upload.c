@@ -23,8 +23,6 @@ CONST SERVICE_INFO UploadServiceInfo[] =
     { MENUITEM_VIRUSTOTAL_UPLOAD_SERVICE, L"www.virustotal.com", L"???", L"file" },
     { MENUITEM_JOTTI_UPLOAD, L"virusscan.jotti.org", L"/en-US/submit-file?isAjax=true", L"sample-file[]" },
     { MENUITEM_JOTTI_UPLOAD_SERVICE, L"virusscan.jotti.org", L"/en-US/submit-file?isAjax=true", L"sample-file[]" },
-    { MENUITEM_JOTTI_UPLOAD, L"virusscan.jotti.org", L"/en-US/submit-file?isAjax=true", L"sample-file[]" },
-    { MENUITEM_JOTTI_UPLOAD_SERVICE, L"virusscan.jotti.org", L"/en-US/submit-file?isAjax=true", L"sample-file[]" },
     { MENUITEM_FILESCANIO_UPLOAD, L"www.filescan.io", L"/api/scan/file", L"file" },
     { MENUITEM_FILESCANIO_UPLOAD_SERVICE, L"www.filescan.io", L"/api/scan/file", L"file" },
 };
@@ -1116,15 +1114,15 @@ LONGLONG UploadFileScanStringToTime(
 
     if (!NT_SUCCESS(RtlULong64ToUShort(year, &systemtime.wYear)))
         return LONG64_MAX;
-    if (!NT_SUCCESS(RtlULong64ToUShort(month, &systemtime.wYear)))
+    if (!NT_SUCCESS(RtlULong64ToUShort(month, &systemtime.wMonth)))
         return LONG64_MAX;
-    if (!NT_SUCCESS(RtlULong64ToUShort(day, &systemtime.wYear)))
+    if (!NT_SUCCESS(RtlULong64ToUShort(day, &systemtime.wDay)))
         return LONG64_MAX;
-    if (!NT_SUCCESS(RtlULong64ToUShort(hour, &systemtime.wYear)))
+    if (!NT_SUCCESS(RtlULong64ToUShort(hour, &systemtime.wHour)))
         return LONG64_MAX;
-    if (!NT_SUCCESS(RtlULong64ToUShort(minute, &systemtime.wYear)))
+    if (!NT_SUCCESS(RtlULong64ToUShort(minute, &systemtime.wMinute)))
         return LONG64_MAX;
-    if (!NT_SUCCESS(RtlULong64ToUShort(second, &systemtime.wYear)))
+    if (!NT_SUCCESS(RtlULong64ToUShort(second, &systemtime.wSecond)))
         return LONG64_MAX;
     if (!PhSystemTimeToLargeInteger(&time, &systemtime))
         return LONG64_MAX;

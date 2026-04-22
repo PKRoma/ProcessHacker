@@ -659,7 +659,7 @@ BOOLEAN PhGetIListViewClientRect(
     _Inout_ PRECT ClientRect
     )
 {
-    return SUCCEEDED(ListView->GetClientRect(FALSE, ClientRect));
+    return SUCCEEDED(ListView->GetClientRectangle(FALSE, ClientRect));
 }
 
 BOOLEAN PhGetIListViewItemRect(

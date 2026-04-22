@@ -376,7 +376,22 @@ HFONT PhDuplicateFontWithNewHeight(
     return NULL;
 }
 
+HFONT PhDuplicateFontUpdateDpi(
+    _In_ HFONT Font,
+    _In_ LONG WindowDpi
+    )
+{
+    LOGFONT logFont;
 
+    if (GetObject(Font, sizeof(LOGFONT), &logFont))
+    {
+        logFont.lfHeight = PhScaleToDisplay(logFont.lfHeight, WindowDpi);
+        logFont.lfQuality = (UCHAR)PhFontQuality;
+        return CreateFontIndirect(&logFont);
+    }
+
+    return NULL;
+}
 HFONT PhInitializeFont(
     _In_ LONG WindowDpi
     )

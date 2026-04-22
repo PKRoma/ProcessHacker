@@ -596,6 +596,7 @@ PhGetShellWindow(
 
 /**
  * Converts default logical units (based on 96 DPI) to physical units appropriate for the current monitor's display DPI.
+ *
  * \param Value The value to scale.
  * \param Scale The target DPI scale.
  * \return The scaled value.
@@ -1799,6 +1800,7 @@ BOOLEAN NTAPI PH_WINDOWSTATION_ENUM_CALLBACK(
     );
 typedef PH_WINDOWSTATION_ENUM_CALLBACK* PPH_WINDOWSTATION_ENUM_CALLBACK;
 
+_Enum_is_bitflag_
 typedef enum _PH_WINDOWSTATION_ENUM_TYPE
 {
     PH_WINDOWSTATION_ENUM_WIN32 = 0x1,             // Phase 1: Win32 EnumWindowStations (current session, access-filtered)
@@ -1807,6 +1809,7 @@ typedef enum _PH_WINDOWSTATION_ENUM_TYPE
     PH_WINDOWSTATION_ENUM_SYSTEM_HANDLES = 0x8,    // Phase 4: System-wide handle enumeration
     PH_WINDOWSTATION_ENUM_ALL = 0xF                // All enumeration methods
 } PH_WINDOWSTATION_ENUM_TYPE;
+DEFINE_ENUM_FLAG_OPERATORS(PH_WINDOWSTATION_ENUM_TYPE);
 
 PHLIBAPI
 NTSTATUS
@@ -3169,6 +3172,7 @@ typedef enum _ACCENT_STATE
     ACCENT_INVALID_STATE
 } ACCENT_STATE;
 
+_Enum_is_bitflag_
 typedef enum _ACCENT_FLAG
 {
     ACCENT_NONE,
@@ -3179,6 +3183,7 @@ typedef enum _ACCENT_FLAG
     ACCENT_BORDER_BOTTOM = 0x100,
     ACCENT_BORDER_ALL = (ACCENT_BORDER_LEFT | ACCENT_BORDER_TOP | ACCENT_BORDER_RIGHT | ACCENT_BORDER_BOTTOM)
 } ACCENT_FLAG;
+DEFINE_ENUM_FLAG_OPERATORS(ACCENT_FLAG);
 
 typedef struct _ACCENT_POLICY
 {
@@ -3505,6 +3510,33 @@ PhDuplicateFontWithNewHeight(
     _In_ LONG NewHeight,
     _In_ LONG dpiValue
     );
+
+PHLIBAPI
+HFONT
+NTAPI
+PhDuplicateFontUpdateDpi(
+    _In_ HFONT Font,
+    _In_ LONG WindowDpi
+    );
+
+FORCEINLINE VOID PhReplaceWindowFont(
+    _Inout_ HFONT *FontHandle,
+    _In_opt_ HWND WindowHandle,
+    _In_opt_ HFONT NewFont,
+    _In_ BOOLEAN Redraw
+    )
+{
+    HFONT oldFont;
+
+    oldFont = *FontHandle;
+    *FontHandle = NewFont;
+
+    if (WindowHandle)
+        SetWindowFont(WindowHandle, NewFont, Redraw);
+
+    if (oldFont)
+        DeleteFont(oldFont);
+}
 
 VOID PhWindowThemeMainMenuBorder(
     _In_ HWND WindowHandle

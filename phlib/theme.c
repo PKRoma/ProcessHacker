@@ -619,12 +619,12 @@ VOID PhInitializeThemeWindowTabControl(
     PPHP_THEME_WINDOW_TAB_CONTEXT context;
 
     context = PhAllocateZero(sizeof(PHP_THEME_WINDOW_TAB_CONTEXT));
-    context->DefaultWindowProc = (WNDPROC)GetWindowLongPtr(TabControlWindow, GWLP_WNDPROC);
+    context->DefaultWindowProc = PhGetWindowProcedure(TabControlWindow);
     context->CursorPos.x = LONG_MIN;
     context->CursorPos.y = LONG_MIN;
 
     PhSetWindowContext(TabControlWindow, LONG_MAX, context);
-    SetWindowLongPtr(TabControlWindow, GWLP_WNDPROC, (LONG_PTR)PhpThemeWindowTabControlWndSubclassProc);
+    PhSetWindowProcedure(TabControlWindow, PhpThemeWindowTabControlWndSubclassProc);
 
     InvalidateRect(TabControlWindow, NULL, FALSE);
 }
@@ -635,9 +635,11 @@ VOID PhInitializeThemeWindowGroupBox(
 {
     WNDPROC groupboxWindowProc;
 
-    groupboxWindowProc = (WNDPROC)GetWindowLongPtr(GroupBoxHandle, GWLP_WNDPROC);
+    groupboxWindowProc = PhGetWindowProcedure(GroupBoxHandle);
     PhSetWindowContext(GroupBoxHandle, LONG_MAX, groupboxWindowProc);
-    SetWindowLongPtr(GroupBoxHandle, GWLP_WNDPROC, (LONG_PTR)PhpThemeWindowGroupBoxSubclassProc);
+    PhSetWindowProcedure(GroupBoxHandle, PhpThemeWindowGroupBoxSubclassProc);
+
+    PhSetWindowStyle(GroupBoxHandle, WS_CLIPSIBLINGS, WS_CLIPSIBLINGS);
 
     InvalidateRect(GroupBoxHandle, NULL, FALSE);
 }
@@ -699,8 +701,8 @@ VOID PhInitializeWindowThemeACLUI(
     _In_ HWND ACLUIControl
 )
 {
-    PhSetWindowContext(ACLUIControl, LONG_MAX, (PVOID)GetWindowLongPtr(ACLUIControl, GWLP_WNDPROC));
-    SetWindowLongPtr(ACLUIControl, GWLP_WNDPROC, (LONG_PTR)PhpThemeWindowACLUISubclassProc);
+    PhSetWindowContext(ACLUIControl, LONG_MAX, PhGetWindowProcedure(ACLUIControl));
+    PhSetWindowProcedure(ACLUIControl, PhpThemeWindowACLUISubclassProc);
 
     InvalidateRect(ACLUIControl, NULL, FALSE);
 }
@@ -2470,7 +2472,7 @@ LRESULT CALLBACK PhpThemeWindowGroupBoxSubclassProc(
 
             ThemeWindowRenderGroupBoxControl(WindowHandle, hdc, &clientRect, oldWndProc);
         }
-        return TRUE;
+        return DefWindowProc(WindowHandle, uMsg, wParam, lParam);
     case WM_ENABLE:
         if (!wParam)    // fix drawing when window visible and switches to disabled
             return 0;
