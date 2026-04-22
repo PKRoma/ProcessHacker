@@ -834,13 +834,6 @@ INT_PTR CALLBACK PhpProcessStatisticsDlgProc(
             statisticsContext = propPageContext->Context = PhAllocateZero(sizeof(PH_STATISTICS_CONTEXT));
             statisticsContext->WindowHandle = hwndDlg;
             statisticsContext->ListViewHandle = GetDlgItem(hwndDlg, IDC_STATISTICS_LIST);
-
-            if (PhTreeWindowFont)
-            {
-                statisticsContext->TreeNewFont = PhDuplicateFont(PhTreeWindowFont);
-                SetWindowFont(statisticsContext->ListViewHandle, statisticsContext->TreeNewFont, FALSE);
-            }
-
             statisticsContext->ListViewContext = PhListView_Initialize(statisticsContext->ListViewHandle);
             statisticsContext->ProcessItem = processItem;
             statisticsContext->Enabled = TRUE;
@@ -849,14 +842,10 @@ INT_PTR CALLBACK PhpProcessStatisticsDlgProc(
             statisticsContext->IoPriorityMin = LONG_MAX;
             statisticsContext->IoPriorityMax = LONG_MAX;
 
-            // Try to open a process handle with PROCESS_QUERY_INFORMATION access for WS information.
-            if (PH_IS_REAL_PROCESS_ID(processItem->ProcessId))
+            if (PhTreeWindowFont)
             {
-                PhOpenProcess(
-                    &statisticsContext->ProcessHandle,
-                    PROCESS_QUERY_INFORMATION,
-                    processItem->ProcessId
-                    );
+                statisticsContext->TreeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg));
+                SetWindowFont(statisticsContext->ListViewHandle, statisticsContext->TreeNewFont, FALSE);
             }
 
             PhSetListViewStyle(statisticsContext->ListViewHandle, TRUE, TRUE);
@@ -872,6 +861,16 @@ INT_PTR CALLBACK PhpProcessStatisticsDlgProc(
             PhLoadListViewColumnsFromSetting(SETTING_PROC_STAT_PROP_PAGE_GROUP_LIST_VIEW_COLUMNS, statisticsContext->ListViewHandle);
             PhLoadListViewSortColumnsFromSetting(SETTING_PROC_STAT_PROP_PAGE_GROUP_LIST_VIEW_SORT, statisticsContext->ListViewHandle);
             PhLoadListViewGroupStatesFromSetting(SETTING_PROC_STAT_PROP_PAGE_GROUP_STATES, statisticsContext->ListViewHandle);
+
+            // Try to open a process handle with PROCESS_QUERY_INFORMATION access for WS information.
+            if (PH_IS_REAL_PROCESS_ID(processItem->ProcessId))
+            {
+                PhOpenProcess(
+                    &statisticsContext->ProcessHandle,
+                    PROCESS_QUERY_INFORMATION,
+                    processItem->ProcessId
+                    );
+            }
 
             PhRegisterCallback(
                 PhGetGeneralCallback(GeneralCallbackProcessProviderUpdatedEvent),

@@ -1698,6 +1698,11 @@ INT_PTR CALLBACK PhFindObjectsDlgProc(
         break;
     case WM_DPICHANGED:
         {
+            HFONT typeWindowFont;
+
+            if (typeWindowFont = PhDuplicateFont(PhApplicationFont))
+                PhReplaceWindowFont(&context->TypeWindowFont, context->TypeWindowHandle, typeWindowFont, TRUE);
+
             PhLayoutManagerUpdate(&context->LayoutManager, LOWORD(wParam));
             PhLayoutManagerLayout(&context->LayoutManager);
 

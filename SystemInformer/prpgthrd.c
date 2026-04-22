@@ -1028,7 +1028,7 @@ INT_PTR CALLBACK PhpProcessThreadsDlgProc(
 
             if (PhTreeWindowFont)
             {
-                threadsContext->TreeNewFont = PhDuplicateFont(PhTreeWindowFont);
+                threadsContext->TreeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg));
                 SetWindowFont(threadsContext->TreeNewHandle, threadsContext->TreeNewFont, FALSE);
             }
 
@@ -1184,6 +1184,17 @@ INT_PTR CALLBACK PhpProcessThreadsDlgProc(
                 PhAddPropPageLayoutItem(hwndDlg, threadsContext->SearchboxHandle, dialogItem, PH_ANCHOR_TOP | PH_ANCHOR_RIGHT);
                 PhAddPropPageLayoutItem(hwndDlg, threadsContext->TreeNewHandle, dialogItem, PH_ANCHOR_ALL);
                 PhEndPropPageLayout(hwndDlg, propPageContext);
+            }
+        }
+        break;
+    case WM_DPICHANGED_AFTERPARENT:
+        {
+            if (PhTreeWindowFont)
+            {
+                HFONT treeNewFont;
+
+                if (treeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg)))
+                    PhReplaceWindowFont(&threadsContext->TreeNewFont, threadsContext->TreeNewHandle, treeNewFont, TRUE);
             }
         }
         break;

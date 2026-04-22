@@ -806,6 +806,17 @@ INT_PTR CALLBACK PhPluginsDlgProc(
         break;
     case WM_DPICHANGED:
         {
+            HFONT normalFontHandle;
+            HFONT titleFontHandle;
+
+            if (normalFontHandle = PhCreateCommonFont(-10, FW_NORMAL, NULL, LOWORD(wParam)))
+                PhReplaceWindowFont(&context->NormalFontHandle, NULL, normalFontHandle, FALSE);
+            if (titleFontHandle = PhCreateCommonFont(-14, FW_BOLD, NULL, LOWORD(wParam)))
+                PhReplaceWindowFont(&context->TitleFontHandle, NULL, titleFontHandle, FALSE);
+
+            TreeNew_SetRowHeight(context->TreeNewHandle, PhGetDpi(48, LOWORD(wParam)));
+            TreeNew_NodesStructured(context->TreeNewHandle);
+
             PhLayoutManagerUpdate(&context->LayoutManager, LOWORD(wParam));
             PhLayoutManagerLayout(&context->LayoutManager);
         }

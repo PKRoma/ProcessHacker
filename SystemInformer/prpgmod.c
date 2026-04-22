@@ -750,7 +750,7 @@ INT_PTR CALLBACK PhpProcessModulesDlgProc(
 
             if (PhTreeWindowFont)
             {
-                modulesContext->TreeNewFont = PhDuplicateFont(PhTreeWindowFont);
+                modulesContext->TreeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg));
                 SetWindowFont(modulesContext->TreeNewHandle, modulesContext->TreeNewFont, FALSE);
             }
 
@@ -874,6 +874,11 @@ INT_PTR CALLBACK PhpProcessModulesDlgProc(
     case WM_DPICHANGED_AFTERPARENT:
         {
             HFONT fontHandle = modulesContext->ListContext.BoldFont;
+            HFONT treeNewFont;
+
+            if (PhTreeWindowFont && (treeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg))))
+                PhReplaceWindowFont(&modulesContext->TreeNewFont, modulesContext->TreeNewHandle, treeNewFont, TRUE);
+
             modulesContext->ListContext.BoldFont = PhDuplicateFontWithNewWeight(GetWindowFont(modulesContext->TreeNewHandle), FW_BOLD);
             if (fontHandle) DeleteFont(fontHandle);
 

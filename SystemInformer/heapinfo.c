@@ -857,6 +857,13 @@ INT_PTR CALLBACK PhpProcessHeapsDlgProc(
         break;
     case WM_DPICHANGED:
         {
+            if (context->BoldFont)
+            {
+                DeleteFont(context->BoldFont);
+                context->BoldFont = NULL;
+                InvalidateRect(context->ListViewHandle, NULL, TRUE);
+            }
+
             PhLayoutManagerUpdate(&context->LayoutManager, LOWORD(wParam));
             PhLayoutManagerLayout(&context->LayoutManager);
         }

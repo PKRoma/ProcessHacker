@@ -1283,10 +1283,15 @@ PPHP_PROCESS_WMI_TREENODE PhpFindWmiProviderNode(
     )
 {
     PHP_PROCESS_WMI_TREENODE lookupNode;
+    PH_WMI_ENTRY lookupProvider;
     PPHP_PROCESS_WMI_TREENODE lookupNodePtr = &lookupNode;
     PPHP_PROCESS_WMI_TREENODE *node;
 
-    lookupNode.Provider->RelativePath = RelativePath;
+    memset(&lookupNode, 0, sizeof(PHP_PROCESS_WMI_TREENODE));
+    memset(&lookupProvider, 0, sizeof(PH_WMI_ENTRY));
+
+    lookupProvider.RelativePath = RelativePath;
+    lookupNode.Provider = &lookupProvider;
 
     node = (PPHP_PROCESS_WMI_TREENODE*)PhFindEntryHashtable(
         Context->NodeHashtable,
@@ -1499,7 +1504,7 @@ BOOLEAN NTAPI PhpWmiProviderTreeNewCallback(
                 PhEqualString(context->DefaultNamespace, node->Provider->ProviderNamespace, TRUE)
                 )
             {
-                getNodeColor->BackColor = PhCsColorElevatedProcesses;
+                getNodeColor->BackColor = PhCsColorWmiDefaultNamespace;
             }
 
             getNodeColor->Flags = TN_AUTO_FORECOLOR;
@@ -1515,9 +1520,8 @@ BOOLEAN NTAPI PhpWmiProviderTreeNewCallback(
             // HACK
             if (context->TreeFilterSupport.FilterList)
                 PhApplyTreeNewFilters(&context->TreeFilterSupport);
-
-            // Force a rebuild to sort the items.
-            TreeNew_NodesStructured(WindowHandle);
+            else
+                TreeNew_NodesStructured(WindowHandle);
         }
         return TRUE;
     case TreeNewContextMenu:
@@ -1804,7 +1808,7 @@ INT_PTR CALLBACK PhpProcessWmiProvidersDlgProc(
 
             if (PhTreeWindowFont)
             {
-                context->TreeNewFont = PhDuplicateFont(PhTreeWindowFont);
+                context->TreeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg));
                 SetWindowFont(context->TreeNewHandle, context->TreeNewFont, FALSE);
             }
 
@@ -1839,7 +1843,15 @@ INT_PTR CALLBACK PhpProcessWmiProvidersDlgProc(
         break;
     case WM_DPICHANGED_AFTERPARENT:
         {
-             TreeNew_SetRowHeight(context->TreeNewHandle, PhGetDpi(22, LOWORD(wParam)));
+            if (PhTreeWindowFont)
+            {
+                HFONT treeNewFont;
+
+                if (treeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg)))
+                    PhReplaceWindowFont(&context->TreeNewFont, context->TreeNewHandle, treeNewFont, TRUE);
+            }
+
+            TreeNew_SetRowHeight(context->TreeNewHandle, PhGetDpi(22, LOWORD(wParam)));
         }
         break;
     case WM_SHOWWINDOW:

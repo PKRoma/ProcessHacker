@@ -212,18 +212,18 @@ INT_PTR CALLBACK PhpServicesPageProc(
             context->WindowHandle = hwndDlg;
             context->ListViewHandle = GetDlgItem(hwndDlg, IDC_LIST);
 
-            if (PhTreeWindowFont)
-            {
-                context->TreeNewFont = PhDuplicateFont(PhTreeWindowFont);
-                SetWindowFont(context->ListViewHandle, context->TreeNewFont, FALSE);
-            }
-
             PhSetListViewStyle(context->ListViewHandle, TRUE, TRUE);
             PhSetControlTheme(context->ListViewHandle, L"explorer");
             PhAddListViewColumn(context->ListViewHandle, 0, 0, 0, LVCFMT_LEFT, 120, L"Name");
             PhAddListViewColumn(context->ListViewHandle, 1, 1, 1, LVCFMT_LEFT, 220, L"Display name");
             PhAddListViewColumn(context->ListViewHandle, 2, 2, 2, LVCFMT_LEFT, 220, L"File name");
             PhSetExtendedListView(context->ListViewHandle);
+
+            if (PhTreeWindowFont)
+            {
+                context->TreeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg));
+                SetWindowFont(context->ListViewHandle, context->TreeNewFont, FALSE);
+            }
 
             for (ULONG i = 0; i < context->NumberOfServices; i++)
             {
@@ -387,9 +387,16 @@ INT_PTR CALLBACK PhpServicesPageProc(
                 break;
             }
         }
-        break;
-    case WM_DPICHANGED:
+    case WM_DPICHANGED_AFTERPARENT:
         {
+            if (PhTreeWindowFont)
+            {
+                HFONT treeNewFont;
+
+                if (treeNewFont = PhDuplicateFontUpdateDpi(PhTreeWindowFont, PhGetWindowDpi(hwndDlg)))
+                    PhReplaceWindowFont(&context->TreeNewFont, context->ListViewHandle, treeNewFont, TRUE);
+            }
+
             PhLayoutManagerUpdate(&context->LayoutManager, LOWORD(wParam));
             PhLayoutManagerLayout(&context->LayoutManager);
         }
