@@ -387,6 +387,7 @@ INT_PTR CALLBACK PhpServicesPageProc(
                 break;
             }
         }
+        break;
     case WM_DPICHANGED_AFTERPARENT:
         {
             if (PhTreeWindowFont)
