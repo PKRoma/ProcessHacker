@@ -807,7 +807,6 @@ TpAlpcRegisterCompletionList(
  * Unregisters the ALPC completion list for the specified ALPC completion object.
  *
  * \param[in,out] Alpc A pointer to a TP_ALPC structure that defines the ALPC completion object.
- * \return None.
  */
 NTSYSAPI
 VOID
