@@ -703,7 +703,7 @@ VOID NTAPI ProcessTreeNewInitializingCallback(
     column.CustomDraw = TRUE;
     column.Context = info->TreeNewHandle; // Context
 
-    PhPluginAddTreeNewColumn(PluginInstance, info->CmData, &column, COLUMN_ID_VIUSTOTAL_PROCESS, NULL, VirusTotalProcessNodeSortFunction);
+    PhPluginAddTreeNewColumn(PluginInstance, info->CmData, &column, COLUMN_ID_VIRUSTOTAL_PROCESS, NULL, VirusTotalProcessNodeSortFunction);
 
     memset(&column, 0, sizeof(PH_TREENEW_COLUMN));
     column.Text = L"Hybrid-Analysis";
@@ -731,7 +731,7 @@ VOID NTAPI ModuleTreeNewInitializingCallback(
     column.CustomDraw = TRUE;
     column.Context = info->TreeNewHandle; // Context
 
-    PhPluginAddTreeNewColumn(PluginInstance, info->CmData, &column, COLUMN_ID_VIUSTOTAL_MODULE, NULL, VirusTotalModuleNodeSortFunction);
+    PhPluginAddTreeNewColumn(PluginInstance, info->CmData, &column, COLUMN_ID_VIRUSTOTAL_MODULE, NULL, VirusTotalModuleNodeSortFunction);
 
     memset(&column, 0, sizeof(PH_TREENEW_COLUMN));
     column.Text = L"Hybrid-Analysis";
@@ -759,7 +759,7 @@ VOID NTAPI ServiceTreeNewInitializingCallback(
     column.CustomDraw = TRUE;
     column.Context = info->TreeNewHandle; // Context
 
-    PhPluginAddTreeNewColumn(PluginInstance, info->CmData, &column, COLUMN_ID_VIUSTOTAL_SERVICE, NULL, VirusTotalServiceNodeSortFunction);
+    PhPluginAddTreeNewColumn(PluginInstance, info->CmData, &column, COLUMN_ID_VIRUSTOTAL_SERVICE, NULL, VirusTotalServiceNodeSortFunction);
 
     memset(&column, 0, sizeof(PH_TREENEW_COLUMN));
     column.Text = L"Hybrid-Analysis";
@@ -789,21 +789,21 @@ VOID NTAPI TreeNewMessageCallback(
 
             switch (message->SubId)
             {
-            case COLUMN_ID_VIUSTOTAL_PROCESS:
+            case COLUMN_ID_VIRUSTOTAL_PROCESS:
                 {
                     PPH_PROCESS_NODE processNode = (PPH_PROCESS_NODE)getCellText->Node;
                     extension = PhPluginGetObjectExtension(PluginInstance, processNode->ProcessItem, EmProcessItemType);
                     scanType = SCAN_TYPE_VIRUSTOTAL;
                 }
                 break;
-            case COLUMN_ID_VIUSTOTAL_MODULE:
+            case COLUMN_ID_VIRUSTOTAL_MODULE:
                 {
                     PPH_MODULE_NODE moduleNode = (PPH_MODULE_NODE)getCellText->Node;
                     extension = PhPluginGetObjectExtension(PluginInstance, moduleNode->ModuleItem, EmModuleItemType);
                     scanType = SCAN_TYPE_VIRUSTOTAL;
                 }
                 break;
-            case COLUMN_ID_VIUSTOTAL_SERVICE:
+            case COLUMN_ID_VIRUSTOTAL_SERVICE:
                 {
                     PPH_SERVICE_NODE serviceNode = (PPH_SERVICE_NODE)getCellText->Node;
                     extension = PhPluginGetObjectExtension(PluginInstance, serviceNode->ServiceItem, EmServiceItemType);
@@ -845,21 +845,21 @@ VOID NTAPI TreeNewMessageCallback(
 
             switch (message->SubId)
             {
-            case COLUMN_ID_VIUSTOTAL_PROCESS:
+            case COLUMN_ID_VIRUSTOTAL_PROCESS:
                 {
                     PPH_PROCESS_NODE processNode = (PPH_PROCESS_NODE)customDraw->Node;
                     extension = PhPluginGetObjectExtension(PluginInstance, processNode->ProcessItem, EmProcessItemType);
                     scanType = SCAN_TYPE_VIRUSTOTAL;
                 }
                 break;
-            case COLUMN_ID_VIUSTOTAL_MODULE:
+            case COLUMN_ID_VIRUSTOTAL_MODULE:
                 {
                     PPH_MODULE_NODE moduleNode = (PPH_MODULE_NODE)customDraw->Node;
                     extension = PhPluginGetObjectExtension(PluginInstance, moduleNode->ModuleItem, EmModuleItemType);
                     scanType = SCAN_TYPE_VIRUSTOTAL;
                 }
                 break;
-            case COLUMN_ID_VIUSTOTAL_SERVICE:
+            case COLUMN_ID_VIRUSTOTAL_SERVICE:
                 {
                     PPH_SERVICE_NODE serviceNode = (PPH_SERVICE_NODE)customDraw->Node;
                     extension = PhPluginGetObjectExtension(PluginInstance, serviceNode->ServiceItem, EmServiceItemType);
