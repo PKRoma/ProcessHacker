@@ -957,7 +957,7 @@ VOID NTAPI ModuleItemDeleteCallback(
     _In_ PVOID Extension
     )
 {
-    PPH_MODULE_ITEM processItem = Object;
+    PPH_MODULE_ITEM moduleItem = Object;
     PSCAN_EXTENSION extension = Extension;
 
     PhAcquireQueuedLockExclusive(&ScanExtensionsListLock);
