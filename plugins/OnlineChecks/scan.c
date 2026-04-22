@@ -1682,7 +1682,7 @@ BOOLEAN InitializeScanning(
     sqlite3_stmt* stmt;
 
     ScanVirusTotalPAT = PhGetStringSetting(SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT);
-    ScanHybridAnalysisPAT = PhGetStringSetting(SETTING_NAME_HYBRIDANAL_DEFAULT_PAT);
+    ScanHybridAnalysisPAT = PhGetStringSetting(SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT);
 
     ScanScanningString = PhCreateString(L"Scanning...");
     ScanUnauthorizedString = PhCreateString(L"Unauthorized");

@@ -1030,7 +1030,7 @@ LOGICAL DllMain(
                 { IntegerSettingType, SETTING_NAME_SCAN_SUBMIT_TIMEOUT, L"A" }, // 10 sec
                 { IntegerSettingType, SETTING_NAME_VIRUSTOTAL_DEFAULT_ACTION, L"0" },
                 { StringSettingType, SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT, L"" },
-                { StringSettingType, SETTING_NAME_HYBRIDANAL_DEFAULT_PAT, L"" },
+                { StringSettingType, SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT, L"" },
                 { StringSettingType, SETTING_NAME_FILESCAN_DEFAULT_PAT, L"" },
             };
 

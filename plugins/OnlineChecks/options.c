@@ -34,7 +34,7 @@ INT_PTR CALLBACK OptionsDlgProc(
             Button_SetCheck(GetDlgItem(WindowHandle, IDC_ENABLE_AUTO_SUBMIT),
                 PhGetIntegerSetting(SETTING_NAME_AUTO_SUBMIT_ENABLED) ? BST_CHECKED : BST_UNCHECKED);
 
-            PhSetDialogItemText(WindowHandle, IDC_HYBRIDTEXT, PhGetStringOrEmpty(PhaGetStringSetting(SETTING_NAME_HYBRIDANAL_DEFAULT_PAT)));
+            PhSetDialogItemText(WindowHandle, IDC_HYBRIDTEXT, PhGetStringOrEmpty(PhaGetStringSetting(SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT)));
             PhSetDialogItemText(WindowHandle, IDC_VTEXT, PhGetStringOrEmpty(PhaGetStringSetting(SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT)));
         }
         break;
@@ -58,7 +58,7 @@ INT_PTR CALLBACK OptionsDlgProc(
 
                     ShowHybridAnalysisConfigDialog(WindowHandle, UlongToPtr(IDC_APIKEYIDBTN));
 
-                    string = PhaGetStringSetting(SETTING_NAME_HYBRIDANAL_DEFAULT_PAT);
+                    string = PhaGetStringSetting(SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT);
                     PhSetDialogItemText(WindowHandle, IDC_HYBRIDTEXT, PhGetStringOrEmpty(string));
                 }
                 break;
@@ -106,7 +106,7 @@ INT_PTR CALLBACK OptionsGeoLiteDlgProc(
             if (id == IDC_APIKEYIDBTN)
             {
                 PhSetDialogItemText(WindowHandle, IDC_KEYTEXT_L, L"Paste the license key here:");
-                PhSetDialogItemText(WindowHandle, IDC_KEY_EDIT, PhaGetStringSetting(SETTING_NAME_HYBRIDANAL_DEFAULT_PAT)->Buffer);
+                PhSetDialogItemText(WindowHandle, IDC_KEY_EDIT, PhaGetStringSetting(SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT)->Buffer);
             }
             else
             {
@@ -137,7 +137,7 @@ INT_PTR CALLBACK OptionsGeoLiteDlgProc(
                     PPH_STRING string;
 
                     string = PhGetWindowText(GetDlgItem(WindowHandle, IDC_KEY_EDIT));
-                    PhSetStringSetting(id == IDC_APIKEYIDBTN ? SETTING_NAME_HYBRIDANAL_DEFAULT_PAT : SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT, PhGetStringOrEmpty(string));
+                    PhSetStringSetting(id == IDC_APIKEYIDBTN ? SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT : SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT, PhGetStringOrEmpty(string));
                     PhClearReference(&string);
 
                     EndDialog(WindowHandle, IDOK);

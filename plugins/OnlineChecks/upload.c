@@ -441,7 +441,7 @@ NTSTATUS UploadFileThreadStart(
         switch (machineType)
         {
         case IMAGE_FILE_MACHINE_I386:
-            environmentId = 110; // Windows 7 32 bit (HWP Support) 
+            environmentId = 110; // Windows 7 32 bit (HWP Support)
             break;
         case IMAGE_FILE_MACHINE_AMD64:
             environmentId = 120; // Windows 7 64 bit
@@ -1768,7 +1768,7 @@ HRESULT CALLBACK OnlineChecksTaskDialogBootstrap(
             HWND windowHandle = SystemInformer_GetWindowHandle();
 
             context->DialogHandle = hwndDlg;
-            context->HybridPat = PhGetStringSetting(SETTING_NAME_HYBRIDANAL_DEFAULT_PAT);
+            context->HybridPat = PhGetStringSetting(SETTING_NAME_HYBRIDANALYSIS_DEFAULT_PAT);
             context->TotalPat = PhGetStringSetting(SETTING_NAME_VIRUSTOTAL_DEFAULT_PAT);
             context->FileScanPat = PhGetStringSetting(SETTING_NAME_FILESCAN_DEFAULT_PAT);
 
