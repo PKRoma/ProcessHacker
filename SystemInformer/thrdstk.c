@@ -1276,7 +1276,10 @@ INT_PTR CALLBACK PhpThreadStackDlgProc(
                 {
                     PPH_STRING text;
 
+                    TreeNew_SelectRange(context->TreeNewHandle, 0, -1);
                     text = PhGetTreeNewText(context->TreeNewHandle, 0);
+                    TreeNew_DeselectRange(context->TreeNewHandle, 0, -1);
+
                     PhSetClipboardString(context->TreeNewHandle, &text->sr);
                     PhDereferenceObject(text);
                 }
