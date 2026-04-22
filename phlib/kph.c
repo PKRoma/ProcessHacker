@@ -577,11 +577,8 @@ NTSTATUS KsiLoadUnloadService(
         NtClose(serviceKeyHandle);
     }
 
-CleanupExit:
-    PhDereferenceObject(fullServiceKeyName);
-
     if (!NT_SUCCESS(status))
-        return status;
+        goto CleanupExit;
 
     if (LoadDriver)
     {
@@ -630,6 +627,7 @@ CleanupExit:
         }
     }
 
+CleanupExit:
     PhDereferenceObject(fullServiceKeyName);
 
     return status;
