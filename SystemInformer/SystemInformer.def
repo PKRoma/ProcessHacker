@@ -540,6 +540,7 @@ EXPORTS
     PhCreateFile
     PhCreateFileWin32
     PhCreateFileWin32Ex
+    PhCreateJobObject
     PhCreateKey
     PhCreateNamedPipe
     PhCreatePipe
@@ -591,6 +592,8 @@ EXPORTS
     PhGetFilePosition
     PhGetFileSize
     PhGetFirmwareEnvironmentVariable
+    PhGetJobBasicLimits
+    PhGetJobBasicUiRestrictions
     PhGetJobProcessIdList
     PhGetKernelFileName
     PhGetKernelFileNameEx
@@ -654,15 +657,18 @@ EXPORTS
     PhIsFirmwareSupported
     PhListenNamedPipe
     PhLoadAppKey
+    PhMapViewOfSection
     PhMoveFileWin32
     PhOpenDirectoryObject
     PhOpenDriver
     PhOpenFile
     PhOpenFileById
+    PhOpenJobObject
     PhOpenKey
     PhOpenProcess
     PhOpenProcessClientId
     PhOpenProcessToken
+    PhOpenSection
     PhOpenThread
     PhOpenThreadClientId
     PhOpenThreadProcess
@@ -676,6 +682,7 @@ EXPORTS
     PhQueryValueKey
     PhQueueUserWorkItem
     PhReadFile
+    PhReOpenFile
     PhResolveDevicePrefix
     PhReadVirtualMemory
     PhResumeProcess
@@ -707,6 +714,7 @@ EXPORTS
     PhTransceiveNamedPipe
     PhUnloadDllProcess
     PhUnloadDriver
+    PhUnmapViewOfSection
     PhUpdateDosDevicePrefixes
     PhUpdateMupDevicePrefixes
     PhWaitForNamedPipe
