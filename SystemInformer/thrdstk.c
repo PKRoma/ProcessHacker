@@ -543,7 +543,6 @@ BOOLEAN NTAPI ThreadStackTreeNewCallback(
             }
             else if (context->HighlightUserPages && (ULONG_PTR)node->StackFrame.PcAddress <= PhSystemBasicInformation.MaximumUserModeAddress)
             {
-                getNodeColor->BackColor = PhGetIntegerSetting(L"ColorUserThreadStack");
                 getNodeColor->BackColor = PhGetIntegerSetting(SETTING_COLOR_USER_THREAD_STACK);
             }
 
