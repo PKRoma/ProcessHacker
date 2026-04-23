@@ -250,6 +250,7 @@ EXT ULONG PhCsProcessMonitorCacheLimit;
 #define SETTING_ENABLE_NETWORK_RESOLVE                              L"EnableNetworkResolve"
 #define SETTING_ENABLE_NETWORK_RESOLVE_DOH                          L"EnableNetworkResolveDoH"
 #define SETTING_ENABLE_MEM_STRINGS_TREE_DIALOG                      L"EnableMemStringsTreeDialog"
+#define SETTING_ENABLE_MEM_STRINGS_BULK_SEARCH                      L"EnableMemStringsBulkSearch"
 #define SETTING_ENABLE_PACKAGE_ICON_SUPPORT                         L"EnablePackageIconSupport"
 #define SETTING_ENABLE_PROCESS_HANDLE_PNP_DEVICE_NAME_SUPPORT       L"EnableProcessHandlePnPDeviceNameSupport"
 #define SETTING_ENABLE_PLUGINS                                      L"EnablePlugins"
