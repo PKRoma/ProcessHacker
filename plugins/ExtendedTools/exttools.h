@@ -428,6 +428,26 @@ typedef struct _ET_PROCESS_BLOCK
     PH_UINT64_DELTA NetworkSendDelta;
     PH_UINT64_DELTA NetworkSendRawDelta;
 
+    ULONG64 DiskReadCountMin; ULONG64 DiskReadCountMax; ULONG64 DiskReadCountDiff;
+    ULONG64 DiskReadRawMin; ULONG64 DiskReadRawMax; ULONG64 DiskReadRawDiff;
+    ULONG64 DiskReadRawDeltaMin; ULONG64 DiskReadRawDeltaMax; ULONG64 DiskReadRawDeltaDiff;
+    ULONG64 DiskWriteCountMin; ULONG64 DiskWriteCountMax; ULONG64 DiskWriteCountDiff;
+    ULONG64 DiskWriteRawMin; ULONG64 DiskWriteRawMax; ULONG64 DiskWriteRawDiff;
+    ULONG64 DiskWriteRawDeltaMin; ULONG64 DiskWriteRawDeltaMax; ULONG64 DiskWriteRawDeltaDiff;
+    ULONG64 DiskTotalCountMin; ULONG64 DiskTotalCountMax; ULONG64 DiskTotalCountDiff;
+    ULONG64 DiskTotalRawMin; ULONG64 DiskTotalRawMax; ULONG64 DiskTotalRawDiff;
+    ULONG64 DiskTotalRawDeltaMin; ULONG64 DiskTotalRawDeltaMax; ULONG64 DiskTotalRawDeltaDiff;
+
+    ULONG64 NetworkReceiveCountMin; ULONG64 NetworkReceiveCountMax; ULONG64 NetworkReceiveCountDiff;
+    ULONG64 NetworkReceiveRawMin; ULONG64 NetworkReceiveRawMax; ULONG64 NetworkReceiveRawDiff;
+    ULONG64 NetworkReceiveRawDeltaMin; ULONG64 NetworkReceiveRawDeltaMax; ULONG64 NetworkReceiveRawDeltaDiff;
+    ULONG64 NetworkSendCountMin; ULONG64 NetworkSendCountMax; ULONG64 NetworkSendCountDiff;
+    ULONG64 NetworkSendRawMin; ULONG64 NetworkSendRawMax; ULONG64 NetworkSendRawDiff;
+    ULONG64 NetworkSendRawDeltaMin; ULONG64 NetworkSendRawDeltaMax; ULONG64 NetworkSendRawDeltaDiff;
+    ULONG64 NetworkTotalCountMin; ULONG64 NetworkTotalCountMax; ULONG64 NetworkTotalCountDiff;
+    ULONG64 NetworkTotalRawMin; ULONG64 NetworkTotalRawMax; ULONG64 NetworkTotalRawDiff;
+    ULONG64 NetworkTotalRawDeltaMin; ULONG64 NetworkTotalRawDeltaMax; ULONG64 NetworkTotalRawDeltaDiff;
+
     // GPU
 
     PH_UINT64_DELTA GpuRunningTimeDelta;
@@ -447,6 +467,10 @@ typedef struct _ET_PROCESS_BLOCK
     ULONG64 GpuDedicatedUsage;
     ULONG64 GpuSharedUsage;
     ULONG64 GpuCommitUsage;
+    ULONG64 GpuDedicatedUsageMin; ULONG64 GpuDedicatedUsageMax; ULONG64 GpuDedicatedUsageDiff;
+    ULONG64 GpuSharedUsageMin; ULONG64 GpuSharedUsageMax; ULONG64 GpuSharedUsageDiff;
+    ULONG64 GpuCommitUsageMin; ULONG64 GpuCommitUsageMax; ULONG64 GpuCommitUsageDiff;
+    ULONG64 GpuTotalUsageMin; ULONG64 GpuTotalUsageMax; ULONG64 GpuTotalUsageDiff;
 
     // NPU
 

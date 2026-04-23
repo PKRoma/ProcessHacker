@@ -35,7 +35,7 @@ typedef enum _GPUADAPTER_DETAILS_INDEX
 
 VOID EtpGpuDetailsAddListViewItemGroups(
     _In_ HWND ListViewHandle,
-    _In_ INT GpuGroupId)
+    _In_ LONG GpuGroupId)
 {
     PhAddListViewGroupItem(ListViewHandle, GpuGroupId, GPUADAPTER_DETAILS_INDEX_PHYSICALLOCTION, L"Physical Location", NULL);
     PhAddListViewGroupItem(ListViewHandle, GpuGroupId, GPUADAPTER_DETAILS_INDEX_DRIVERDATE, L"Driver Date", NULL);
@@ -380,36 +380,36 @@ typedef struct _ET_GPU_DETAILS_CONTEXT
 } ET_GPU_DETAILS_CONTEXT, *PET_GPU_DETAILS_CONTEXT;
 
 INT_PTR CALLBACK EtpGpuDetailsDlgProc(
-    _In_ HWND hwndDlg,
-    _In_ UINT uMsg,
+    _In_ HWND WindowHandle,
+    _In_ UINT WindowMessage,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam
     )
 {
     PET_GPU_DETAILS_CONTEXT context = NULL;
 
-    if (uMsg == WM_INITDIALOG)
+    if (WindowMessage == WM_INITDIALOG)
     {
         context = PhAllocateZero(sizeof(ET_GPU_DETAILS_CONTEXT));
 
-        PhSetWindowContext(hwndDlg, PH_WINDOW_CONTEXT_DEFAULT, context);
+        PhSetWindowContext(WindowHandle, PH_WINDOW_CONTEXT_DEFAULT, context);
     }
     else
     {
-        context = PhGetWindowContext(hwndDlg, PH_WINDOW_CONTEXT_DEFAULT);
+        context = PhGetWindowContext(WindowHandle, PH_WINDOW_CONTEXT_DEFAULT);
     }
 
     if (context == NULL)
         return FALSE;
 
-    switch (uMsg)
+    switch (WindowMessage)
     {
     case WM_INITDIALOG:
         {
-            context->DialogHandle = hwndDlg;
-            context->ListViewHandle = GetDlgItem(hwndDlg, IDC_GPULIST);
+            context->DialogHandle = WindowHandle;
+            context->ListViewHandle = GetDlgItem(WindowHandle, IDC_GPULIST);
 
-            PhSetApplicationWindowIcon(hwndDlg);
+            PhSetApplicationWindowIcon(WindowHandle);
 
             PhSetListViewStyle(context->ListViewHandle, FALSE, TRUE);
             PhSetControlTheme(context->ListViewHandle, L"explorer");
@@ -418,34 +418,34 @@ INT_PTR CALLBACK EtpGpuDetailsDlgProc(
             //PhSetExtendedListView(context->ListViewHandle);
             ListView_EnableGroupView(context->ListViewHandle, TRUE);
 
-            PhInitializeLayoutManager(&context->LayoutManager, hwndDlg);
+            PhInitializeLayoutManager(&context->LayoutManager, WindowHandle);
             PhAddLayoutItem(&context->LayoutManager, context->ListViewHandle, NULL, PH_ANCHOR_ALL);
 
             // Note: This dialog must be centered after all other graphs and controls have been added.
             if (PhValidWindowPlacementFromSetting(SETTING_NAME_GPU_DETAILS_WINDOW_POSITION))
-                PhLoadWindowPlacementFromSetting(SETTING_NAME_GPU_DETAILS_WINDOW_POSITION, SETTING_NAME_GPU_DETAILS_WINDOW_SIZE, hwndDlg);
+                PhLoadWindowPlacementFromSetting(SETTING_NAME_GPU_DETAILS_WINDOW_POSITION, SETTING_NAME_GPU_DETAILS_WINDOW_SIZE, WindowHandle);
             else
-                PhCenterWindow(hwndDlg, (HWND)lParam);
+                PhCenterWindow(WindowHandle, (HWND)lParam);
 
-            PhInitializeWindowTheme(hwndDlg, !!PhGetIntegerSetting(SETTING_ENABLE_THEME_SUPPORT));
+            PhInitializeWindowTheme(WindowHandle, !!PhGetIntegerSetting(SETTING_ENABLE_THEME_SUPPORT));
 
             EtpGpuDetailsEnumAdapters(context->ListViewHandle);
 
             PhRegisterCallback(
                 PhGetGeneralCallback(GeneralCallbackProcessProviderUpdatedEvent),
                 EtpGpuProcessesUpdatedCallback,
-                hwndDlg,
+                WindowHandle,
                 &context->ProcessesUpdatedCallbackRegistration
                 );
         }
         break;
     case WM_DESTROY:
         {
-            PhRemoveWindowContext(hwndDlg, PH_WINDOW_CONTEXT_DEFAULT);
+            PhRemoveWindowContext(WindowHandle, PH_WINDOW_CONTEXT_DEFAULT);
 
             PhUnregisterCallback(PhGetGeneralCallback(GeneralCallbackProcessProviderUpdatedEvent), &context->ProcessesUpdatedCallbackRegistration);
 
-            PhSaveWindowPlacementToSetting(SETTING_NAME_GPU_DETAILS_WINDOW_POSITION, SETTING_NAME_GPU_DETAILS_WINDOW_SIZE, hwndDlg);
+            PhSaveWindowPlacementToSetting(SETTING_NAME_GPU_DETAILS_WINDOW_POSITION, SETTING_NAME_GPU_DETAILS_WINDOW_SIZE, WindowHandle);
 
             PhDeleteLayoutManager(&context->LayoutManager);
 
@@ -460,7 +460,7 @@ INT_PTR CALLBACK EtpGpuDetailsDlgProc(
             {
             case IDCANCEL:
             case IDOK:
-                DestroyWindow(hwndDlg);
+                DestroyWindow(WindowHandle);
                 break;
             }
         }
@@ -483,12 +483,12 @@ INT_PTR CALLBACK EtpGpuDetailsDlgProc(
         break;
     case WM_PH_SHOW_DIALOG:
         {
-            if (IsMinimized(hwndDlg))
-                ShowWindow(hwndDlg, SW_RESTORE);
+            if (IsMinimized(WindowHandle))
+                ShowWindow(WindowHandle, SW_RESTORE);
             else
-                ShowWindow(hwndDlg, SW_SHOW);
+                ShowWindow(WindowHandle, SW_SHOW);
 
-            SetForegroundWindow(hwndDlg);
+            SetForegroundWindow(WindowHandle);
         }
         break;
     case WM_CONTEXTMENU:
@@ -517,7 +517,7 @@ INT_PTR CALLBACK EtpGpuDetailsDlgProc(
 
                     item = PhShowEMenu(
                         menu,
-                        hwndDlg,
+                        WindowHandle,
                         PH_EMENU_SHOW_SEND_COMMAND | PH_EMENU_SHOW_LEFTRIGHT,
                         PH_ALIGN_LEFT | PH_ALIGN_TOP,
                         point.x,

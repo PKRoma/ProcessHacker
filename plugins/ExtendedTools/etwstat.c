@@ -33,6 +33,13 @@ BOOLEAN EtDiskCountersEnabled = FALSE;
 static PH_CALLBACK_REGISTRATION EtpProcessesUpdatedCallbackRegistration;
 static PH_CALLBACK_REGISTRATION EtpNetworkItemsUpdatedCallbackRegistration;
 
+#define ET_UPDATE_PROCESS_STATISTICS_MINMAX(Minimum, Maximum, Difference, Value) \
+    if ((Value) != 0 && ((Minimum) == 0 || (Value) < (Minimum))) \
+        (Minimum) = (Value); \
+    if ((Value) != 0 && ((Maximum) == 0 || (Value) > (Maximum))) \
+        (Maximum) = (Value); \
+    (Difference) = (Maximum) - (Minimum);
+
 static PVOID EtpProcessInformation = NULL;
 static PH_QUEUED_LOCK EtpProcessInformationLock = PH_QUEUED_LOCK_INIT;
 
@@ -354,6 +361,26 @@ VOID NTAPI EtEtwProcessesUpdatedCallback(
             block->NetworkSendRawDelta.Delta = 0;
             block->HaveDiskSample = TRUE;
         }
+
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskReadCountMin, block->DiskReadCountMax, block->DiskReadCountDiff, block->DiskReadCount);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskReadRawMin, block->DiskReadRawMax, block->DiskReadRawDiff, block->DiskReadRawDelta.Value);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskReadRawDeltaMin, block->DiskReadRawDeltaMax, block->DiskReadRawDeltaDiff, block->DiskReadRawDelta.Delta);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskWriteCountMin, block->DiskWriteCountMax, block->DiskWriteCountDiff, block->DiskWriteCount);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskWriteRawMin, block->DiskWriteRawMax, block->DiskWriteRawDiff, block->DiskWriteRawDelta.Value);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskWriteRawDeltaMin, block->DiskWriteRawDeltaMax, block->DiskWriteRawDeltaDiff, block->DiskWriteRawDelta.Delta);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskTotalCountMin, block->DiskTotalCountMax, block->DiskTotalCountDiff, block->DiskReadCount + block->DiskWriteCount);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskTotalRawMin, block->DiskTotalRawMax, block->DiskTotalRawDiff, block->DiskReadRawDelta.Value + block->DiskWriteRawDelta.Value);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->DiskTotalRawDeltaMin, block->DiskTotalRawDeltaMax, block->DiskTotalRawDeltaDiff, block->DiskReadRawDelta.Delta + block->DiskWriteRawDelta.Delta);
+
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkReceiveCountMin, block->NetworkReceiveCountMax, block->NetworkReceiveCountDiff, block->NetworkReceiveCount);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkReceiveRawMin, block->NetworkReceiveRawMax, block->NetworkReceiveRawDiff, block->NetworkReceiveRawDelta.Value);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkReceiveRawDeltaMin, block->NetworkReceiveRawDeltaMax, block->NetworkReceiveRawDeltaDiff, block->NetworkReceiveRawDelta.Delta);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkSendCountMin, block->NetworkSendCountMax, block->NetworkSendCountDiff, block->NetworkSendCount);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkSendRawMin, block->NetworkSendRawMax, block->NetworkSendRawDiff, block->NetworkSendRawDelta.Value);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkSendRawDeltaMin, block->NetworkSendRawDeltaMax, block->NetworkSendRawDeltaDiff, block->NetworkSendRawDelta.Delta);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkTotalCountMin, block->NetworkTotalCountMax, block->NetworkTotalCountDiff, block->NetworkReceiveCount + block->NetworkSendCount);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkTotalRawMin, block->NetworkTotalRawMax, block->NetworkTotalRawDiff, block->NetworkReceiveRawDelta.Value + block->NetworkSendRawDelta.Value);
+        ET_UPDATE_PROCESS_STATISTICS_MINMAX(block->NetworkTotalRawDeltaMin, block->NetworkTotalRawDeltaMax, block->NetworkTotalRawDeltaDiff, block->NetworkReceiveRawDelta.Delta + block->NetworkSendRawDelta.Delta);
 
         if (maxDiskValue < block->DiskReadRawDelta.Delta + block->DiskWriteRawDelta.Delta)
         {

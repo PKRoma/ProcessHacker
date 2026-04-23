@@ -333,8 +333,8 @@ VOID NTAPI GpuProcessesUpdatedHandler(
 }
 
 INT_PTR CALLBACK EtpGpuPageDlgProc(
-    _In_ HWND hwndDlg,
-    _In_ UINT uMsg,
+    _In_ HWND WindowHandle,
+    _In_ UINT WindowMessage,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam
     )
@@ -344,7 +344,7 @@ INT_PTR CALLBACK EtpGpuPageDlgProc(
     PPH_PROCESS_ITEM processItem;
     PET_GPU_CONTEXT context;
 
-    if (PhPropPageDlgProcHeader(hwndDlg, uMsg, lParam, &propSheetPage, &propPageContext, &processItem))
+    if (PhPropPageDlgProcHeader(WindowHandle, WindowMessage, lParam, &propSheetPage, &propPageContext, &processItem))
     {
         context = propPageContext->Context;
     }
@@ -353,7 +353,7 @@ INT_PTR CALLBACK EtpGpuPageDlgProc(
         return FALSE;
     }
 
-    switch (uMsg)
+    switch (WindowMessage)
     {
     case WM_INITDIALOG:
         {
@@ -361,19 +361,19 @@ INT_PTR CALLBACK EtpGpuPageDlgProc(
             // the drawing issue that arises when using WS_CLIPCHILDREN. However
             // in removing the flicker from the graphs the group boxes will now flicker.
             // It's a good tradeoff since no one stares at the group boxes.
-            PhSetWindowStyle(hwndDlg, WS_CLIPCHILDREN, WS_CLIPCHILDREN);
+            PhSetWindowStyle(WindowHandle, WS_CLIPCHILDREN, WS_CLIPCHILDREN);
 
             context = PhAllocateZero(sizeof(ET_GPU_CONTEXT));
-            context->WindowHandle = hwndDlg;
+            context->WindowHandle = WindowHandle;
             context->Block = EtGetProcessBlock(processItem);
             context->Enabled = TRUE;
-            context->GpuGroupBox = GetDlgItem(hwndDlg, IDC_GROUPGPU);
-            context->MemGroupBox = GetDlgItem(hwndDlg, IDC_GROUPMEM);
-            context->SharedGroupBox = GetDlgItem(hwndDlg, IDC_GROUPSHARED);
-            context->CommittedGroupBox = GetDlgItem(hwndDlg, IDC_GROUPCOMMIT);
+            context->GpuGroupBox = GetDlgItem(WindowHandle, IDC_GROUPGPU);
+            context->MemGroupBox = GetDlgItem(WindowHandle, IDC_GROUPMEM);
+            context->SharedGroupBox = GetDlgItem(WindowHandle, IDC_GROUPSHARED);
+            context->CommittedGroupBox = GetDlgItem(WindowHandle, IDC_GROUPCOMMIT);
             propPageContext->Context = context;
 
-            //PhInitializeLayoutManager(&context->LayoutManager, hwndDlg);
+            //PhInitializeLayoutManager(&context->LayoutManager, WindowHandle);
 
             PhInitializeGraphState(&context->GpuGraphState);
             PhInitializeGraphState(&context->MemoryGraphState);
@@ -391,7 +391,7 @@ INT_PTR CALLBACK EtpGpuPageDlgProc(
                 &context->ProcessesUpdatedRegistration
                 );
 
-            PhInitializeWindowTheme(hwndDlg, !!PhGetIntegerSetting(SETTING_ENABLE_THEME_SUPPORT));
+            PhInitializeWindowTheme(WindowHandle, !!PhGetIntegerSetting(SETTING_ENABLE_THEME_SUPPORT));
         }
         break;
     case WM_DESTROY:
@@ -418,8 +418,8 @@ INT_PTR CALLBACK EtpGpuPageDlgProc(
         break;
     case WM_SHOWWINDOW:
         {
-            if (PhBeginPropPageLayout(hwndDlg, propPageContext))
-                PhEndPropPageLayout(hwndDlg, propPageContext);
+            if (PhBeginPropPageLayout(WindowHandle, propPageContext))
+                PhEndPropPageLayout(WindowHandle, propPageContext);
         }
         break;
     case WM_DPICHANGED_AFTERPARENT:
