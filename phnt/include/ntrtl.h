@@ -3069,7 +3069,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUpcaseUnicodeString(
-    _Inout_ PUNICODE_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3078,7 +3078,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlDowncaseUnicodeString(
-    _Inout_ PUNICODE_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3094,7 +3094,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlAnsiStringToUnicodeString(
-    _Inout_ PUNICODE_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING DestinationString,
     _In_ PCANSI_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3163,7 +3163,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUnicodeStringToAnsiString(
-    _Inout_ PANSI_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PANSI_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3181,7 +3181,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUnicodeStringToUTF8String(
-    _Inout_ PUTF8_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUTF8_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3190,7 +3190,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUTF8StringToUnicodeString(
-    _Inout_ PUNICODE_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING DestinationString,
     _In_ PCUTF8_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3207,7 +3207,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUpcaseUnicodeStringToAnsiString(
-    _Inout_ PANSI_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PANSI_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3216,7 +3216,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlOemStringToUnicodeString(
-    _Inout_ PUNICODE_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING DestinationString,
     _In_ POEM_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3225,7 +3225,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUnicodeStringToOemString(
-    _Inout_ POEM_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) POEM_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3234,7 +3234,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUpcaseUnicodeStringToOemString(
-    _Inout_ POEM_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) POEM_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3243,7 +3243,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlOemStringToCountedUnicodeString(
-    _Inout_ PUNICODE_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING DestinationString,
     _In_ PCOEM_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3252,7 +3252,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUnicodeStringToCountedOemString(
-    _Inout_ POEM_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) POEM_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -3261,7 +3261,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlUpcaseUnicodeStringToCountedOemString(
-    _Inout_ POEM_STRING DestinationString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) POEM_STRING DestinationString,
     _In_ PCUNICODE_STRING SourceString,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -4091,7 +4091,7 @@ NTSTATUS
 NTAPI
 RtlGetParentLocaleName(
     _In_ PCWSTR LocaleName,
-    _Inout_ PUNICODE_STRING ParentLocaleName,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING ParentLocaleName,
     _In_ ULONG Flags,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -4102,7 +4102,7 @@ NTSTATUS
 NTAPI
 RtlLcidToLocaleName(
     _In_ LCID lcid, // sic
-    _Inout_ PUNICODE_STRING LocaleName,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING LocaleName,
     _In_ ULONG Flags,
     _In_ BOOLEAN AllocateDestinationString
     );
@@ -10211,7 +10211,7 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 RtlConvertSidToUnicodeString(
-    _Inout_ PUNICODE_STRING UnicodeString,
+    _When_(AllocateDestinationString, _Out_) _When_(!AllocateDestinationString, _In_) PUNICODE_STRING UnicodeString,
     _In_ PSID Sid,
     _In_ BOOLEAN AllocateDestinationString
     );
