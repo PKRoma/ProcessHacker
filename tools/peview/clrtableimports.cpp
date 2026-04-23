@@ -614,12 +614,12 @@ EXTERN_C PPH_STRING PvGetClrImageTargetFramework(
 
                 if (runtime)
                 {
-                    version = PhFormatString(L".NET Core %hu.%hu.%hu.%hu", majorVersion, minorVersion, buildVersion, revisionVersion);
+                    version = PhFormatString(L".NET Core %lu.%lu.%lu.%lu", majorVersion, minorVersion, buildVersion, revisionVersion);
                     break;
                 }
                 else if (framework)
                 {
-                    version = PhFormatString(L".NET Framework %hu.%hu.%hu.%hu", majorVersion, minorVersion, buildVersion, revisionVersion);
+                    version = PhFormatString(L".NET Framework %lu.%lu.%lu.%lu", majorVersion, minorVersion, buildVersion, revisionVersion);
                     break;
                 }
             }
