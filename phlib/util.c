@@ -9401,12 +9401,15 @@ NTSTATUS PhCreateRingBuffer(
     if ((BufferSize % PhSystemBasicInformation.AllocationGranularity) != 0)
         return STATUS_UNSUCCESSFUL;
 
+    if (!(NtAllocateVirtualMemoryEx_Import() && NtCreateSectionEx_Import() && NtMapViewOfSectionEx_Import()))
+        return STATUS_PROCEDURE_NOT_FOUND;
+
     //
     // Reserve a placeholder region where the buffer will be mapped.
     //
 
     regionSize = 2 * BufferSize;
-    status = NtAllocateVirtualMemoryEx(
+    status = NtAllocateVirtualMemoryEx_Import()(
         NtCurrentProcess(),
         &placeholder1,
         &regionSize,
@@ -9441,7 +9444,7 @@ NTSTATUS PhCreateRingBuffer(
     //
 
     sectionSize.QuadPart = BufferSize;
-    status = NtCreateSectionEx(
+    status = NtCreateSectionEx_Import()(
         &sectionHandle,
         SECTION_ALL_ACCESS,
         NULL,
@@ -9462,7 +9465,7 @@ NTSTATUS PhCreateRingBuffer(
 
     regionSize = BufferSize;
     sectionView1 = placeholder1;
-    status = NtMapViewOfSectionEx(
+    status = NtMapViewOfSectionEx_Import()(
         sectionHandle,
         NtCurrentProcess(),
         &sectionView1,
@@ -9489,7 +9492,7 @@ NTSTATUS PhCreateRingBuffer(
 
     regionSize = BufferSize;
     sectionView2 = placeholder2;
-    status = NtMapViewOfSectionEx(
+    status = NtMapViewOfSectionEx_Import()(
         sectionHandle,
         NtCurrentProcess(),
         &sectionView2,
@@ -9546,7 +9549,6 @@ CleanupExit:
 
     return status;
 }
-#endif
 
 /**
  * Suspends the current thread for a specified interval.
