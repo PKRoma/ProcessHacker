@@ -13722,6 +13722,58 @@ RtlQueryElevationFlags(
     );
 
 // private
+typedef enum _CSR_SUBSYSTEM_ID
+{
+    CsrSubsystemIdUnknown = 0,
+    CsrSubsystemIdWindows = 1,
+    CsrSubsystemIdPosix = 2,
+    CsrSubsystemIdOs2 = 3
+} CSR_SUBSYSTEM_ID;
+
+// rev
+typedef struct _CSR_SUBSYSTEM_DATA_HEADER
+{
+    ULONG SubsystemId;
+    ULONG DataSize; // version/reserved or padding
+} CSR_SUBSYSTEM_DATA_HEADER, *PCSR_SUBSYSTEM_DATA_HEADER;
+
+// rev
+/**
+ * Retrieves a pointer to the server-side data for a specific subsystem.
+ *
+ * \param SubsystemId The ID of the subsystem (e.g., CsrSubsystemIdWindows).
+ * \return A pointer to the data block following the header, or NULL if not found.
+ */
+FORCEINLINE
+PVOID
+NTAPI
+RtlGetPerSubsystemServerData(
+    _In_ ULONG SubsystemId
+    )
+{
+
+    PVOID* StaticServerData;
+
+    StaticServerData = NtCurrentPeb()->ReadOnlyStaticServerData;
+
+    if (StaticServerData)
+    {
+        while (*StaticServerData)
+        {
+            PCSR_SUBSYSTEM_DATA_HEADER SubsystemData = (PCSR_SUBSYSTEM_DATA_HEADER)*StaticServerData;
+
+            if (SubsystemData->SubsystemId == SubsystemId)
+            {
+                return (PVOID)((PBYTE)SubsystemData + sizeof(CSR_SUBSYSTEM_DATA_HEADER));
+            }
+
+            StaticServerData++;
+       }
+   }
+   return NULL;
+}
+
+// private
 NTSYSAPI
 NTSTATUS
 NTAPI
