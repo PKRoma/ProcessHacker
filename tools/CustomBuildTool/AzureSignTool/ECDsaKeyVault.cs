@@ -98,9 +98,11 @@ namespace CustomBuildTool
         /// <returns>A byte array containing the computed hash value for the specified data segment.</returns>
         private static byte[] HashDataIncremental(byte[] Data, int Offset, int Count, HashAlgorithmName HashAlgorithm)
         {
+            ReadOnlySpan<byte> span = Data.AsSpan(Offset, Count);
+
             using (IncrementalHash incrementalHash = IncrementalHash.CreateHash(HashAlgorithm))
             {
-                incrementalHash.AppendData(Data, Offset, Count);
+                incrementalHash.AppendData(span);
                 return incrementalHash.GetHashAndReset();
             }
         }
@@ -119,10 +121,17 @@ namespace CustomBuildTool
         /// <returns>A byte array containing the computed hash value for the specified data segment.</returns>
         private static byte[] HashDataStatic(byte[] Data, int Offset, int Count, HashAlgorithmName HashAlgorithm)
         {
-            // Use static method for hashing to avoid allocation of IncrementalHash
-            using var incrementalHash = IncrementalHash.CreateHash(HashAlgorithm);
-            incrementalHash.AppendData(Data, Offset, Count);
-            return incrementalHash.GetHashAndReset();
+            ReadOnlySpan<byte> span = Data.AsSpan(Offset, Count);
+
+            return HashAlgorithm.Name switch
+            {
+                // Fast path: use allocation-free static hashing for supported algorithms
+                nameof(HashAlgorithmName.SHA256) => SHA256.HashData(span),
+                nameof(HashAlgorithmName.SHA384) => SHA384.HashData(span),
+                nameof(HashAlgorithmName.SHA512) => SHA512.HashData(span),
+                // Fallback path: required for algorithms without static HashData APIs
+                _ => HashDataIncremental(span, HashAlgorithm)
+            };
         }
 
         /// <summary>
@@ -138,23 +147,26 @@ namespace CustomBuildTool
         /// <exception cref="NotSupportedException">Thrown if the specified hash algorithm is not supported.</exception>
         private static byte[] HashDataFixed(byte[] Data, int Offset, int Count, HashAlgorithmName HashAlgorithm)
         {
-            // Use static method for hashing to avoid allocation of IncrementalHash
-            if (HashAlgorithm == HashAlgorithmName.SHA256)
+            ReadOnlySpan<byte> span = Data.AsSpan(Offset, Count);
+
+            return HashAlgorithm.Name switch
             {
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                return sha256.ComputeHash(Data, Offset, Count);
-            }
-            if (HashAlgorithm == HashAlgorithmName.SHA384)
+                // Fast path: use allocation-free static hashing for supported algorithms
+                nameof(HashAlgorithmName.SHA256) => SHA256.HashData(span),
+                nameof(HashAlgorithmName.SHA384) => SHA384.HashData(span),
+                nameof(HashAlgorithmName.SHA512) => SHA512.HashData(span),
+                // Fallback path: required for algorithms without static HashData APIs
+                _ => HashDataIncremental(span, HashAlgorithm)
+            };
+        }
+
+        private static byte[] HashDataIncremental(ReadOnlySpan<byte> Data, HashAlgorithmName HashAlgorithm)
+        {
+            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithm))
             {
-                using var sha384 = System.Security.Cryptography.SHA384.Create();
-                return sha384.ComputeHash(Data, Offset, Count);
+                incrementalHash.AppendData(Data);
+                return incrementalHash.GetHashAndReset();
             }
-            if (HashAlgorithm == HashAlgorithmName.SHA512)
-            {
-                using var sha512 = System.Security.Cryptography.SHA512.Create();
-                return sha512.ComputeHash(Data, Offset, Count);
-            }
-            throw new NotSupportedException("The specified algorithm is not supported.");
         }
 
         /// <inheritdoc/>

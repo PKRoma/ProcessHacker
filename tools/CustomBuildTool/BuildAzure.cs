@@ -278,23 +278,64 @@ namespace CustomBuildTool
         /// <returns>A string containing the access token if authentication is successful; otherwise, null.</returns>
         public static async Task<string> GetAzureADToken(string TenantId, string ClientId, string ClientSecret)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"https://login.microsoftonline.com/{TenantId}/oauth2/v2.0/token")
+            //using var request = new HttpRequestMessage(HttpMethod.Post, $"https://login.microsoftonline.com/{TenantId}/oauth2/v2.0/token")
+            //{
+            //    Content = new FormUrlEncodedContent(
+            //    [
+            //        new KeyValuePair<string, string>("client_id", ClientId),
+            //        new KeyValuePair<string, string>("client_secret", ClientSecret),
+            //        new KeyValuePair<string, string>("scope", "https://vault.azure.net/.default"),
+            //        new KeyValuePair<string, string>("grant_type", "client_credentials"),
+            //    ])
+            //};
+            //
+            //var tokenResponse = await BuildHttpClient.SendMessage(EntraHttpClient, request, AzureJsonContext.Default.TokenResponse);
+            //
+            //if (string.IsNullOrWhiteSpace(tokenResponse.AccessToken))
+            //    return null;
+            //
+            //return tokenResponse.AccessToken;
+
+            byte[] bodyBytes = null;
+            try
             {
-                Content = new FormUrlEncodedContent(
-                [
-                    new KeyValuePair<string, string>("client_id", ClientId),
-                    new KeyValuePair<string, string>("client_secret", ClientSecret),
-                    new KeyValuePair<string, string>("scope", "https://vault.azure.net/.default"),
-                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                ])
-            };
+                // Build body directly as bytes to minimize secret exposure in string form
+                var clientIdBytes = Encoding.UTF8.GetBytes($"client_id={Uri.EscapeDataString(ClientId)}&");
+                var scopeBytes = Encoding.UTF8.GetBytes($"scope={Uri.EscapeDataString("https://vault.azure.net/.default")}&");
+                var secretBytes = Encoding.UTF8.GetBytes($"client_secret={Uri.EscapeDataString(ClientSecret)}&");
+                var grantBytes = Encoding.UTF8.GetBytes("grant_type=client_credentials");
 
-            var tokenResponse = await BuildHttpClient.SendMessage(EntraHttpClient, request, AzureJsonContext.Default.TokenResponse);
-           
-            if (string.IsNullOrWhiteSpace(tokenResponse.AccessToken))
-                return null;
+                bodyBytes = new byte[clientIdBytes.Length + scopeBytes.Length + secretBytes.Length + grantBytes.Length];
+                Buffer.BlockCopy(clientIdBytes, 0, bodyBytes, 0, clientIdBytes.Length);
+                Buffer.BlockCopy(scopeBytes, 0, bodyBytes, clientIdBytes.Length, scopeBytes.Length);
+                Buffer.BlockCopy(secretBytes, 0, bodyBytes, clientIdBytes.Length + scopeBytes.Length, secretBytes.Length);
+                Buffer.BlockCopy(grantBytes, 0, bodyBytes, clientIdBytes.Length + scopeBytes.Length + secretBytes.Length, grantBytes.Length);
 
-            return tokenResponse.AccessToken;
+                // Zero intermediate buffers
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(secretBytes);
+
+                using var tokenBody = new ByteArrayContent(bodyBytes);
+                tokenBody.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"https://login.microsoftonline.com/{TenantId}/oauth2/v2.0/token")
+                {
+                    Content = tokenBody
+                };
+
+                var tokenResponse = await BuildHttpClient.SendMessage(EntraHttpClient, request, AzureJsonContext.Default.TokenResponse);
+
+                if (string.IsNullOrWhiteSpace(tokenResponse.AccessToken))
+                    return null;
+
+                return tokenResponse.AccessToken;
+            }
+            finally
+            {
+                if (bodyBytes != null)
+                {
+                    System.Security.Cryptography.CryptographicOperations.ZeroMemory(bodyBytes);
+                }
+            }
         }
 
         /// <summary>

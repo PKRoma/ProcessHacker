@@ -44,7 +44,7 @@ namespace CustomBuildTool
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     await using var stream = await httpResponse.Content.ReadAsStreamAsync(CancellationToken);
-                    var doc = JsonSerializer.Deserialize(stream, NugetJsonContext.Default.NugetServiceIndexResponse);
+                    var doc = await JsonSerializer.DeserializeAsync(stream, NugetJsonContext.Default.NugetServiceIndexResponse, CancellationToken);
 
                     if (doc.Resources != null)
                     {
@@ -137,7 +137,7 @@ namespace CustomBuildTool
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     await using var stream = await httpResponse.Content.ReadAsStreamAsync(CancellationToken);
-                    index = JsonSerializer.Deserialize(stream, NugetJsonContext.Default.NugetRegistrationIndexResponse);
+                    index = await JsonSerializer.DeserializeAsync(stream, NugetJsonContext.Default.NugetRegistrationIndexResponse, CancellationToken);
                 }
                 else
                 {
@@ -172,7 +172,7 @@ namespace CustomBuildTool
                     if (httpResponse.IsSuccessStatusCode)
                     {
                         await using var stream = await httpResponse.Content.ReadAsStreamAsync(CancellationToken);
-                        pageResponse = JsonSerializer.Deserialize(stream, NugetJsonContext.Default.NugetRegistrationPageResponse);
+                        pageResponse = await JsonSerializer.DeserializeAsync(stream, NugetJsonContext.Default.NugetRegistrationPageResponse, CancellationToken);
                     }
                     else
                     {
@@ -214,7 +214,7 @@ namespace CustomBuildTool
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     await using var stream = await httpResponse.Content.ReadAsStreamAsync(CancellationToken);
-                    search = JsonSerializer.Deserialize(stream, NugetJsonContext.Default.NugetSearchResponse);
+                    search = await JsonSerializer.DeserializeAsync(stream, NugetJsonContext.Default.NugetSearchResponse, CancellationToken);
                 }
                 else
                 {
@@ -266,7 +266,7 @@ namespace CustomBuildTool
                 else
                 {
                     await using var stream = await httpResponse.Content.ReadAsStreamAsync(CancellationToken);
-                    response = JsonSerializer.Deserialize(stream, NugetJsonContext.Default.NugetVersionResponse);
+                    response = await JsonSerializer.DeserializeAsync(stream, NugetJsonContext.Default.NugetVersionResponse, CancellationToken);
                 }
             }
             catch

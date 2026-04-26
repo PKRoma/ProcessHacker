@@ -529,11 +529,11 @@ namespace CustomBuildTool
         {
             if (Win32.GetEnvironmentVariable("BUILD_DRM", out string value))
             {
-                return Path.Join([value, "\\", FileName]);
+                return Path.Join(value, FileName);
             }
 
             // N.B. Local developers are instructed to put keys in this path.
-            return Path.Join([Build.BuildWorkingFolder, "\\tools\\CustomSignTool\\Resources\\", FileName]);
+            return Path.Join(Build.BuildWorkingFolder, "tools", "CustomSignTool", "Resources", FileName);
         }
 
         /// <summary>

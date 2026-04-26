@@ -180,7 +180,7 @@ namespace CustomBuildTool
                 var responseStream = await responseMessage.Content.ReadAsStreamAsync(CancellationToken);
                 ArgumentNullException.ThrowIfNull(responseStream, nameof(responseStream));
 
-                var keyVaultOperationResponse = JsonSerializer.Deserialize(responseStream, AzureJsonContext.Default.KeyVaultOperationResponse);
+                var keyVaultOperationResponse = await JsonSerializer.DeserializeAsync(responseStream, AzureJsonContext.Default.KeyVaultOperationResponse, CancellationToken);
                 ArgumentNullException.ThrowIfNull(keyVaultOperationResponse, nameof(keyVaultOperationResponse));
 
                 var signatureValue = keyVaultOperationResponse?.Value ?? keyVaultOperationResponse?.Signature;
@@ -237,7 +237,7 @@ namespace CustomBuildTool
                 var responseStream = await responseMessage.Content.ReadAsStreamAsync(CancellationToken);
                 ArgumentNullException.ThrowIfNull(responseStream, nameof(responseStream));
 
-                var keyVaultOperationResponse = JsonSerializer.Deserialize(responseStream, AzureJsonContext.Default.KeyVaultOperationResponse);
+                var keyVaultOperationResponse = await JsonSerializer.DeserializeAsync(responseStream, AzureJsonContext.Default.KeyVaultOperationResponse, CancellationToken);
                 ArgumentNullException.ThrowIfNull(keyVaultOperationResponse, nameof(keyVaultOperationResponse));
 
                 var plaintextValue = keyVaultOperationResponse?.Plaintext ?? keyVaultOperationResponse?.Value;

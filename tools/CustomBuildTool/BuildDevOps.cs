@@ -148,7 +148,7 @@ namespace CustomBuildTool
                 }
 
                 using var stream = await jsonResponse.Content.ReadAsStreamAsync();
-                var tags = JsonSerializer.Deserialize(stream, BuildInfoResponseContext.Default.AzureServiceTagsResponse);
+                var tags = await JsonSerializer.DeserializeAsync(stream, BuildInfoResponseContext.Default.AzureServiceTagsResponse);
                 if (tags?.Values == null)
                 {
                     Program.PrintColorMessage("[DownloadAzureServiceTags] invalid json", ConsoleColor.Red);

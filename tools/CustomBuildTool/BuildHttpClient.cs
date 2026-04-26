@@ -38,8 +38,7 @@ namespace CustomBuildTool
                 SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
                 UseCookies = true, // Enabled for cookie support per instance
                 UseDefaultCredentials = false,
-                AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 50
+                AllowAutoRedirect = true
             };
 
             var client = new HttpClient(handler, disposeHandler: true)
@@ -98,7 +97,7 @@ namespace CustomBuildTool
                 }
 
                 await using var stream = await httpResponse.Content.ReadAsStreamAsync(CancellationToken);
-                var result = JsonSerializer.Deserialize(stream, jsonTypeInfo);
+                var result = await JsonSerializer.DeserializeAsync(stream, jsonTypeInfo, CancellationToken);
                 if (result == null)
                 {
                     Program.PrintColorMessage("[Warning] JSON deserialization returned null", ConsoleColor.Yellow);

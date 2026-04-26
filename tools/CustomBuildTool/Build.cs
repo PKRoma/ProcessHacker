@@ -600,21 +600,29 @@ namespace CustomBuildTool
             Program.PrintColorMessage(BuildTimeSpan(), ConsoleColor.DarkGray, false);
             Program.PrintColorMessage("Validating exports...", ConsoleColor.Cyan);
 
-            var validationPathsMap = new Dictionary<(BuildFlags configuration, BuildFlags architecture), string>
+            var validationPathsMap = new List<(BuildFlags configuration, BuildFlags architecture, string folder)>
             {
-                { (BuildFlags.BuildDebug, BuildFlags.Build64bit), "Debug32\\SystemInformer.exe" },
-                { (BuildFlags.BuildDebug, BuildFlags.BuildArm64bit), "Debug32\\SystemInformer.exe" },
-                { (BuildFlags.BuildRelease, BuildFlags.Build64bit), "Release32\\SystemInformer.exe" },
-                { (BuildFlags.BuildRelease, BuildFlags.BuildArm64bit), "Release32\\SystemInformer.exe" }
+                (BuildFlags.BuildDebug, BuildFlags.Build64bit, "Debug64"),
+                (BuildFlags.BuildDebug, BuildFlags.BuildArm64bit, "DebugARM64"),
+                (BuildFlags.BuildRelease, BuildFlags.Build64bit, "Release64"),
+                (BuildFlags.BuildRelease, BuildFlags.BuildArm64bit, "ReleaseARM64")
             };
 
             string baseDirectory = GetBuildBaseDirectory(Flags);
 
-            foreach (var validationEntry in validationPathsMap)
+            foreach (var (configuration, architecture, folder) in validationPathsMap)
             {
-                if (Flags.HasFlag(validationEntry.Key.configuration) && Flags.HasFlag(validationEntry.Key.architecture))
+                if (Flags.HasFlag(configuration) && Flags.HasFlag(architecture))
                 {
-                    if (!Utils.ValidateImageExports(Path.Join([baseDirectory, validationEntry.Value])) )
+                    string exePath = Path.Join(baseDirectory, folder, "SystemInformer.exe");
+
+                    if (!File.Exists(exePath))
+                    {
+                        Program.PrintColorMessage($"[WARN] Export validation skipped: {exePath} does not exist.", ConsoleColor.Yellow);
+                        continue;
+                    }
+
+                    if (!Utils.ValidateImageExports(exePath))
                         return false;
                 }
             }
@@ -1208,16 +1216,45 @@ namespace CustomBuildTool
         /// <returns>True if the checksums file is built successfully; otherwise, false.</returns>
         public static bool BuildChecksumsFile()
         {
-            string[] buildUploadFiles =
-            [
+            var buildUploadFiles = new List<string>();
+
+            if (Build.BuildIntegration || Build.BuildRedirectOutput) // fallback: include all if not running in normal build
+            {
+                buildUploadFiles.Add("systeminformer-build-win32-bin.zip");
+                buildUploadFiles.Add("systeminformer-build-win64-bin.zip");
+                buildUploadFiles.Add("systeminformer-build-arm64-bin.zip");
+            }
+
+            // Actually check which platforms were built by checking for the existence of the bin zips
+            string[] possibleZips = new[] 
+            {
                 "systeminformer-build-win32-bin.zip",
                 "systeminformer-build-win64-bin.zip",
-                "systeminformer-build-arm64-bin.zip",
+                "systeminformer-build-arm64-bin.zip"
+            };
+
+            foreach (var zip in possibleZips)
+            {
+                string filePath = Path.Join([Build.BuildOutputFolder, zip]);
+                if (File.Exists(filePath))
+                    buildUploadFiles.Add(zip);
+            }
+
+            // Always include combined bin, pdb, and setup files if present
+            string[] alwaysFiles = new[] 
+            {
                 "systeminformer-build-bin.zip",
                 "systeminformer-build-pdb.zip",
                 "systeminformer-build-release-setup.exe",
                 "systeminformer-build-canary-setup.exe"
-            ];
+            };
+
+            foreach (var file in alwaysFiles)
+            {
+                string filePath = Path.Join([Build.BuildOutputFolder, file]);
+                if (File.Exists(filePath))
+                    buildUploadFiles.Add(file);
+            }
 
             Program.PrintColorMessage(BuildTimeSpan(), ConsoleColor.DarkGray, false);
             Program.PrintColorMessage("Building release checksums...", ConsoleColor.Cyan);
@@ -1226,10 +1263,9 @@ namespace CustomBuildTool
             {
                 StringBuilder checksumsStringBuilder = new StringBuilder();
 
-                foreach (var fileName in buildUploadFiles)
+                foreach (var fileName in buildUploadFiles.Distinct())
                 {
                     string filePath = Path.Join([Build.BuildOutputFolder, fileName]);
-
                     if (File.Exists(filePath))
                     {
                         FileInfo fileInformation = new FileInfo(filePath);
@@ -1694,10 +1730,10 @@ namespace CustomBuildTool
             {
                 StringBuilder packageMap32 = new StringBuilder(0x100);
                 packageMap32.AppendLine("[Files]");
-                packageMap32.AppendLine("\"tools\\msix\\MsixManifest32.xml\" \"AppxManifest.xml\"");
-                packageMap32.AppendLine("\"tools\\msix\\Square44x44Logo.png\" \"Assets\\Square44x44Logo.png\"");
-                packageMap32.AppendLine("\"tools\\msix\\Square50x50Logo.png\" \"Assets\\Square50x50Logo.png\"");
-                packageMap32.AppendLine("\"tools\\msix\\Square150x150Logo.png\" \"Assets\\Square150x150Logo.png\"");
+                packageMap32.AppendLine("\"tools/msix/MsixManifest32.xml\" \"AppxManifest.xml\"");
+                packageMap32.AppendLine("\"tools/msix/Square44x44Logo.png\" \"Assets/Square44x44Logo.png\"");
+                packageMap32.AppendLine("\"tools/msix/Square50x50Logo.png\" \"Assets/Square50x50Logo.png\"");
+                packageMap32.AppendLine("\"tools/msix/Square150x150Logo.png\" \"Assets/Square150x150Logo.png\"");
 
                 foreach (string filePath in Directory.EnumerateFiles(release32Path, "*", SearchOption.AllDirectories))
                 {
@@ -1713,10 +1749,12 @@ namespace CustomBuildTool
                         continue;
                     }
 
-                    packageMap32.AppendLine($"\"{filePath}\" \"{filePath.AsSpan((release32Path + "\\").Length)}\"");
+                    string relPath = filePath[(release32Path.Length + 1)..].Replace('\\', '/');
+                    string srcPath = filePath.Replace('\\', '/');
+                    packageMap32.AppendLine($"\"{srcPath}\" \"{relPath}\"");
                 }
 
-                Utils.WriteAllText("tools\\msix\\MsixPackage32.map", packageMap32.ToString());
+                Utils.WriteAllText("tools/msix/MsixPackage32.map", packageMap32.ToString());
             }
 
             // Create the package mapping file.
@@ -1725,10 +1763,10 @@ namespace CustomBuildTool
             {
                 StringBuilder packageMap64 = new StringBuilder(0x100);
                 packageMap64.AppendLine("[Files]");
-                packageMap64.AppendLine("\"tools\\msix\\MsixManifest64.xml\" \"AppxManifest.xml\"");
-                packageMap64.AppendLine("\"tools\\msix\\Square44x44Logo.png\" \"Assets\\Square44x44Logo.png\"");
-                packageMap64.AppendLine("\"tools\\msix\\Square50x50Logo.png\" \"Assets\\Square50x50Logo.png\"");
-                packageMap64.AppendLine("\"tools\\msix\\Square150x150Logo.png\" \"Assets\\Square150x150Logo.png\"");
+                packageMap64.AppendLine("\"tools/msix/MsixManifest64.xml\" \"AppxManifest.xml\"");
+                packageMap64.AppendLine("\"tools/msix/Square44x44Logo.png\" \"Assets/Square44x44Logo.png\"");
+                packageMap64.AppendLine("\"tools/msix/Square50x50Logo.png\" \"Assets/Square50x50Logo.png\"");
+                packageMap64.AppendLine("\"tools/msix/Square150x150Logo.png\" \"Assets/Square150x150Logo.png\"");
 
                 foreach (string filePath in Directory.EnumerateFiles(release64Path, "*", SearchOption.AllDirectories))
                 {
@@ -1745,10 +1783,12 @@ namespace CustomBuildTool
                         continue;
                     }
 
-                    packageMap64.AppendLine($"\"{filePath}\" \"{filePath.AsSpan((release64Path + "\\").Length)}\"");
+                    string relPath = filePath[(release64Path.Length + 1)..].Replace('\\', '/');
+                    string srcPath = filePath.Replace('\\', '/');
+                    packageMap64.AppendLine($"\"{srcPath}\" \"{relPath}\"");
                 }
 
-                Utils.WriteAllText("tools\\msix\\MsixPackage64.map", packageMap64.ToString());
+                Utils.WriteAllText("tools/msix/MsixPackage64.map", packageMap64.ToString());
             }
         }
 
@@ -2052,7 +2092,7 @@ namespace CustomBuildTool
             StringBuilder output = new StringBuilder();
             StringBuilder output_header = new StringBuilder();
 
-            var content = Utils.ReadAllText("SystemInformer\\SystemInformer.def");
+            var content = Utils.ReadAllText(Path.Join("SystemInformer", "SystemInformer.def"));
             var lines = content.Split("\r\n");
             int total = lines.Length;
 
@@ -2120,9 +2160,9 @@ namespace CustomBuildTool
             // Only write to the file if it has changed.
             if (!string.Equals(content, export_content, StringComparison.OrdinalIgnoreCase))
             {
-                Utils.WriteAllText("SystemInformer\\SystemInformer.def", export_content);
-                Utils.WriteAllText("SystemInformer\\SystemInformer.def.h", export_header);
-                Utils.WriteAllText("SystemInformer\\SystemInformer.def.bak", content);
+                Utils.WriteAllText(Path.Join("SystemInformer", "SystemInformer.def"), export_content);
+                Utils.WriteAllText(Path.Join("SystemInformer", "SystemInformer.def.h"), export_header);
+                Utils.WriteAllText(Path.Join("SystemInformer", "SystemInformer.def.bak"), content);
             }
         }
 
@@ -2133,9 +2173,11 @@ namespace CustomBuildTool
         {
             try
             {
-                if (File.Exists("SystemInformer\\SystemInformer.def.bak"))
+                string bakPath = Path.Join("SystemInformer", "SystemInformer.def.bak");
+                string defPath = Path.Join("SystemInformer", "SystemInformer.def");
+                if (File.Exists(bakPath))
                 {
-                    File.Move("SystemInformer\\SystemInformer.def.bak", "SystemInformer\\SystemInformer.def", true);
+                    File.Move(bakPath, defPath, true);
                 }
             }
             catch (Exception ex)

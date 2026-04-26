@@ -142,7 +142,7 @@ namespace CustomBuildTool
 
             try
             {
-                string jsonContent = File.ReadAllText(filePath);
+                using var jsonContent = File.OpenRead(filePath);
                 var args = JsonSerializer.Deserialize(jsonContent, DictionarySerializerContext.Default.DictionaryStringString);
 
                 foreach (var s in args)
@@ -1286,7 +1286,7 @@ namespace CustomBuildTool
                 {
                     char* offset = (char*)block;
 
-                    while (offset != null)
+                    while (*offset != '\0')
                     {
                         string variable = new string(offset);
 
@@ -1296,7 +1296,6 @@ namespace CustomBuildTool
                         string[] parts = variable.Split('=', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                         EnvironmentBlock.Add(parts[0], parts.Length <= 1 ? string.Empty : parts[1]);
 
-                        //offset = new IntPtr(offset.ToInt64() + (variable.Length + 1) * sizeof(char));
                         offset += variable.Length + 1;
                     }
 
@@ -1564,6 +1563,10 @@ namespace CustomBuildTool
         }
     }
 
+    /// <summary>
+    /// Represents a request to update build information, including identifiers, version details, and associated binary
+    /// and setup metadata.
+    /// </summary>
     public class BuildUpdateRequest
     {
         [JsonPropertyName("build_id")] public string BuildId { get; init; }
@@ -1604,6 +1607,12 @@ namespace CustomBuildTool
         }
     }
 
+    /// <summary>
+    /// Represents a request to create a new release on GitHub, including release tag, target branch, name, description,
+    /// and release options.
+    /// </summary>
+    /// <remarks>Provides properties for configuring release details such as draft status, prerelease status,
+    /// and automatic release note generation. Supports serialization to JSON and UTF-8 byte arrays.</remarks>
     public class GithubReleasesRequest
     {
         [JsonPropertyName("tag_name")]
@@ -1643,10 +1652,16 @@ namespace CustomBuildTool
         }
     }
 
+    /// <summary>
+    /// Represents a GitHub release as returned by the GitHub API.
+    /// </summary>
     public class GithubReleasesResponse
     {
         [JsonPropertyName("id")]
         public ulong ReleaseId { get; init; }
+
+        [JsonPropertyName("tag_name")]
+        public string TagName { get; init; }
 
         [JsonPropertyName("upload_url")]
         public string UploadUrl { get; init; }
@@ -1673,6 +1688,9 @@ namespace CustomBuildTool
         }
     }
 
+    /// <summary>
+    /// Represents the response from a GitHub release query.
+    /// </summary>
     public class GithubReleaseQueryResponse
     {
         [JsonPropertyName("id")]

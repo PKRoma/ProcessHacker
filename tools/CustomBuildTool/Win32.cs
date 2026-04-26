@@ -152,14 +152,6 @@ namespace CustomBuildTool
                     return where;
             }
 
-            // Current directory.
-            {
-                if (File.Exists(FileName))
-                {
-                    return Path.GetFullPath(FileName);
-                }
-            }
-
             // %PATH% directory.
             {
                 if (Win32.GetEnvironmentVariable("PATH", out string values))
@@ -171,6 +163,14 @@ namespace CustomBuildTool
                         if (File.Exists(where))
                             return where;
                     }
+                }
+            }
+
+            // Current directory.
+            {
+                if (File.Exists(FileName))
+                {
+                    return Path.GetFullPath(FileName);
                 }
             }
 
@@ -452,7 +452,8 @@ namespace CustomBuildTool
                             &valueLength
                             ) == WIN32_ERROR.ERROR_SUCCESS)
                         {
-                            value = new string((char*)valueBuffer, 0, (int)valueLength / 2 - 1);
+                            if (valueLength >= 2)
+                                value = new string((char*)valueBuffer, 0, (int)valueLength / 2 - 1);
                         }
 
                         NativeMemory.Free(valueBuffer);

@@ -123,7 +123,7 @@ namespace CustomBuildTool
                     }
 
                     await using Stream stream = await response.Content.ReadAsStreamAsync();
-                    var meta = JsonSerializer.Deserialize(stream, GithubResponseContext.Default.DictionaryStringJsonElement);
+                    var meta = await JsonSerializer.DeserializeAsync(stream, GithubResponseContext.Default.DictionaryStringJsonElement);
                     if (meta == null)
                     {
                         Program.PrintColorMessage("[DownloadGithubIpRanges] invalid response", ConsoleColor.Red);
@@ -322,7 +322,7 @@ namespace CustomBuildTool
                         return false;
                     }
 
-                    githubResponseMessage = JsonSerializer.Deserialize(result, GithubResponseContext.Default.GithubReleasesResponse);
+                    githubResponseMessage = await JsonSerializer.DeserializeAsync(result, GithubResponseContext.Default.GithubReleasesResponse);
                     if (githubResponseMessage == null)
                     {
                         Program.PrintColorMessage("[DeleteRelease-GithubReleasesResponse]", ConsoleColor.Red);

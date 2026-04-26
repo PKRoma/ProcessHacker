@@ -95,6 +95,11 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="bin\Release\**" />
+    <EmbeddedResource Remove="bin\Release\**" />
+    <None Remove="bin\Release\**" />
+  </ItemGroup>
+  <ItemGroup>
     <AdditionalFiles Remove="NativeMethods.json" />
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +137,7 @@
     <Using Include="System.Text.Json.Nodes" />
     <Using Include="System.Text.Json.Serialization" />
     <Using Include="System.Text.Json.Serialization.Metadata" />
+    <Using Include="System.Text.RegularExpressions" />
     <Using Include="System.Xml" />
     <Using Include="Windows.Win32" />
     <Using Include="Windows.Win32.Foundation" />

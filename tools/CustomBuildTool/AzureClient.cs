@@ -67,7 +67,7 @@ namespace CustomBuildTool
                     return null;            
                 }
 
-                var keyVaultCertificateResponse = JsonSerializer.Deserialize(jsonResponseStream, AzureJsonContext.Default.KeyVaultCertificateResponse);
+                var keyVaultCertificateResponse = await JsonSerializer.DeserializeAsync(jsonResponseStream, AzureJsonContext.Default.KeyVaultCertificateResponse, CancellationToken);
                 var keyVaultCertificate = new KeyVaultCertificate();
 
                 if (!string.IsNullOrEmpty(keyVaultCertificateResponse?.CertificateString))
@@ -164,7 +164,7 @@ namespace CustomBuildTool
             }
 
             var jsonResponseStream = await responseMessage.Content.ReadAsStreamAsync(CancellationToken);
-            var secretResponse = JsonSerializer.Deserialize(jsonResponseStream, AzureJsonContext.Default.SecretResponse);
+            var secretResponse = await JsonSerializer.DeserializeAsync(jsonResponseStream, AzureJsonContext.Default.SecretResponse, CancellationToken);
             
             if (string.IsNullOrWhiteSpace(secretResponse.Value))
             {
@@ -551,7 +551,7 @@ namespace CustomBuildTool
                         if (responseMessage.IsSuccessStatusCode)
                         {
                             var jsonResponseStream = await responseMessage.Content.ReadAsStreamAsync(CancellationToken);
-                            var tokenResponse = JsonSerializer.Deserialize(jsonResponseStream, AzureJsonContext.Default.TokenResponse);
+                            var tokenResponse = await JsonSerializer.DeserializeAsync(jsonResponseStream, AzureJsonContext.Default.TokenResponse, CancellationToken);
 
                             if (tokenResponse.AccessToken == null)
                             {
@@ -738,7 +738,7 @@ namespace CustomBuildTool
                         if (responseMessage.IsSuccessStatusCode)
                         {
                             var jsonResponseStream = await responseMessage.Content.ReadAsStreamAsync(CancellationToken);
-                            var tokenResponse = JsonSerializer.Deserialize(jsonResponseStream, AzureJsonContext.Default.TokenResponse);
+                            var tokenResponse = await JsonSerializer.DeserializeAsync(jsonResponseStream, AzureJsonContext.Default.TokenResponse, CancellationToken);
 
                             if (tokenResponse.AccessToken == null)
                             {

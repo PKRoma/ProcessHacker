@@ -78,6 +78,7 @@ namespace CustomBuildTool
             rootCommand.AddCommand(CreateCMakePipelineBuildCommand(verboseOption));
             rootCommand.AddCommand(CreateCMakePipelinePackageCommand(verboseOption));
             rootCommand.AddCommand(CreateCMakePipelineDeployCommand(verboseOption));
+            rootCommand.AddCommand(CreateCheckThirdPartyCommand());
 
             // Default handler when no command is provided
             rootCommand.SetHandler((bool verbose) =>
@@ -116,6 +117,7 @@ namespace CustomBuildTool
                     { "-verbose", "Enables verbose output." },
                     { "-vtscan", "Uploads a file to VirusTotal for scanning." },
                     { "-write-tools-id", "Writes the tools id file (internal)." },
+                    { "-check-thirdparty", "Checks thirdparty library versions against latest GitHub releases." },
                 };
 
                 PrintColorMessage("Error: Missing required arguments. Use -h or --help for valid commands.\r\n", ConsoleColor.Red, true);
@@ -779,13 +781,15 @@ namespace CustomBuildTool
             var cmd = new Command("-cmake-pipeline-build", "Performs pipeline build operations using CMake (clang).");
             cmd.SetHandler((bool verbose) =>
             {
-                BuildToolsId.CheckForOutOfDateTools();
                 BuildFlags flags = BuildFlags.Release | BuildFlags.BuildCMake | (verbose ? BuildFlags.BuildVerbose : BuildFlags.None);
+
+                BuildToolsId.CheckForOutOfDateTools();
+
                 Build.SetupBuildEnvironment(true);
                 Build.CopySourceLink(true);
 
-                if (!Build.BuildSolutionCMake("SystemInformer", BuildGenerator.Ninja, BuildToolchain.ClangMsvcAmd64, flags)) Environment.Exit(1);
-                if (!Build.BuildSolutionCMake("Plugins", BuildGenerator.Ninja, BuildToolchain.ClangMsvcAmd64, flags)) Environment.Exit(1);
+                if (!Build.BuildSolutionCMake("SystemInformer", BuildGenerator.Ninja, BuildToolchain.ClangMsvcAmd64, flags)) 
+                    Environment.Exit(1);
 
                 Build.CopyWow64Files(flags);
                 Build.ShowBuildStats();
@@ -840,6 +844,22 @@ namespace CustomBuildTool
                 if (!await BuildDeploy.BuildUpdateServerConfig()) Environment.Exit(1);
                 Build.ShowBuildStats();
             }, verboseOption);
+            return cmd;
+        }
+
+        /// <summary>
+        /// Creates a command that checks thirdparty library versions against their latest GitHub releases.
+        /// </summary>
+        /// <returns>A command configured to check thirdparty library versions.</returns>
+        private static Command CreateCheckThirdPartyCommand()
+        {
+            var cmd = new Command("-check-thirdparty", "Checks thirdparty library versions against latest GitHub releases.");
+            cmd.SetHandler(async () =>
+            {
+                BuildToolsId.CheckForOutOfDateTools();
+                await BuildThirdParty.CheckThirdPartyVersions();
+                Build.ShowBuildStats();
+            });
             return cmd;
         }
 
