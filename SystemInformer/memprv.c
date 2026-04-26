@@ -1166,7 +1166,7 @@ NTSTATUS PhpUpdateMemoryRegionTypes(
             // Desktop heap
             if (NT_SUCCESS(PhReadVirtualMemory(
                 ProcessHandle,
-                PTR_ADD_OFFSET(thread->TebBaseAddress, FIELD_OFFSET(TEB, Win32ClientInfo.DeskInfo)),
+                PTR_ADD_OFFSET(thread->TebBaseAddress, FIELD_OFFSET(TEB, Win32ClientInfo.DesktopBaseAddress)),
                 &desktopInfo,
                 sizeof(PVOID),
                 NULL
