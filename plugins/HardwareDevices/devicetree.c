@@ -1112,7 +1112,7 @@ VOID DevicesTreeImageListInitialize(
 
     if (DeviceImageList)
     {
-        PhImageListAddIcon(DeviceImageList, PhGetApplicationIcon(TRUE));
+        PhImageListAddIcon(DeviceImageList, PhGetApplicationIcon(TRUE, dpi));
 
         TreeNew_SetImageList(DeviceTreeHandle, DeviceImageList);
     }

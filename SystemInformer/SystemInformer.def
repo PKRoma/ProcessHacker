@@ -67,7 +67,6 @@ EXPORTS
     PhFormatLogType
     PhFreezeThread
     PhGetApplicationIcon
-    PhGetApplicationIconEx
     PhGetClientIdName
     PhGetClientIdNameEx
     PhGetDeviceIcon

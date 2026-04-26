@@ -806,7 +806,7 @@ HRESULT CALLBACK PhpMemoryStringTaskDialogCallback(
 
             // Create the Taskdialog icons.
             PhSetApplicationWindowIcon(hwndDlg);
-            SendMessage(hwndDlg, TDM_UPDATE_ICON, TDIE_ICON_MAIN, (LPARAM)PhGetApplicationIcon(FALSE));
+            SendMessage(hwndDlg, TDM_UPDATE_ICON, TDIE_ICON_MAIN, (LPARAM)PhGetApplicationIcon(FALSE, PhGetWindowDpi(hwndDlg)));
 
             // Set the progress state.
             SendMessage(hwndDlg, TDM_SET_MARQUEE_PROGRESS_BAR, TRUE, 0);

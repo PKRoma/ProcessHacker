@@ -3096,7 +3096,7 @@ BOOLEAN PhUiDebugProcess(
         config.cbSize = sizeof(TASKDIALOGCONFIG);
         config.hwndParent = WindowHandle;
         config.dwFlags = TDF_USE_HICON_MAIN | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS | TDF_POSITION_RELATIVE_TO_WINDOW | TDF_CAN_BE_MINIMIZED;
-        config.hMainIcon = PhGetApplicationIcon(FALSE);
+        config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(WindowHandle));
         config.dwCommonButtons = TDCBF_CANCEL_BUTTON;
         config.pszWindowTitle = PhApplicationName;
         config.pszMainInstruction = L"Select a system debugger to use for this process:";
@@ -3346,7 +3346,7 @@ BOOLEAN PhUiSetActivityModeration(
     memset(&config, 0, sizeof(TASKDIALOGCONFIG));
     config.cbSize = sizeof(TASKDIALOGCONFIG);
     config.dwFlags = TDF_USE_HICON_MAIN | TDF_ALLOW_DIALOG_CANCELLATION | TDF_CAN_BE_MINIMIZED | TDF_POSITION_RELATIVE_TO_WINDOW;
-    config.hMainIcon = PhGetApplicationIcon(FALSE);
+    config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(WindowHandle));
     config.pszWindowTitle = PhApplicationName;
     config.pszMainInstruction = L"Select the process activity moderation throttling state.";
     config.nDefaultButton = IDCANCEL;

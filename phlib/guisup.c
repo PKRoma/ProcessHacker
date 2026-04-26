@@ -60,9 +60,6 @@ HFONT PhApplicationFont = NULL;
 HFONT PhTreeWindowFont = NULL;
 HFONT PhMonospaceFont = NULL;
 LONG PhFontQuality = 0;
-LONG PhSystemDpi = USER_DEFAULT_SCREEN_DPI;
-PH_INTEGER_PAIR PhSmallIconSize = { 16, 16 };
-PH_INTEGER_PAIR PhLargeIconSize = { 32, 32 };
 
 static PH_INITONCE SharedIconCacheInitOnce = PH_INITONCE_INIT;
 static PPH_HASHTABLE SharedIconCacheHashtable;
@@ -164,26 +161,6 @@ VOID PhGuiSupportInitialization(
             SystemParametersInfoForDpi_I = PhGetDllBaseProcedureAddress(baseAddress, "SystemParametersInfoForDpi", 0);
         }
     }
-
-    PhGuiSupportUpdateSystemMetrics(NULL, 0);
-}
-
-/**
- * Updates system metrics cached by the GUI support layer.
- *
- * \param WindowHandle Optional window handle used to determine DPI for metrics update.
- * \param WindowDpi Optional DPI override; if non-zero it is used instead of querying the window/system DPI.
- */
-VOID PhGuiSupportUpdateSystemMetrics(
-    _In_opt_ HWND WindowHandle,
-    _In_opt_ LONG WindowDpi
-    )
-{
-    PhSystemDpi = WindowDpi ? WindowDpi : (WindowHandle ? PhGetWindowDpi(WindowHandle) : PhGetSystemDpi());
-    PhSmallIconSize.X = PhGetSystemMetrics(SM_CXSMICON, PhSystemDpi);
-    PhSmallIconSize.Y = PhGetSystemMetrics(SM_CYSMICON, PhSystemDpi);
-    PhLargeIconSize.X = PhGetSystemMetrics(SM_CXICON, PhSystemDpi);
-    PhLargeIconSize.Y = PhGetSystemMetrics(SM_CYICON, PhSystemDpi);
 }
 
 /**
@@ -1938,27 +1915,30 @@ HICON PhLoadIcon(
  */
 VOID PhGetStockApplicationIcon(
     _Out_opt_ HICON *SmallIcon,
-    _Out_opt_ HICON *LargeIcon
+    _Out_opt_ HICON *LargeIcon,
+    _In_ LONG WindowDpi
     )
 {
-    static HICON smallIcon = NULL;
-    static HICON largeIcon = NULL;
-    static LONG systemDpi = 0;
-
-    if (systemDpi != PhSystemDpi)
+    // Cache one entry per distinct DPI seen so the shared icon contract holds across monitors.
+    static struct
     {
-        if (smallIcon)
-        {
-            DestroyIcon(smallIcon);
-            smallIcon = NULL;
-        }
-        if (largeIcon)
-        {
-            DestroyIcon(largeIcon);
-            largeIcon = NULL;
-        }
+        LONG Dpi;
+        HICON SmallIcon;
+        HICON LargeIcon;
+    } cache[4] = { 0 };
+    static ULONG cacheNext = 0;
+    HICON smallIcon = NULL;
+    HICON largeIcon = NULL;
+    ULONG slot;
 
-        systemDpi = PhSystemDpi;
+    for (slot = 0; slot < RTL_NUMBER_OF(cache); slot++)
+    {
+        if (cache[slot].Dpi == WindowDpi && (cache[slot].SmallIcon || cache[slot].LargeIcon))
+        {
+            smallIcon = cache[slot].SmallIcon;
+            largeIcon = cache[slot].LargeIcon;
+            break;
+        }
     }
 
     // This no longer uses SHGetFileInfo because it is *very* slow and causes many other DLLs to be
@@ -2000,20 +1980,33 @@ VOID PhGetStockApplicationIcon(
                 &imageFileName,
                 TRUE,
                 11,
-                PhGetSystemMetrics(SM_CXICON, systemDpi),
-                PhGetSystemMetrics(SM_CYICON, systemDpi),
-                PhGetSystemMetrics(SM_CXSMICON, systemDpi),
-                PhGetSystemMetrics(SM_CYSMICON, systemDpi),
+                PhGetSystemMetrics(SM_CXICON, WindowDpi),
+                PhGetSystemMetrics(SM_CYICON, WindowDpi),
+                PhGetSystemMetrics(SM_CXSMICON, WindowDpi),
+                PhGetSystemMetrics(SM_CYSMICON, WindowDpi),
                 &largeIcon,
                 &smallIcon
                 );
         }
-    }
 
-    if (!smallIcon)
-        smallIcon = PhLoadIcon(NULL, IDI_APPLICATION, PH_LOAD_ICON_SIZE_SMALL, 0, 0, systemDpi);
-    if (!largeIcon)
-        largeIcon = PhLoadIcon(NULL, IDI_APPLICATION, PH_LOAD_ICON_SIZE_LARGE, 0, 0, systemDpi);
+        if (!smallIcon)
+            smallIcon = PhLoadIcon(NULL, IDI_APPLICATION, PH_LOAD_ICON_SIZE_SMALL, 0, 0, WindowDpi);
+        if (!largeIcon)
+            largeIcon = PhLoadIcon(NULL, IDI_APPLICATION, PH_LOAD_ICON_SIZE_LARGE, 0, 0, WindowDpi);
+
+        // Insert into the next round-robin slot, freeing whatever was there.
+        slot = cacheNext % RTL_NUMBER_OF(cache);
+        cacheNext++;
+
+        if (cache[slot].SmallIcon)
+            DestroyIcon(cache[slot].SmallIcon);
+        if (cache[slot].LargeIcon)
+            DestroyIcon(cache[slot].LargeIcon);
+
+        cache[slot].Dpi = WindowDpi;
+        cache[slot].SmallIcon = smallIcon;
+        cache[slot].LargeIcon = largeIcon;
+    }
 
     if (SmallIcon)
         *SmallIcon = smallIcon;

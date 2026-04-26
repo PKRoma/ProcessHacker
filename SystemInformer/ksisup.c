@@ -1854,7 +1854,7 @@ VOID KsiShowInitializingSplashScreen(
     config.cbSize = sizeof(TASKDIALOGCONFIG);
     config.dwFlags = TDF_USE_HICON_MAIN | TDF_SHOW_MARQUEE_PROGRESS_BAR | TDF_CAN_BE_MINIMIZED | TDF_CALLBACK_TIMER;
     config.dwCommonButtons = TDCBF_CANCEL_BUTTON;
-    config.hMainIcon = PhGetApplicationIcon(FALSE);
+    config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetSystemDpi());
     config.pfCallback = KsiSplashScreenDialogCallbackProc;
     config.pszWindowTitle = PhApplicationName;
     config.pszMainInstruction = L"Initializing System Informer kernel driver...";

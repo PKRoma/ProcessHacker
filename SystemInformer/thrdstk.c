@@ -1682,7 +1682,7 @@ HRESULT CALLBACK PhpThreadStackTaskDialogCallback(
             context->TaskDialogHandle = hwndDlg;
 
             PhSetApplicationWindowIcon(hwndDlg);
-            //SendMessage(hwndDlg, TDM_UPDATE_ICON, TDIE_ICON_MAIN, (LPARAM)PhGetApplicationIcon(FALSE));
+            //SendMessage(hwndDlg, TDM_UPDATE_ICON, TDIE_ICON_MAIN, (LPARAM)PhGetApplicationIcon(FALSE, PhGetWindowDpi(hwndDlg)));
 
             SendMessage(hwndDlg, TDM_SET_MARQUEE_PROGRESS_BAR, TRUE, 0);
             SendMessage(hwndDlg, TDM_SET_PROGRESS_BAR_MARQUEE, TRUE, 1);
@@ -1811,7 +1811,7 @@ BOOLEAN PhpShowThreadStackWindow(
         TDF_POSITION_RELATIVE_TO_WINDOW | TDF_SHOW_MARQUEE_PROGRESS_BAR |
         TDF_CALLBACK_TIMER;
     config.dwCommonButtons = TDCBF_CANCEL_BUTTON;
-    config.hMainIcon = PhGetApplicationIcon(FALSE);
+    config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(Context->WindowHandle));
     config.pfCallback = PhpThreadStackTaskDialogCallback;
     config.lpCallbackData = (LONG_PTR)Context;
     config.hwndParent = Context->WindowHandle;

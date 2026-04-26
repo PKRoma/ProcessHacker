@@ -603,7 +603,7 @@ VOID ShowProcessPriorityDialog(
     memset(&config, 0, sizeof(TASKDIALOGCONFIG));
     config.cbSize = sizeof(TASKDIALOGCONFIG);
     config.dwFlags = TDF_USE_HICON_MAIN | TDF_ALLOW_DIALOG_CANCELLATION | TDF_CAN_BE_MINIMIZED | TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW;
-    config.hMainIcon = PhGetApplicationIcon(FALSE);
+    config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(MenuItem->OwnerWindow));
     config.pszWindowTitle = PhGetString(FileName);
     config.pszMainInstruction = L"Select the default process priority.";
     config.pszContent = L"The process priority will be applied by Windows even when System Informer isn't currently running. "
@@ -686,7 +686,7 @@ VOID ShowProcessIoPriorityDialog(
     memset(&config, 0, sizeof(TASKDIALOGCONFIG));
     config.cbSize = sizeof(TASKDIALOGCONFIG);
     config.dwFlags = TDF_USE_HICON_MAIN | TDF_ALLOW_DIALOG_CANCELLATION | TDF_CAN_BE_MINIMIZED | TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW;
-    config.hMainIcon = PhGetApplicationIcon(FALSE);
+    config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(MenuItem->OwnerWindow));
     config.pszWindowTitle = PhGetString(FileName);
     config.pszMainInstruction = L"Select the default process IO priority.";
     config.pszContent = L"The IO priority will be applied by Windows even when System Informer isn't currently running. "
@@ -764,7 +764,7 @@ VOID ShowProcessPagePriorityDialog(
     memset(&config, 0, sizeof(TASKDIALOGCONFIG));
     config.cbSize = sizeof(TASKDIALOGCONFIG);
     config.dwFlags = TDF_USE_HICON_MAIN | TDF_ALLOW_DIALOG_CANCELLATION | TDF_CAN_BE_MINIMIZED | TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW;
-    config.hMainIcon = PhGetApplicationIcon(FALSE);
+    config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(MenuItem->OwnerWindow));
     config.pszWindowTitle = PhGetString(FileName);
     config.pszMainInstruction = L"Select the default process page priority.";
     config.pszContent = L"The page priority will be applied by Windows even when System Informer isn't currently running.";
@@ -909,7 +909,7 @@ VOID ShowProcessD3DKMTPriorityDialog(
         memset(&config, 0, sizeof(TASKDIALOGCONFIG));
         config.cbSize = sizeof(TASKDIALOGCONFIG);
         config.dwFlags = TDF_USE_HICON_MAIN | TDF_ALLOW_DIALOG_CANCELLATION | TDF_CAN_BE_MINIMIZED | TDF_ENABLE_HYPERLINKS | TDF_POSITION_RELATIVE_TO_WINDOW;
-        config.hMainIcon = PhGetApplicationIcon(FALSE);
+        config.hMainIcon = PhGetApplicationIcon(FALSE, PhGetWindowDpi(MenuItem->OwnerWindow));
         config.pszWindowTitle = L"D3DKMT scheduling priority";
         config.pszMainInstruction = L"Select the graphics scheduling priority.";
         config.pszContent = L"Note: Realtime priority requires the User has the SeIncreaseBasePriorityPrivilege or the process running as Administrator.";

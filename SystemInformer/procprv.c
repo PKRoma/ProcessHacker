@@ -4229,7 +4229,7 @@ VOID PhProcessImageListInitialization(
     //PhImageListSetBkColor(PhProcessLargeImageList, CLR_NONE);
     //PhImageListSetBkColor(PhProcessSmallImageList, CLR_NONE);
 
-    PhGetStockApplicationIcon(&iconSmall, &iconLarge);
+    PhGetStockApplicationIcon(&iconSmall, &iconLarge, PhProcessImageListWindowDpi);
     PhImageListAddIcon(PhProcessLargeImageList, iconLarge);
     PhImageListAddIcon(PhProcessSmallImageList, iconSmall);
 

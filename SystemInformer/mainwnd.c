@@ -12,6 +12,7 @@
 
 #include <phapp.h>
 #include <mainwnd.h>
+#include <procprv.h>
 
 #include <cpysave.h>
 #include <emenu.h>
@@ -306,8 +307,8 @@ RTL_ATOM PhMwpInitializeWindowClass(
 
     if (PhEnableWindowText)
     {
-        wcex.hIcon = PhGetApplicationIcon(FALSE);
-        wcex.hIconSm = PhGetApplicationIcon(TRUE);
+        wcex.hIcon = PhGetApplicationIcon(FALSE, PhGetSystemDpi());
+        wcex.hIconSm = PhGetApplicationIcon(TRUE, PhGetSystemDpi());
     }
 
     return RegisterClassEx(&wcex);
@@ -3012,8 +3013,6 @@ VOID PhMwpOnDpiChanged(
     _In_ LONG WindowDpi
     )
 {
-    PhGuiSupportUpdateSystemMetrics(WindowHandle, WindowDpi);
-
     PhMwpInitializeMetrics(WindowHandle, WindowDpi);
 
     if (PhEnableWindowText)
@@ -4307,7 +4306,7 @@ VOID PhMwpInitializeSubMenu(
             {
                 HBITMAP shieldBitmap;
 
-                if (shieldBitmap = PhGetShieldBitmap(LayoutWindowDpi, PhSmallIconSize.X, PhSmallIconSize.Y))
+                if (shieldBitmap = PhGetShieldBitmap(LayoutWindowDpi, PhGetSystemMetrics(SM_CXSMICON, LayoutWindowDpi), PhGetSystemMetrics(SM_CYSMICON, LayoutWindowDpi)))
                 {
                     if (menuItem = PhFindEMenuItem(Menu, 0, NULL, ID_HACKER_SHOWDETAILSFORALLPROCESSES))
                         menuItem->Bitmap = shieldBitmap;
@@ -4410,7 +4409,7 @@ VOID PhMwpInitializeSubMenu(
         {
             HBITMAP shieldBitmap;
 
-            if (shieldBitmap = PhGetShieldBitmap(LayoutWindowDpi, PhSmallIconSize.X, PhSmallIconSize.Y))
+            if (shieldBitmap = PhGetShieldBitmap(LayoutWindowDpi, PhGetSystemMetrics(SM_CXSMICON, LayoutWindowDpi), PhGetSystemMetrics(SM_CYSMICON, LayoutWindowDpi)))
             {
                 if (menuItem = PhFindEMenuItem(Menu, 0, NULL, ID_TOOLS_STARTTASKMANAGER))
                     menuItem->Bitmap = shieldBitmap;
@@ -4998,7 +4997,7 @@ VOID PhMwpAddIconProcesses(
 
         if (icon = PhGetImageListIcon(processItem->SmallIconIndex, FALSE))
         {
-            iconBitmap = PhIconToBitmap(icon, PhSmallIconSize.X, PhSmallIconSize.Y);
+            iconBitmap = PhIconToBitmap(icon, PhGetSystemMetrics(SM_CXSMICON, PhProcessImageListWindowDpi), PhGetSystemMetrics(SM_CYSMICON, PhProcessImageListWindowDpi));
             DestroyIcon(icon);
         }
 

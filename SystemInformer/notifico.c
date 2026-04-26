@@ -989,7 +989,7 @@ HICON PhNfGetApplicationIcon(
             DpiValue = PhGetTaskbarDpi();
         }
 
-        PhNfAppTrayIcon = PhGetApplicationIconEx(FALSE, DpiValue);
+        PhNfAppTrayIcon = PhGetApplicationIcon(FALSE, DpiValue);
     }
 
     return PhNfAppTrayIcon;
@@ -1163,7 +1163,7 @@ BOOLEAN PhNfpAddNotifyIcon(
         _TRUNCATE
         );
     //notifyIcon.hIcon = PhNfpGetBlackIcon();
-    notifyIcon.hIcon = PhGetApplicationIcon(TRUE); // Fixes GH#1845 (dmex)
+    notifyIcon.hIcon = PhGetApplicationIcon(TRUE, PhGetTaskbarDpi()); // Fixes GH#1845 (dmex)
 
     if (!PhNfMiniInfoEnabled || PhNfMiniInfoPinned || FlagOn(Icon->Flags, PH_NF_ICON_NOSHOW_MINIINFO))
         SetFlag(notifyIcon.uFlags, NIF_SHOWTIP);

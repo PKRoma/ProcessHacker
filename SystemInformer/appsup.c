@@ -2783,43 +2783,8 @@ HBITMAP PhGetShieldBitmap(
 }
 
 HICON PhGetApplicationIcon(
-    _In_ BOOLEAN SmallIcon
-    )
-{
-    static HICON smallIcon = NULL;
-    static HICON largeIcon = NULL;
-    static LONG systemDpi = 0;
-
-    if (systemDpi != PhSystemDpi)
-    {
-        if (smallIcon)
-        {
-            DestroyIcon(smallIcon);
-            smallIcon = NULL;
-        }
-        if (largeIcon)
-        {
-            DestroyIcon(largeIcon);
-            largeIcon = NULL;
-        }
-
-        systemDpi = PhSystemDpi;
-    }
-
-    if (!smallIcon || !largeIcon)
-    {
-        if (!smallIcon)
-            smallIcon = PhLoadIcon(NtCurrentImageBase(), MAKEINTRESOURCE(IDI_SYSTEMINFORMER), PH_LOAD_ICON_SIZE_SMALL, 0, 0, systemDpi);
-        if (!largeIcon)
-            largeIcon = PhLoadIcon(NtCurrentImageBase(), MAKEINTRESOURCE(IDI_SYSTEMINFORMER), PH_LOAD_ICON_SIZE_LARGE, 0, 0, systemDpi);
-    }
-
-    return SmallIcon ? smallIcon : largeIcon;
-}
-
-HICON PhGetApplicationIconEx(
     _In_ BOOLEAN SmallIcon,
-    _In_opt_ LONG WindowDpi
+    _In_ LONG WindowDpi
     )
 {
     if (SmallIcon)
@@ -2876,12 +2841,7 @@ VOID PhSetApplicationWindowIcon(
     _In_ HWND WindowHandle
     )
 {
-    PhSetWindowIcon(
-        WindowHandle,
-        PhGetApplicationIcon(TRUE),
-        PhGetApplicationIcon(FALSE),
-        TRUE
-        );
+    PhSetApplicationWindowIconEx(WindowHandle, PhGetWindowDpi(WindowHandle));
 }
 
 VOID PhSetApplicationWindowIconEx(
@@ -2891,8 +2851,8 @@ VOID PhSetApplicationWindowIconEx(
 {
     PhSetWindowIcon(
         WindowHandle,
-        PhGetApplicationIconEx(TRUE, WindowDpi),
-        PhGetApplicationIconEx(FALSE, WindowDpi),
+        PhGetApplicationIcon(TRUE, WindowDpi),
+        PhGetApplicationIcon(FALSE, WindowDpi),
         TRUE
         );
 }
@@ -2905,7 +2865,7 @@ VOID PhSetStaticWindowIcon(
     HICON largeIcon;
     HICON destroyIcon;
 
-    if (largeIcon = PhGetApplicationIconEx(FALSE, WindowDpi))
+    if (largeIcon = PhGetApplicationIcon(FALSE, WindowDpi))
     {
         if (destroyIcon = Static_SetIcon(WindowHandle, largeIcon))
         {

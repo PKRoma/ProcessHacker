@@ -309,7 +309,7 @@ INT CALLBACK PvpPropSheetProc(
 
             PvpInitializeFont(hwndDlg);
 
-            PhGetStockApplicationIcon(&smallIcon, &largeIcon);
+            PhGetStockApplicationIcon(&smallIcon, &largeIcon, PhGetWindowDpi(hwndDlg));
             SendMessage(hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
             SendMessage(hwndDlg, WM_SETICON, ICON_BIG, (LPARAM)largeIcon);
 

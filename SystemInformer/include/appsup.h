@@ -527,15 +527,8 @@ PHAPPAPI
 HICON
 NTAPI
 PhGetApplicationIcon(
-    _In_ BOOLEAN SmallIcon
-    );
-
-PHAPPAPI
-HICON
-NTAPI
-PhGetApplicationIconEx(
     _In_ BOOLEAN SmallIcon,
-    _In_opt_ LONG WindowDpi
+    _In_ LONG WindowDpi
     );
 
 PHAPPAPI

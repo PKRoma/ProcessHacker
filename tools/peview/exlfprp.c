@@ -103,7 +103,7 @@ VOID PvExlfProperties(
 
     if (!PhExtractIcon(PvFileName->Buffer, &PvImageLargeIcon, &PvImageSmallIcon))
     {
-        PhGetStockApplicationIcon(&PvImageSmallIcon, &PvImageLargeIcon);
+        PhGetStockApplicationIcon(&PvImageSmallIcon, &PvImageLargeIcon, PhGetSystemDpi());
     }
 
     if (propContext = PvCreatePropContext(PvFileName))

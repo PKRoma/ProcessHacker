@@ -54,23 +54,12 @@ typedef HANDLE HTHEME;
 #define HRGN_FULL ((HRGN)1) // passed by WM_NCPAINT even though it's completely undocumented (wj32)
 
 extern LONG PhFontQuality;
-extern LONG PhSystemDpi;
-extern PH_INTEGER_PAIR PhSmallIconSize;
-extern PH_INTEGER_PAIR PhLargeIconSize;
 
 PHLIBAPI
 VOID
 NTAPI
 PhGuiSupportInitialization(
     VOID
-    );
-
-PHLIBAPI
-VOID
-NTAPI
-PhGuiSupportUpdateSystemMetrics(
-    _In_opt_ HWND WindowHandle,
-    _In_opt_ LONG WindowDpi
     );
 
 PHLIBAPI
@@ -1336,7 +1325,8 @@ VOID
 NTAPI
 PhGetStockApplicationIcon(
     _Out_opt_ HICON *SmallIcon,
-    _Out_opt_ HICON *LargeIcon
+    _Out_opt_ HICON *LargeIcon,
+    _In_ LONG WindowDpi
     );
 
 //PHLIBAPI

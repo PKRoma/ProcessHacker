@@ -2127,7 +2127,7 @@ LRESULT CALLBACK PhThemeWindowDrawToolbar(
                     if (buttonInfo.fsStyle & BTNS_SHOWTEXT)
                     {
                         DrawInfo->nmcd.rc.left += PhGetSystemMetrics(SM_CXEDGE, dpiValue); // PhGetDpi(5, dpiValue);
-                        x = DrawInfo->nmcd.rc.left;// + ((DrawInfo->nmcd.rc.right - DrawInfo->nmcd.rc.left) - PhSmallIconSize.X) / 2;
+                        x = DrawInfo->nmcd.rc.left;
                         y = DrawInfo->nmcd.rc.top + ((DrawInfo->nmcd.rc.bottom - DrawInfo->nmcd.rc.top) - bitmapHeight) / 2;
                     }
                     else

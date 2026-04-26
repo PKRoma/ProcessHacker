@@ -493,6 +493,7 @@ PhReferenceProcessItemForRecord(
 extern PPH_OBJECT_TYPE PhImageListItemType;
 extern HIMAGELIST PhProcessLargeImageList;
 extern HIMAGELIST PhProcessSmallImageList;
+extern LONG PhProcessImageListWindowDpi;
 
 // begin_phapppub
 PHAPPAPI

@@ -3074,7 +3074,7 @@ static VOID PhpRunFileSetImageList(
     {
         HBITMAP shieldBitmap;
 
-        if (shieldBitmap = PhGetShieldBitmap(Context->WindowDpi, PhSmallIconSize.X, PhSmallIconSize.Y))
+        if (shieldBitmap = PhGetShieldBitmap(Context->WindowDpi, PhGetSystemMetrics(SM_CXSMICON, Context->WindowDpi), PhGetSystemMetrics(SM_CYSMICON, Context->WindowDpi)))
         {
             PhImageListAddBitmap(Context->ImageListHandle, shieldBitmap, NULL);
             DeleteBitmap(shieldBitmap);
