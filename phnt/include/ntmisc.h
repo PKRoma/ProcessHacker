@@ -1206,7 +1206,7 @@ typedef struct _D3DKMT_GET_PROCESS_LIST
  * \param[in,out] GetProcessList A pointer to a \ref D3DKMT_GET_PROCESS_LIST structure that contains the processes using the graphics adapter.
  * \return NTSTATUS Successful or errant status.
  */
-EXTERN_C
+NTSYSAPI
 NTSTATUS
 NTAPI
 D3DKMTGetProcessList(
@@ -1232,7 +1232,7 @@ typedef struct _D3DKMT_ENUM_PROCESS_LIST
  * \param[in,out] EnumProcessList A pointer to a \ref D3DKMT_ENUM_PROCESS_LIST structure that contains the processes using the graphics adapter.
  * \return NTSTATUS Successful or errant status.
  */
-EXTERN_C
+NTSYSAPI
 NTSTATUS
 NTAPI
 D3DKMTEnumProcesses(
