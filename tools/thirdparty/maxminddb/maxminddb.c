@@ -178,7 +178,8 @@ static int lookup_path_in_map(const char *path_elem,
                               const MMDB_s *const mmdb,
                               MMDB_entry_data_s *entry_data);
 static int skip_map_or_array(const MMDB_s *const mmdb,
-                             MMDB_entry_data_s *entry_data);
+                             MMDB_entry_data_s *entry_data,
+                            int depth);
 static int decode_one_follow(const MMDB_s *const mmdb,
                              uint32_t offset,
                              MMDB_entry_data_s *entry_data);
@@ -1944,17 +1945,23 @@ static void free_mmdb_struct(MMDB_s *const mmdb) {
          * to cleanup then. */
         //WSACleanup();
 #else
-#if defined(__clang__)
-// This is a const char * that we need to free, which isn't valid. However it
-// would mean changing the public API to fix this.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-qual"
-#endif
+    #if defined(__clang__)
+        // This is a const char * that we need to free, which isn't valid.
+        // However it would mean changing the public API to fix this.
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wcast-qual"
+    #endif
         munmap((void *)mmdb->file_content, (size_t)mmdb->file_size);
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
 #endif
+        mmdb->file_content = NULL;
+        mmdb->file_size = 0;
+        mmdb->data_section = NULL;
+        mmdb->data_section_size = 0;
+        mmdb->metadata_section = NULL;
+        mmdb->metadata_section_size = 0;
     }
 
     if (NULL != mmdb->metadata.database_type) {
@@ -2038,7 +2045,7 @@ static void free_descriptions_metadata(MMDB_s *mmdb) {
     mmdb->metadata.description.count = 0;
 }
 
-const char *MMDB_lib_version(void) { return PACKAGE_VERSION; }
+//const char *MMDB_lib_version(void) { return PACKAGE_VERSION; }
 
 int MMDB_dump_entry_data_list(FILE *const stream,
                               MMDB_entry_data_list_s *const entry_data_list,
