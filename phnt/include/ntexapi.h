@@ -583,7 +583,7 @@ NTAPI
 NtCreateEvent(
     _Out_ PHANDLE EventHandle,
     _In_ ACCESS_MASK DesiredAccess,
-    _In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
+    _In_opt_ PCOBJECT_ATTRIBUTES ObjectAttributes,
     _In_ EVENT_TYPE EventType,
     _In_ BOOLEAN InitialState
     );
@@ -603,7 +603,7 @@ NTAPI
 NtOpenEvent(
     _Out_ PHANDLE EventHandle,
     _In_ ACCESS_MASK DesiredAccess,
-    _In_ POBJECT_ATTRIBUTES ObjectAttributes
+    _In_ PCOBJECT_ATTRIBUTES ObjectAttributes
     );
 
 /**
@@ -10136,42 +10136,45 @@ NtQueryInformationAtom(
     );
 
 //
-// Global flags
+// Global flags (NtGlobalFlag)
+//
+// \see https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/gflags-flag-table
 //
 
-#define FLG_STOP_ON_EXCEPTION 0x00000001 // uk
-#define FLG_SHOW_LDR_SNAPS 0x00000002 // uk
-#define FLG_DEBUG_INITIAL_COMMAND 0x00000004 // k
-#define FLG_STOP_ON_HUNG_GUI 0x00000008 // k
-#define FLG_HEAP_ENABLE_TAIL_CHECK 0x00000010 // u
-#define FLG_HEAP_ENABLE_FREE_CHECK 0x00000020 // u
-#define FLG_HEAP_VALIDATE_PARAMETERS 0x00000040 // u
-#define FLG_HEAP_VALIDATE_ALL 0x00000080 // u
-#define FLG_APPLICATION_VERIFIER 0x00000100 // u
-#define FLG_MONITOR_SILENT_PROCESS_EXIT 0x00000200 // uk
-#define FLG_POOL_ENABLE_TAGGING 0x00000400 // k
-#define FLG_HEAP_ENABLE_TAGGING 0x00000800 // u
-#define FLG_USER_STACK_TRACE_DB 0x00001000 // u,32
-#define FLG_KERNEL_STACK_TRACE_DB 0x00002000 // k,32
-#define FLG_MAINTAIN_OBJECT_TYPELIST 0x00004000 // k
-#define FLG_HEAP_ENABLE_TAG_BY_DLL 0x00008000 // u
-#define FLG_DISABLE_STACK_EXTENSION 0x00010000 // u
-#define FLG_ENABLE_CSRDEBUG 0x00020000 // k
-#define FLG_ENABLE_KDEBUG_SYMBOL_LOAD 0x00040000 // k
-#define FLG_DISABLE_PAGE_KERNEL_STACKS 0x00080000 // k
-#define FLG_ENABLE_SYSTEM_CRIT_BREAKS 0x00100000 // u
-#define FLG_HEAP_DISABLE_COALESCING 0x00200000 // u
-#define FLG_ENABLE_CLOSE_EXCEPTIONS 0x00400000 // k
-#define FLG_ENABLE_EXCEPTION_LOGGING 0x00800000 // k
-#define FLG_ENABLE_HANDLE_TYPE_TAGGING 0x01000000 // k
-#define FLG_HEAP_PAGE_ALLOCS 0x02000000 // u
-#define FLG_DEBUG_INITIAL_COMMAND_EX 0x04000000 // k
-#define FLG_DISABLE_DBGPRINT 0x08000000 // k
-#define FLG_CRITSEC_EVENT_CREATION 0x10000000 // u
-#define FLG_LDR_TOP_DOWN 0x20000000 // u,64
-#define FLG_ENABLE_HANDLE_EXCEPTIONS 0x40000000 // k
-#define FLG_DISABLE_PROTDLLS 0x80000000 // u
-#define FLG_VALID_BITS 0xfffffdff
+#define FLG_STOP_ON_EXCEPTION 0x00000001            // Stop on exception (R,K,I)
+#define FLG_SHOW_LDR_SNAPS 0x00000002               // Show loader snaps (R,K,I)
+#define FLG_DEBUG_INITIAL_COMMAND 0x00000004        // Debug initial command (R)
+#define FLG_STOP_ON_HUNG_GUI 0x00000008             // Stop on hung GUI (K)
+#define FLG_HEAP_ENABLE_TAIL_CHECK 0x00000010       // Enable heap tail checking (R,K,I)
+#define FLG_HEAP_ENABLE_FREE_CHECK 0x00000020       // Enable heap free checking (R,K,I)
+#define FLG_HEAP_VALIDATE_PARAMETERS 0x00000040     // Enable heap parameter checking (R,K,I)
+#define FLG_HEAP_VALIDATE_ALL 0x00000080            // Enable heap validation on call (R,K,I)
+#define FLG_APPLICATION_VERIFIER 0x00000100         // Enable application verifier (R,K,I)
+#define FLG_MONITOR_SILENT_PROCESS_EXIT 0x00000200  // Enable silent process exit monitoring (R)
+#define FLG_POOL_ENABLE_TAGGING 0x00000400          // Enable pool tagging (R)
+#define FLG_HEAP_ENABLE_TAGGING 0x00000800          // Enable heap tagging (R,K,I)
+#define FLG_USER_STACK_TRACE_DB 0x00001000          // Create user mode stack trace database (R,K,I)
+#define FLG_KERNEL_STACK_TRACE_DB 0x00002000        // Create kernel mode stack trace database (R)
+#define FLG_MAINTAIN_OBJECT_TYPELIST 0x00004000     // Maintain a list of objects for each type (R)
+#define FLG_HEAP_ENABLE_TAG_BY_DLL 0x00008000       // Enable heap tagging by DLL (R,K,I)
+#define FLG_DISABLE_STACK_EXTENSION 0x00010000      // Disable stack extension (I)
+#define FLG_ENABLE_CSRDEBUG 0x00020000              // Enable debugging of Win32 subsystem (R)
+#define FLG_ENABLE_KDEBUG_SYMBOL_LOAD 0x00040000    // Enable loading of kernel debugger symbols (R,K)
+#define FLG_DISABLE_PAGE_KERNEL_STACKS 0x00080000   // Disable paging of kernel stacks (R)
+#define FLG_ENABLE_SYSTEM_CRIT_BREAKS 0x00100000    // Enable system critical breaks (R,K,I)
+#define FLG_HEAP_DISABLE_COALESCING 0x00200000      // Disable heap coalesce on free (R,K,I)
+#define FLG_ENABLE_CLOSE_EXCEPTIONS 0x00400000      // Enable close exception (R,K)
+#define FLG_ENABLE_EXCEPTION_LOGGING 0x00800000     // Enable exception logging (R,K)
+#define FLG_ENABLE_HANDLE_TYPE_TAGGING 0x01000000   // Enable object handle type tagging (R,K)
+#define FLG_HEAP_PAGE_ALLOCS 0x02000000             // Enable page heap (R,K,I)
+#define FLG_DEBUG_INITIAL_COMMAND_EX 0x04000000     // Debug WinLogon (R)
+#define FLG_DISABLE_DBGPRINT 0x08000000             // Buffer DbgPrint Output (R,K)
+#define FLG_CRITSEC_EVENT_CREATION 0x10000000       // Early critical section event creation (R,K,I)
+#define FLG_STOP_ON_UNHANDLED_EXCEPTION 0x20000000  // Stop on unhandled user-mode exception (R,K,I)
+#define FLG_LDR_TOP_DOWN 0x20000000                 // Load image using large pages if possible (I)
+#define FLG_ENABLE_HANDLE_EXCEPTIONS 0x40000000     // Enable bad handles detection (R,K)
+#define FLG_DISABLE_PROTDLLS 0x80000000             // Disable protected DLL verification (R,K,I)
+#define FLG_VALID_BITS 0xffffffff
 
 #define FLG_USERMODE_VALID_BITS (FLG_STOP_ON_EXCEPTION | \
     FLG_SHOW_LDR_SNAPS | \
@@ -10180,6 +10183,7 @@ NtQueryInformationAtom(
     FLG_HEAP_VALIDATE_PARAMETERS | \
     FLG_HEAP_VALIDATE_ALL | \
     FLG_APPLICATION_VERIFIER | \
+    FLG_MONITOR_SILENT_PROCESS_EXIT | \
     FLG_HEAP_ENABLE_TAGGING | \
     FLG_USER_STACK_TRACE_DB | \
     FLG_HEAP_ENABLE_TAG_BY_DLL | \
@@ -10189,6 +10193,7 @@ NtQueryInformationAtom(
     FLG_DISABLE_PROTDLLS | \
     FLG_HEAP_PAGE_ALLOCS | \
     FLG_CRITSEC_EVENT_CREATION | \
+    FLG_STOP_ON_UNHANDLED_EXCEPTION | \
     FLG_LDR_TOP_DOWN)
 
 #define FLG_BOOTONLY_VALID_BITS (FLG_KERNEL_STACK_TRACE_DB | \
