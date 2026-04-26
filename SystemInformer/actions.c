@@ -7137,33 +7137,66 @@ BOOLEAN PhUiSetAttributesHandle(
 
     if (KsiLevel() < KphLevelMax)
     {
-        PhShowKsiNotConnected(
-            WindowHandle,
-            L"Setting handle attributes requires a connection to the kernel driver."
+        status = PhOpenProcess(
+            &processHandle,
+            PROCESS_ALL_ACCESS,
+            ProcessId
             );
-        return FALSE;
-    }
 
-    if (NT_SUCCESS(status = PhOpenProcess(
-        &processHandle,
-        PROCESS_SET_INFORMATION,
-        ProcessId
-        )))
-    {
-        OBJECT_HANDLE_FLAG_INFORMATION handleFlagInfo;
+        if (NT_SUCCESS(status))
+        {
+            ULONG mask = HANDLE_FLAG_INHERIT | HANDLE_FLAG_PROTECT_FROM_CLOSE;
+            ULONG flags = 0;
 
-        handleFlagInfo.Inherit = !!(Attributes & OBJ_INHERIT);
-        handleFlagInfo.ProtectFromClose = !!(Attributes & OBJ_PROTECT_CLOSE);
+            if (FlagOn(Attributes, OBJ_INHERIT))
+            {
+                SetFlag(flags, HANDLE_FLAG_INHERIT);
+            }
 
-        status = KphSetInformationObject(
-            processHandle,
-            Handle->Handle,
-            KphObjectHandleFlagInformation,
-            &handleFlagInfo,
-            sizeof(OBJECT_HANDLE_FLAG_INFORMATION)
-            );
+            if (FlagOn(Attributes, OBJ_PROTECT_CLOSE))
+            {
+                SetFlag(flags, HANDLE_FLAG_PROTECT_FROM_CLOSE);
+            }
+
+            status = PhSetHandleInformationRemote(
+                processHandle,
+                Handle->Handle,
+                mask,
+                flags,
+                NULL
+                );
+        }
+        else
+        {
+            PhShowStatus(WindowHandle, L"Setting handle attributes requires a connection to the kernel driver.", status, 0);
+            return FALSE;
+        }
 
         NtClose(processHandle);
+    }
+    else
+    {
+        if (NT_SUCCESS(status = PhOpenProcess(
+            &processHandle,
+            PROCESS_SET_INFORMATION,
+            ProcessId
+            )))
+        {
+            OBJECT_HANDLE_FLAG_INFORMATION handleFlagInfo;
+
+            handleFlagInfo.Inherit = !!(Attributes & OBJ_INHERIT);
+            handleFlagInfo.ProtectFromClose = !!(Attributes & OBJ_PROTECT_CLOSE);
+
+            status = KphSetInformationObject(
+                processHandle,
+                Handle->Handle,
+                KphObjectHandleFlagInformation,
+                &handleFlagInfo,
+                sizeof(OBJECT_HANDLE_FLAG_INFORMATION)
+                );
+
+            NtClose(processHandle);
+        }
     }
 
     if (!NT_SUCCESS(status))
