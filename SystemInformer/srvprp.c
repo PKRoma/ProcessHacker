@@ -60,6 +60,14 @@ INT_PTR CALLBACK PhpServiceGeneralDlgProc(
     _In_ LPARAM lParam
     );
 
+/**
+ * Callback function to open a service object.
+ *
+ * \param Handle A variable which receives the handle.
+ * \param DesiredAccess The desired access to the service.
+ * \param Context The callback context.
+ * \return STATUS_SUCCESS if successful, otherwise an NTSTATUS error code.
+ */
 _Function_class_(PH_OPEN_OBJECT)
 static NTSTATUS PhpOpenServiceCallback(
     _Out_ PHANDLE Handle,
@@ -87,6 +95,14 @@ static NTSTATUS PhpOpenServiceCallback(
     return status;
 }
 
+/**
+ * Callback function to close a service object.
+ *
+ * \param Handle The handle to close.
+ * \param Release Whether to release the context.
+ * \param Context The callback context.
+ * \return STATUS_SUCCESS.
+ */
 _Function_class_(PH_CLOSE_OBJECT)
 NTSTATUS PhpCloseServiceCallback(
     _In_opt_ HANDLE Handle,
@@ -107,6 +123,14 @@ NTSTATUS PhpCloseServiceCallback(
     return STATUS_SUCCESS;
 }
 
+/**
+ * Callback function to set service security.
+ *
+ * \param SecurityDescriptor The security descriptor.
+ * \param SecurityInformation The security information.
+ * \param Context The callback context.
+ * \return STATUS_SUCCESS if successful, otherwise an NTSTATUS error code.
+ */
 _Function_class_(PH_SET_OBJECT_SECURITY)
 static _Callback_ NTSTATUS PhpSetServiceSecurityCallback(
     _In_ PSECURITY_DESCRIPTOR SecurityDescriptor,
@@ -141,6 +165,15 @@ static _Callback_ NTSTATUS PhpSetServiceSecurityCallback(
     return status;
 }
 
+/**
+ * Window procedure for the service property sheet.
+ *
+ * \param hwnd The handle to the window.
+ * \param uMsg The message being processed.
+ * \param wParam Message-specific parameter.
+ * \param lParam Message-specific parameter.
+ * \return The result of the message processing.
+ */
 LRESULT CALLBACK PhpPropSheetSrvWndProc(
     _In_ HWND hwnd,
     _In_ UINT uMsg,
@@ -196,6 +229,14 @@ LRESULT CALLBACK PhpPropSheetSrvWndProc(
     return CallWindowProc(oldWndProc, hwnd, uMsg, wParam, lParam);
 }
 
+/**
+ * Property sheet procedure for the service properties.
+ *
+ * \param hwndDlg The handle to the property sheet.
+ * \param uMsg The message being processed.
+ * \param lParam Message-specific parameter.
+ * \return The result of the message processing.
+ */
 LONG CALLBACK PhpPropSheetSrvProc(
     _In_ HWND hwndDlg,
     _In_ UINT uMsg,
@@ -206,7 +247,7 @@ LONG CALLBACK PhpPropSheetSrvProc(
     {
     case PSCB_INITIALIZED:
         {
-            PhSetWindowContext(hwndDlg, 0xF, (PVOID)PhGetWindowProcedure(hwndDlg));
+            PhSetWindowContext(hwndDlg, 0xF, PhGetWindowProcedure(hwndDlg));
             PhSetWindowProcedure(hwndDlg, PhpPropSheetSrvWndProc);
         }
         break;
@@ -215,6 +256,12 @@ LONG CALLBACK PhpPropSheetSrvProc(
     return 0;
 }
 
+/**
+ * Thread function for showing service properties.
+ *
+ * \param Context The thread context.
+ * \return STATUS_SUCCESS.
+ */
 _Function_class_(USER_THREAD_START_ROUTINE)
 NTSTATUS PhpShowServicePropertiesThread(
     _In_ PVOID Context
@@ -277,6 +324,12 @@ NTSTATUS PhpShowServicePropertiesThread(
     return STATUS_SUCCESS;
 }
 
+/**
+ * Shows the service properties.
+ *
+ * \param ParentWindowHandle The parent window handle.
+ * \param ServiceItem The service item.
+ */
 VOID PhShowServiceProperties(
     _In_ HWND ParentWindowHandle,
     _In_ PPH_SERVICE_ITEM ServiceItem
@@ -286,6 +339,11 @@ VOID PhShowServiceProperties(
     PhCreateThread2(PhpShowServicePropertiesThread, ServiceItem);
 }
 
+/**
+ * Refreshes the icon of the service properties dialog.
+ *
+ * \param Context The service properties context.
+ */
 static VOID PhServicePropertiesRefreshIcon(
     _In_ PSERVICE_PROPERTIES_CONTEXT Context
     )
@@ -308,6 +366,11 @@ static VOID PhServicePropertiesRefreshIcon(
     }
 }
 
+/**
+ * Refreshes the state of the controls in the service properties dialog.
+ *
+ * \param Context The service properties context.
+ */
 static VOID PhServicePropertiesRefreshControls(
     _In_ PSERVICE_PROPERTIES_CONTEXT Context
     )
@@ -340,6 +403,15 @@ static VOID PhServicePropertiesRefreshControls(
     }
 }
 
+/**
+ * Dialog procedure for the general service properties tab.
+ *
+ * \param hwndDlg The handle to the dialog.
+ * \param uMsg The message being processed.
+ * \param wParam Message-specific parameter.
+ * \param lParam Message-specific parameter.
+ * \return TRUE if the message was handled, otherwise FALSE.
+ */
 INT_PTR CALLBACK PhpServiceGeneralDlgProc(
     _In_ HWND hwndDlg,
     _In_ UINT uMsg,
