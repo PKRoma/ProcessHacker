@@ -90,6 +90,12 @@ HWND PhCreateServiceListControl(
     return windowHandle;
 }
 
+/**
+ * Callback function for service list modification events.
+ *
+ * \param Parameter The callback parameter.
+ * \param Context The callback context.
+ */
 _Function_class_(PH_CALLBACK_FUNCTION)
 VOID NTAPI PhServiceListModifiedHandler(
     _In_ PVOID Parameter,
@@ -105,6 +111,12 @@ VOID NTAPI PhServiceListModifiedHandler(
     PostMessage(servicesContext->WindowHandle, WM_PH_SERVICE_PAGE_MODIFIED, 0, (LPARAM)copy);
 }
 
+/**
+ * Updates the state of the service controls.
+ *
+ * \param hWnd The handle to the dialog.
+ * \param ServiceItem The service item.
+ */
 VOID PhpFixProcessServicesControls(
     _In_ HWND hWnd,
     _In_opt_ PPH_SERVICE_ITEM ServiceItem
@@ -183,6 +195,15 @@ VOID PhpFixProcessServicesControls(
     }
 }
 
+/**
+ * Dialog procedure for the services page.
+ *
+ * \param hwndDlg The handle to the dialog.
+ * \param uMsg The message being processed.
+ * \param wParam Message-specific parameter.
+ * \param lParam Message-specific parameter.
+ * \return TRUE if the message was handled, otherwise FALSE.
+ */
 INT_PTR CALLBACK PhpServicesPageProc(
     _In_ HWND hwndDlg,
     _In_ UINT uMsg,
