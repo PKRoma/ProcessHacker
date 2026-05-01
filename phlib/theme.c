@@ -22,6 +22,7 @@
 typedef struct _PHP_THEME_WINDOW_TAB_CONTEXT
 {
     WNDPROC DefaultWindowProc;
+    LONG WindowDpi;
     BOOLEAN MouseActive;
     POINT CursorPos;
 } PHP_THEME_WINDOW_TAB_CONTEXT, *PPHP_THEME_WINDOW_TAB_CONTEXT;
@@ -29,7 +30,7 @@ typedef struct _PHP_THEME_WINDOW_TAB_CONTEXT
 typedef struct _PHP_THEME_WINDOW_STATUSBAR_CONTEXT
 {
     WNDPROC DefaultWindowProc;
-
+    LONG WindowDpi;
     struct
     {
        BOOLEAN Flags;
@@ -56,6 +57,7 @@ typedef struct _PHP_THEME_WINDOW_COMBO_CONTEXT
 {
     WNDPROC DefaultWindowProc;
     HTHEME ThemeHandle;
+    LONG WindowDpi;
     POINT CursorPos;
 } PHP_THEME_WINDOW_COMBO_CONTEXT, *PPHP_THEME_WINDOW_COMBO_CONTEXT;
 
@@ -620,6 +622,7 @@ VOID PhInitializeThemeWindowTabControl(
 
     context = PhAllocateZero(sizeof(PHP_THEME_WINDOW_TAB_CONTEXT));
     context->DefaultWindowProc = PhGetWindowProcedure(TabControlWindow);
+    context->WindowDpi = PhGetWindowDpi(TabControlWindow);
     context->CursorPos.x = LONG_MIN;
     context->CursorPos.y = LONG_MIN;
 
@@ -669,6 +672,7 @@ VOID PhInitializeWindowThemeListboxControl(
 
     context = PhAllocateZero(sizeof(PHP_THEME_WINDOW_STATUSBAR_CONTEXT));
     context->DefaultWindowProc = (WNDPROC)GetWindowLongPtr(ListBoxControl, GWLP_WNDPROC);
+    context->WindowDpi = PhGetWindowDpi(ListBoxControl);
     context->CursorPos.x = LONG_MIN;
     context->CursorPos.y = LONG_MIN;
 
@@ -687,7 +691,8 @@ VOID PhInitializeWindowThemeComboboxControl(
 
     context = PhAllocateZero(sizeof(PHP_THEME_WINDOW_COMBO_CONTEXT));
     context->DefaultWindowProc = (WNDPROC)GetWindowLongPtr(ComboBoxControl, GWLP_WNDPROC);
-    context->ThemeHandle = PhOpenThemeData(ComboBoxControl, VSCLASS_COMBOBOX, PhGetWindowDpi(ComboBoxControl));
+    context->WindowDpi = PhGetWindowDpi(ComboBoxControl);
+    context->ThemeHandle = PhOpenThemeData(ComboBoxControl, VSCLASS_COMBOBOX, context->WindowDpi);
     context->CursorPos.x = LONG_MIN;
     context->CursorPos.y = LONG_MIN;
 
@@ -1131,8 +1136,8 @@ BOOLEAN PhThemeWindowDrawItem(
 
                 oldTextColor = SetTextColor(DrawInfo->hDC, PhThemeWindowTextColor);
 
-                DrawInfo->rcItem.left += PhGetDpi(8, dpiValue);
-                DrawInfo->rcItem.top += PhGetDpi(3, dpiValue);
+                DrawInfo->rcItem.left += PhScaleToDisplay(8, dpiValue);
+                DrawInfo->rcItem.top += PhScaleToDisplay(3, dpiValue);
                 DrawText(
                     DrawInfo->hDC,
                     menuCheckText.Buffer,
@@ -1140,8 +1145,8 @@ BOOLEAN PhThemeWindowDrawItem(
                     &DrawInfo->rcItem,
                     DT_VCENTER | DT_NOCLIP
                     );
-                DrawInfo->rcItem.left -= PhGetDpi(8, dpiValue);
-                DrawInfo->rcItem.top -= PhGetDpi(3, dpiValue);
+                DrawInfo->rcItem.left -= PhScaleToDisplay(8, dpiValue);
+                DrawInfo->rcItem.top -= PhScaleToDisplay(3, dpiValue);
 
                 SetTextColor(DrawInfo->hDC, oldTextColor);
             }
@@ -1158,8 +1163,8 @@ BOOLEAN PhThemeWindowDrawItem(
                 //SetDCBrushColor(DrawInfo->hDC, PhThemeWindowBackgroundColor); // PhThemeWindowForegroundColor
                 FillRect(DrawInfo->hDC, &DrawInfo->rcItem, PhThemeWindowBackgroundBrush);
 
-                //DrawInfo->rcItem.top += PhGetDpi(1, dpiValue);
-                //DrawInfo->rcItem.bottom -= PhGetDpi(2, dpiValue);
+                //DrawInfo->rcItem.top += PhScaleToDisplay(1, dpiValue);
+                //DrawInfo->rcItem.bottom -= PhScaleToDisplay(2, dpiValue);
                 //DrawFocusRect(drawInfo->hDC, &drawInfo->rcItem);
 
                 // +5 font margin, +1 extra padding
@@ -1234,8 +1239,8 @@ BOOLEAN PhThemeWindowDrawItem(
                     DeleteDC(bufferDc);
                 }
 
-                DrawInfo->rcItem.left += PhGetDpi(25, dpiValue);
-                DrawInfo->rcItem.right -= PhGetDpi(25, dpiValue);
+                DrawInfo->rcItem.left += PhScaleToDisplay(25, dpiValue);
+                DrawInfo->rcItem.right -= PhScaleToDisplay(25, dpiValue);
 
                 if ((menuItemInfo->Flags & PH_EMENU_MAINMENU) == PH_EMENU_MAINMENU)
                 {
@@ -1290,7 +1295,7 @@ BOOLEAN PhThemeWindowDrawItem(
                     //if (IsThemeBackgroundPartiallyTransparent(themeHandle, MENU_POPUPSUBMENU, isDisabled ? MSM_DISABLED : MSM_NORMAL))
                     //    DrawThemeParentBackground(DrawInfo->hwndItem, DrawInfo->hDC, NULL);
 
-                    rect.left = rect.right - PhGetDpi(25, dpiValue);
+                    rect.left = rect.right - PhScaleToDisplay(25, dpiValue);
 
                     PhDrawThemeBackground(
                         themeHandle,
@@ -1359,8 +1364,8 @@ BOOLEAN PhThemeWindowMeasureItem(
         PPH_EMENU_ITEM menuItemInfo = (PPH_EMENU_ITEM)DrawInfo->itemData;
         LONG dpiValue = PhGetWindowDpi(WindowHandle);
 
-        DrawInfo->itemWidth = PhGetDpi(100, dpiValue);
-        DrawInfo->itemHeight = PhGetDpi(100, dpiValue);
+        DrawInfo->itemWidth = PhScaleToDisplay(100, dpiValue);
+        DrawInfo->itemHeight = PhScaleToDisplay(100, dpiValue);
 
         if ((menuItemInfo->Flags & PH_EMENU_SEPARATOR) == PH_EMENU_SEPARATOR)
         {
@@ -1402,8 +1407,8 @@ BOOLEAN PhThemeWindowMeasureItem(
                 {
                     if (GetTextExtentPoint32(hdc, text, (ULONG)textCount, &textSize))
                     {
-                        DrawInfo->itemWidth = textSize.cx + (cyborder * 2) + PhGetDpi(90, dpiValue); // HACK
-                        DrawInfo->itemHeight = cymenu + (cyborder * 2) + PhGetDpi(1, dpiValue);
+                        DrawInfo->itemWidth = textSize.cx + (cyborder * 2) + PhScaleToDisplay(90, dpiValue); // HACK
+                        DrawInfo->itemHeight = cymenu + (cyborder * 2) + PhScaleToDisplay(1, dpiValue);
                     }
                 }
 
@@ -1594,7 +1599,7 @@ VOID PhThemeDrawButtonIcon(
 
         if (Button_GetImageList(DrawInfo->hdr.hwndFrom, &imageList) && imageList.himl)
         {
-            ButtonRect->left += PhGetDpi(1, WindowDpi);
+            ButtonRect->left += PhScaleToDisplay(1, WindowDpi);
 
             PhImageListDrawIcon(
                 imageList.himl,
@@ -1606,7 +1611,7 @@ VOID PhThemeDrawButtonIcon(
                 FALSE
                 );
 
-            ButtonRect->left += PhGetDpi(5, WindowDpi);
+            ButtonRect->left += PhScaleToDisplay(5, WindowDpi);
         }
     }
 }
@@ -2126,7 +2131,7 @@ LRESULT CALLBACK PhThemeWindowDrawToolbar(
 
                     if (buttonInfo.fsStyle & BTNS_SHOWTEXT)
                     {
-                        DrawInfo->nmcd.rc.left += PhGetSystemMetrics(SM_CXEDGE, dpiValue); // PhGetDpi(5, dpiValue);
+                        DrawInfo->nmcd.rc.left += PhGetSystemMetrics(SM_CXEDGE, dpiValue); // PhScaleToDisplay(5, dpiValue);
                         x = DrawInfo->nmcd.rc.left;
                         y = DrawInfo->nmcd.rc.top + ((DrawInfo->nmcd.rc.bottom - DrawInfo->nmcd.rc.top) - bitmapHeight) / 2;
                     }
@@ -2179,7 +2184,7 @@ LRESULT CALLBACK PhThemeWindowDrawToolbar(
                     (LPARAM)buttonText
                     );
 
-                textRect.left += bitmapWidth - (isDropDown * 12); // PhGetDpi(10, dpiValue);
+                textRect.left += bitmapWidth - (isDropDown * 12); // PhScaleToDisplay(10, dpiValue);
                 DrawText(
                     DrawInfo->nmcd.hdc,
                     buttonText,
@@ -2216,7 +2221,7 @@ LRESULT CALLBACK PhpThemeWindowDrawListViewGroup(
 
                 if (PhGetSystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, dpiValue))
                 {
-                    metrics.lfMessageFont.lfHeight = PhGetDpi(-11, dpiValue);
+                    metrics.lfMessageFont.lfHeight = PhScaleToDisplay(-11, dpiValue);
                     metrics.lfMessageFont.lfWeight = FW_BOLD;
 
                     fontHandle = CreateFontIndirect(&metrics.lfMessageFont);
@@ -2239,15 +2244,15 @@ LRESULT CALLBACK PhpThemeWindowDrawListViewGroup(
                 SetTextColor(DrawInfo->nmcd.hdc, PhThemeWindowTextColor);
                 SetDCBrushColor(DrawInfo->nmcd.hdc, PhThemeWindowBackground2Color);
 
-                DrawInfo->rcText.top += PhGetDpi(2, dpiValue);
-                DrawInfo->rcText.bottom -= PhGetDpi(2, dpiValue);
+                DrawInfo->rcText.top += PhScaleToDisplay(2, dpiValue);
+                DrawInfo->rcText.bottom -= PhScaleToDisplay(2, dpiValue);
                 FillRect(DrawInfo->nmcd.hdc, &DrawInfo->rcText, PhGetStockBrush(DC_BRUSH));
-                DrawInfo->rcText.top -= PhGetDpi(2, dpiValue);
-                DrawInfo->rcText.bottom += PhGetDpi(2, dpiValue);
+                DrawInfo->rcText.top -= PhScaleToDisplay(2, dpiValue);
+                DrawInfo->rcText.bottom += PhScaleToDisplay(2, dpiValue);
 
                 if (groupInfo.pszHeader)
                 {
-                    DrawInfo->rcText.left += PhGetDpi(10, dpiValue);
+                    DrawInfo->rcText.left += PhScaleToDisplay(10, dpiValue);
                     DrawText(
                         DrawInfo->nmcd.hdc,
                         groupInfo.pszHeader,
@@ -2255,7 +2260,7 @@ LRESULT CALLBACK PhpThemeWindowDrawListViewGroup(
                         &DrawInfo->rcText,
                         DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_HIDEPREFIX
                         );
-                    DrawInfo->rcText.left -= PhGetDpi(10, dpiValue);
+                    DrawInfo->rcText.left -= PhScaleToDisplay(10, dpiValue);
                 }
             }
 
@@ -2430,7 +2435,7 @@ VOID ThemeWindowRenderGroupBoxControl(
         SetDCBrushColor(bufferDc, PhThemeWindowBackground2Color);
         FillRect(bufferDc, &bufferRect, PhGetStockBrush(DC_BRUSH));
 
-        bufferRect.left += PhGetDpi(10, dpiValue);
+        bufferRect.left += PhScaleToDisplay(10, dpiValue);
         DrawText(
             bufferDc,
             text,
@@ -2438,7 +2443,7 @@ VOID ThemeWindowRenderGroupBoxControl(
             &bufferRect,
             DT_LEFT | DT_END_ELLIPSIS | DT_SINGLELINE
             );
-        bufferRect.left -= PhGetDpi(10, dpiValue);
+        bufferRect.left -= PhScaleToDisplay(10, dpiValue);
     }
 }
 
@@ -2729,6 +2734,11 @@ LRESULT CALLBACK PhpThemeWindowTabControlWndSubclassProc(
             PhFree(context);
         }
         break;
+    case WM_THEMECHANGED:
+        {
+            context->WindowDpi = PhGetWindowDpi(WindowHandle);
+        }
+        break;
     case WM_ERASEBKGND:
         return TRUE;
     case WM_MOUSEMOVE:
@@ -2957,7 +2967,7 @@ LRESULT CALLBACK PhpThemeWindowListBoxControlSubclassProc(
             RECT clientRect;
             RECT windowRect;
             HRGN updateRegion;
-            LONG dpiValue = PhGetWindowDpi(WindowHandle);
+            LONG dpiValue = context->WindowDpi;
             INT cxEdge = PhGetSystemMetrics(SM_CXEDGE, dpiValue);
             INT cyEdge = PhGetSystemMetrics(SM_CYEDGE, dpiValue);
 
@@ -3026,6 +3036,11 @@ LRESULT CALLBACK PhpThemeWindowListBoxControlSubclassProc(
                 ReleaseDC(WindowHandle, hdc);
                 return TRUE;
             }
+        }
+        break;
+    case WM_THEMECHANGED:
+        {
+            context->WindowDpi = PhGetWindowDpi(WindowHandle);
         }
         break;
     }
@@ -3205,7 +3220,8 @@ LRESULT CALLBACK PhpThemeWindowComboBoxControlSubclassProc(
                 context->ThemeHandle = NULL;
             }
 
-            context->ThemeHandle = PhOpenThemeData(WindowHandle, VSCLASS_COMBOBOX, PhGetWindowDpi(WindowHandle));
+            context->WindowDpi = PhGetWindowDpi(WindowHandle);
+            context->ThemeHandle = PhOpenThemeData(WindowHandle, VSCLASS_COMBOBOX, context->WindowDpi);
         }
         break;
     case WM_ERASEBKGND:

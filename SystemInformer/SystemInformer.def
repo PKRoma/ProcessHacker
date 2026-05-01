@@ -795,11 +795,10 @@ EXPORTS
     PhGetRoamingAppDataDirectory
     PhGetStatusMessage
     PhGetSystemDirectory
-    PhGetSystemDpi
+    PhGetTaskbarDpi
     PhGetSystemMetrics
     PhGetSystemParametersInfo
     PhGetSystemRoot
-    PhGetTaskbarDpi
     PhGetTemporaryDirectoryRandomAlphaFileName
     PhGetUserLocaleInfoBool
     PhGetWin32Message
@@ -938,15 +937,18 @@ EXPORTS
     PhAddTabControlTab
     PhBitmapSetAlpha
     PhCloseThemeData
+    PhCreateApplicationFont
     PhCreateCommonFont
     PhCreateDialog
     PhCreateDIBSection
     PhCreateIconTitleFont
+    PhCreateTreeWindowFont
     PhCreateWindowEx
     PhDeleteLayoutManager
     PhDialogBox
     PhDrawThemeBackground
     PhDuplicateFont
+    PhDuplicateFontUpdateDpi
     PhDuplicateFontWithNewWeight
     PhEnumChildWindows
     PhEnumDesktops
@@ -1096,6 +1098,7 @@ EXPORTS
 ; secedit
     PhCreateSecurityPage
     PhEditSecurity
+    PhEditSecurityEx
     PhGetAccessEntries
     PhGetAccessString
     PhGetSeObjectSecurity

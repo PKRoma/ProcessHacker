@@ -270,7 +270,7 @@ static VOID PhpOptionsSetImageList(
 
     if (imageListHandle)
     {
-        PhImageListSetIconSize(imageListHandle, 2, PhGetDpi(24, dpiValue));
+        PhImageListSetIconSize(imageListHandle, 2, PhScaleToDisplay(24, dpiValue));
 
         if (Treeview)
             TreeView_SetImageList(WindowHandle, imageListHandle, TVSIL_NORMAL);
@@ -279,7 +279,7 @@ static VOID PhpOptionsSetImageList(
     }
     else
     {
-        if (imageListHandle = PhImageListCreate(2, PhGetDpi(24, dpiValue), ILC_MASK | ILC_COLOR32, 1, 1))
+        if (imageListHandle = PhImageListCreate(2, PhScaleToDisplay(24, dpiValue), ILC_MASK | ILC_COLOR32, 1, 1))
         {
             if (Treeview)
                 TreeView_SetImageList(WindowHandle, imageListHandle, TVSIL_NORMAL);
@@ -1902,6 +1902,23 @@ INT_PTR CALLBACK PhpOptionsGeneralDlgProc(
         break;
     case WM_DPICHANGED_AFTERPARENT:
         {
+            LOGFONT font;
+            HFONT fontHandle;
+
+            if (GetCurrentFont(&font) && (fontHandle = CreateFontIndirect(&font)))
+            {
+                PhReplaceWindowFont(&CurrentFontInstance, NULL, fontHandle, FALSE);
+                SetWindowFont(OptionsTreeControl, CurrentFontInstance, TRUE); // HACK
+                SetWindowFont(ListViewHandle, CurrentFontInstance, TRUE);
+                SetWindowFont(GetDlgItem(hwndDlg, IDC_FONT), CurrentFontInstance, TRUE);
+            }
+
+            if (GetCurrentFontMonospace(&font) && (fontHandle = CreateFontIndirect(&font)))
+            {
+                PhReplaceWindowFont(&CurrentFontMonospaceInstance, NULL, fontHandle, FALSE);
+                SetWindowFont(GetDlgItem(hwndDlg, IDC_FONTMONOSPACE), CurrentFontMonospaceInstance, TRUE);
+            }
+
             PhLayoutManagerUpdate(&LayoutManager, LOWORD(wParam));
             PhLayoutManagerLayout(&LayoutManager);
 

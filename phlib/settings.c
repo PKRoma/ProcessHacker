@@ -423,18 +423,18 @@ BOOLEAN PhGetScalableIntegerPairStringRefSetting(
 
     PhReleaseQueuedLockShared(&PhSettingsLock);
 
-    if (ScaleToDpi && value)
+    if (!value)
     {
-        if (value->Scale != Dpi && value->Scale != 0)
-        {
-            value->X = PhMultiplyDivideSigned(value->X, Dpi, value->Scale);
-            value->Y = PhMultiplyDivideSigned(value->Y, Dpi, value->Scale);
-            value->Scale = Dpi;
-        }
+        *ScalableIntegerPair = NULL;
+        return result;
+    }
+
+    if (ScaleToDpi)
+    {
+        PhScalableIntegerPairToScale(value, Dpi);
     }
 
     *ScalableIntegerPair = value;
-
     return result;
 }
 
@@ -546,14 +546,18 @@ VOID PhSetScalableIntegerPairStringRefSetting(
 VOID PhSetScalableIntegerPairStringRefSetting2(
     _In_ PCPH_STRINGREF Name,
     _In_ PPH_INTEGER_PAIR Value,
-    _In_ LONG dpiValue
+    _In_ LONG Dpi
     )
 {
     PH_SCALABLE_INTEGER_PAIR scalableIntegerPair;
 
+    // Store the size at the DPI it was saved at and let the load path rescale on demand
+    // (PhScalableIntegerPairToScale interprets the Scale field). Same-DPI round-trips are
+    // lossless; cross-DPI round-trips still pay a single MulDiv on load. (dmex)
     ZeroMemory(&scalableIntegerPair, sizeof(PH_SCALABLE_INTEGER_PAIR));
-    memcpy(&scalableIntegerPair.Pair, Value, sizeof(PH_INTEGER_PAIR));
-    scalableIntegerPair.Scale = dpiValue;
+    scalableIntegerPair.X = Value->X;
+    scalableIntegerPair.Y = Value->Y;
+    scalableIntegerPair.Scale = Dpi;
 
     PhSetScalableIntegerPairStringRefSetting(Name, &scalableIntegerPair);
 }
@@ -2608,8 +2612,9 @@ VOID PhLoadWindowPlacementFromRectangle(
 {
     PH_INTEGER_PAIR windowIntegerPair = { 0 };
     PPH_SCALABLE_INTEGER_PAIR scalableIntegerPair = NULL;
+    PH_SCALABLE_INTEGER_PAIR scaledIntegerPair;
     LONG windowDpi;
-    RECT windowRect;
+    RECT probeRect;
 
     windowIntegerPair = PhGetIntegerPairSetting(PositionSettingName);
     scalableIntegerPair = PhGetScalableIntegerPairSetting(SizeSettingName, FALSE, 0);
@@ -2621,10 +2626,14 @@ VOID PhLoadWindowPlacementFromRectangle(
     WindowRectangle->Position = windowIntegerPair;
     WindowRectangle->Size = scalableIntegerPair->Pair;
 
-    PhRectangleToRect(&windowRect, WindowRectangle);
-    windowDpi = PhGetMonitorDpi(NULL, &windowRect);
+    // Resolve the target monitor's DPI by rect (no window move required). (dmex)
+    PhRectangleToRect(&probeRect, WindowRectangle);
+    windowDpi = PhGetMonitorDpi(NULL, &probeRect);
 
-    PhScalableIntegerPairToScale(scalableIntegerPair, windowDpi);
+    scaledIntegerPair = *scalableIntegerPair;
+    PhScalableIntegerPairToScale(&scaledIntegerPair, windowDpi);
+    WindowRectangle->Size = scaledIntegerPair.Pair;
+
     PhAdjustRectangleToWorkingArea(NULL, WindowRectangle);
 }
 
@@ -2637,26 +2646,31 @@ BOOLEAN PhLoadWindowPlacementFromSetting(
     if (PositionSettingName && SizeSettingName)
     {
         PH_INTEGER_PAIR windowIntegerPair = { 0 };
-        PPH_SCALABLE_INTEGER_PAIR scalableIntegerPair = NULL;
+        PPH_SCALABLE_INTEGER_PAIR scalableIntegerPair;
+        PH_SCALABLE_INTEGER_PAIR scaledIntegerPair;
         PH_RECTANGLE windowRectangle = { 0 };
-        LONG dpi;
         RECT rectForAdjust;
+        RECT windowRect;
+        LONG dpi;
 
         windowIntegerPair = PhGetIntegerPairSetting(PositionSettingName);
+
+        if (windowIntegerPair.X == 0 && windowIntegerPair.Y == 0)
+        {
+            return FALSE;
+        }
+
         scalableIntegerPair = PhGetScalableIntegerPairSetting(SizeSettingName, FALSE, 0);
 
         if (!scalableIntegerPair)
+        {
             return FALSE;
+        }
 
         windowRectangle.Position = windowIntegerPair;
         windowRectangle.Size = scalableIntegerPair->Pair;
-
-        if (windowRectangle.Position.X == 0 && windowRectangle.Position.Y == 0)
-            return FALSE;
-
         PhAdjustRectangleToWorkingArea(NULL, &windowRectangle);
 
-        // Update the window position before querying the DPI or changing the size. (dmex)
         SetWindowPos(
             WindowHandle,
             NULL,
@@ -2667,24 +2681,34 @@ BOOLEAN PhLoadWindowPlacementFromSetting(
             SWP_NOACTIVATE | SWP_NOREDRAW | SWP_NOSIZE | SWP_NOZORDER
             );
 
-        //dpi = PhGetMonitorDpiFromRect(&windowRectangle);
+        if (!PhGetWindowRect(WindowHandle, &windowRect))
+        {
+            return FALSE;
+        }
+
+        windowRectangle.Left = windowRect.left;
+        windowRectangle.Top = windowRect.top;
         dpi = PhGetWindowDpi(WindowHandle);
-        PhScalableIntegerPairToScale(scalableIntegerPair, dpi);
 
-        RtlZeroMemory(&windowRectangle, sizeof(PH_RECTANGLE));
-        windowRectangle.Position = windowIntegerPair;
-        windowRectangle.Size = scalableIntegerPair->Pair;
+        scaledIntegerPair = *scalableIntegerPair;
+        PhScalableIntegerPairToScale(&scaledIntegerPair, dpi);
 
-        // Let the window adjust for the minimum size if needed.
+        windowRectangle.Size = scaledIntegerPair.Pair;
+
         PhRectangleToRect(&rectForAdjust, &windowRectangle);
         SendMessage(WindowHandle, WM_SIZING, WMSZ_BOTTOMRIGHT, (LPARAM)&rectForAdjust);
         PhRectToRectangle(&windowRectangle, &rectForAdjust);
 
-        // Make sure the window doesn't get positioned on disconnected monitors.
         PhAdjustRectangleToWorkingArea(NULL, &windowRectangle);
 
-        MoveWindow(WindowHandle, windowRectangle.Left, windowRectangle.Top,
-            windowRectangle.Width, windowRectangle.Height, FALSE);
+        MoveWindow(
+            WindowHandle,
+            windowRectangle.Left,
+            windowRectangle.Top,
+            windowRectangle.Width,
+            windowRectangle.Height,
+            FALSE
+            );
     }
     else
     {
@@ -2692,53 +2716,82 @@ BOOLEAN PhLoadWindowPlacementFromSetting(
         PH_INTEGER_PAIR position = { 0 };
         PH_INTEGER_PAIR size;
         ULONG flags;
+        RECT windowRect;
         LONG dpi;
 
         flags = SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOREDRAW | SWP_NOSIZE | SWP_NOZORDER;
 
+        if (!PhGetWindowRect(WindowHandle, &windowRect))
+        {
+            return FALSE;
+        }
+
+        position.X = windowRect.left;
+        position.Y = windowRect.top;
+        size.X = windowRect.right - windowRect.left;
+        size.Y = windowRect.bottom - windowRect.top;
+
         if (PositionSettingName)
         {
             position = PhGetIntegerPairSetting(PositionSettingName);
+
+            if (position.X == 0 && position.Y == 0)
+            {
+                return FALSE;
+            }
+
             ClearFlag(flags, SWP_NOMOVE);
-        }
-        else
-        {
-            position.X = 0;
-            position.Y = 0;
         }
 
         if (SizeSettingName)
         {
             PPH_SCALABLE_INTEGER_PAIR scalableIntegerPair;
-            //RECT rect;
-            //
-            //windowRectangle.Position = position;
-            //rect = PhRectangleToRect(windowRectangle);
-            //dpi = PhGetMonitorDpi(&rect);
-            dpi = PhGetWindowDpi(WindowHandle);
+            RECT probeRect;
+
+            probeRect.left = position.X;
+            probeRect.top = position.Y;
+            probeRect.right = probeRect.left + (size.X ? size.X : 1);
+            probeRect.bottom = probeRect.top + (size.Y ? size.Y : 1);
+
+            dpi = PositionSettingName ? PhGetMonitorDpi(NULL, &probeRect) : PhGetWindowDpi(WindowHandle);
+
             scalableIntegerPair = PhGetScalableIntegerPairSetting(SizeSettingName, TRUE, dpi);
 
             if (!scalableIntegerPair)
+            {
                 return FALSE;
+            }
 
             size = scalableIntegerPair->Pair;
             ClearFlag(flags, SWP_NOSIZE);
         }
-        else
+        else if (PositionSettingName)
         {
-            RECT windowRect;
+            windowRectangle.Position = position;
+            windowRectangle.Size = size;
+            PhAdjustRectangleToWorkingArea(NULL, &windowRectangle);
 
-            //size.X = 16;
-            //size.Y = 16;
+            SetWindowPos(
+                WindowHandle,
+                NULL,
+                windowRectangle.Left,
+                windowRectangle.Top,
+                0,
+                0,
+                SWP_NOACTIVATE | SWP_NOREDRAW | SWP_NOSIZE | SWP_NOZORDER
+                );
 
             if (!PhGetWindowRect(WindowHandle, &windowRect))
+            {
                 return FALSE;
+            }
 
+            position.X = windowRect.left;
+            position.Y = windowRect.top;
             size.X = windowRect.right - windowRect.left;
             size.Y = windowRect.bottom - windowRect.top;
         }
 
-        // Make sure the window doesn't get positioned on disconnected monitors. (dmex)
         windowRectangle.Position = position;
         windowRectangle.Size = size;
         PhAdjustRectangleToWorkingArea(NULL, &windowRectangle);
@@ -2757,28 +2810,37 @@ VOID PhSaveWindowPlacementToSetting(
 {
     WINDOWPLACEMENT placement = { sizeof(placement) };
     PH_RECTANGLE windowRectangle;
+    RECT screenRect;
+    HMONITOR monitorHandle;
     MONITORINFO monitorInfo = { sizeof(MONITORINFO) };
-    //RECT rect;
     LONG dpi;
 
-    GetWindowPlacement(WindowHandle, &placement);
+    if (!GetWindowPlacement(WindowHandle, &placement))
+    {
+        return;
+    }
+
     PhRectToRectangle(&windowRectangle, &placement.rcNormalPosition);
 
-    // The rectangle is in workspace coordinates. Convert the values back to screen coordinates.
-    if (GetMonitorInfo(MonitorFromRect(&placement.rcNormalPosition, MONITOR_DEFAULTTOPRIMARY), &monitorInfo))
+    // rcNormalPosition is in workspace coordinates. Convert back to screen coordinates.
+    monitorHandle = MonitorFromWindow(WindowHandle, MONITOR_DEFAULTTONEAREST);
+    if (GetMonitorInfo(monitorHandle, &monitorInfo))
     {
         windowRectangle.Left += monitorInfo.rcWork.left - monitorInfo.rcMonitor.left;
         windowRectangle.Top += monitorInfo.rcWork.top - monitorInfo.rcMonitor.top;
     }
 
-    //PhRectangleToRect(&rect, &windowRectangle);
-    //dpi = PhGetMonitorDpi(&rect);
-    dpi = PhGetWindowDpi(WindowHandle);
+    PhRectangleToRect(&screenRect, &windowRectangle);
+    dpi = PhGetMonitorDpi(NULL, &screenRect);
 
     if (PositionSettingName)
+    {
         PhSetIntegerPairSetting(PositionSettingName, windowRectangle.Position);
+    }
     if (SizeSettingName)
+    {
         PhSetScalableIntegerPairSetting2(SizeSettingName, windowRectangle.Size, dpi);
+    }
 }
 
 BOOLEAN PhLoadListViewColumnSettings(
