@@ -288,7 +288,7 @@ INT_PTR CALLBACK EtpDiskDialogProc(
             ShowWindow(DiskPanel, SW_SHOW);
 
             margin = panelItem->Margin;
-            PhGetSizeDpiValue(&margin, DiskSection->Parameters->WindowDpi, TRUE);
+            PhGetMarginDpiValue(&margin, DiskSection->Parameters->WindowDpi, TRUE);
             PhAddLayoutItemEx(&DiskLayoutManager, DiskPanel, NULL, PH_ANCHOR_LEFT | PH_ANCHOR_RIGHT | PH_ANCHOR_BOTTOM, &margin);
 
             EtpCreateDiskGraph();
@@ -388,7 +388,7 @@ VOID EtpCreateDiskGraph(
     VOID
     )
 {
-    DiskReadGraphHandle = CreateWindow(
+    DiskReadGraphHandle = PhCreateWindow(
         PH_GRAPH_CLASSNAME,
         NULL,
         WS_VISIBLE | WS_CHILD | WS_BORDER,
@@ -398,12 +398,12 @@ VOID EtpCreateDiskGraph(
         0,
         DiskDialog,
         NULL,
-        PluginInstance->DllBase,
+        NULL,
         NULL
         );
     Graph_SetTooltip(DiskReadGraphHandle, TRUE);
 
-    DiskWriteGraphHandle = CreateWindow(
+    DiskWriteGraphHandle = PhCreateWindow(
         PH_GRAPH_CLASSNAME,
         NULL,
         WS_VISIBLE | WS_CHILD | WS_BORDER,
@@ -413,7 +413,7 @@ VOID EtpCreateDiskGraph(
         0,
         DiskDialog,
         NULL,
-        PluginInstance->DllBase,
+        NULL,
         NULL
         );
     Graph_SetTooltip(DiskWriteGraphHandle, TRUE);
@@ -433,7 +433,7 @@ VOID EtpLayoutDiskGraphs(
     LONG graphPadding;
 
     marginRect = DiskGraphMargin;
-    PhGetSizeDpiValue(&marginRect, DiskSection->Parameters->WindowDpi, TRUE);
+    PhGetMarginDpiValue(&marginRect, DiskSection->Parameters->WindowDpi, TRUE);
     graphPadding = PhScaleToDisplay(GRAPH_PADDING, DiskSection->Parameters->WindowDpi);
 
     PhGetClientRect(WindowHandle, &clientRect);
@@ -1048,7 +1048,7 @@ INT_PTR CALLBACK EtpNetworkDialogProc(
             ShowWindow(NetworkPanel, SW_SHOW);
 
             margin = panelItem->Margin;
-            PhGetSizeDpiValue(&margin, NetworkSection->Parameters->WindowDpi, TRUE);
+            PhGetMarginDpiValue(&margin, NetworkSection->Parameters->WindowDpi, TRUE);
             PhAddLayoutItemEx(&NetworkLayoutManager, NetworkPanel, NULL, PH_ANCHOR_LEFT | PH_ANCHOR_RIGHT | PH_ANCHOR_BOTTOM, &margin);
 
             EtpCreateNetworkGraph();
@@ -1193,7 +1193,7 @@ VOID EtpLayoutNetworkGraphs(
     LONG graphPadding;
 
     marginRect = NetworkGraphMargin;
-    PhGetSizeDpiValue(&marginRect, NetworkSection->Parameters->WindowDpi, TRUE);
+    PhGetMarginDpiValue(&marginRect, NetworkSection->Parameters->WindowDpi, TRUE);
     graphPadding = PhScaleToDisplay(GRAPH_PADDING, NetworkSection->Parameters->WindowDpi);
 
     PhGetClientRect(WindowHandle, &clientRect);
