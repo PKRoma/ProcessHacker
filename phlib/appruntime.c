@@ -504,7 +504,7 @@ static HRESULT PhDetoursPackageSystemIdentificationInitialize(
     _In_ PPH_APPHWID_QUERY_CONTEXT Context
     )
 {
-    PVOID baseAddress = PhGetLoaderEntryAddressDllBase(Address);
+    PVOID baseAddress = PhGetLoaderEntryPcToFileHeader(Address);
 
     if (!baseAddress)
         return E_FAIL;
