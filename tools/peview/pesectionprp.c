@@ -33,6 +33,7 @@ typedef enum _PV_SECTION_TREE_COLUMN_ITEM
     PV_SECTION_TREE_COLUMN_ITEM_ENTROPY,
     PV_SECTION_TREE_COLUMN_ITEM_SSDEEP,
     PV_SECTION_TREE_COLUMN_ITEM_TLSH,
+    PV_SECTION_TREE_COLUMN_ITEM_SLACK_SIZE,
     PV_SECTION_TREE_COLUMN_ITEM_MAXIMUM
 } PV_SECTION_TREE_COLUMN_ITEM;
 
@@ -45,6 +46,7 @@ typedef struct _PV_SECTION_NODE
     PVOID RawStart;
     PVOID RawEnd;
     ULONG RawSize;
+    ULONG SlackSize;
     PVOID RvaStart;
     PVOID RvaEnd;
     ULONG RvaSize;
@@ -55,6 +57,7 @@ typedef struct _PV_SECTION_NODE
     PPH_STRING RawStartString;
     PPH_STRING RawEndString;
     PPH_STRING RawSizeString;
+    PPH_STRING SlackSizeString;
     PPH_STRING RvaStartString;
     PPH_STRING RvaEndString;
     PPH_STRING RvaSizeString;
@@ -297,6 +300,9 @@ NTSTATUS PvpPeSectionsEnumerateThread(
         sectionNode->RawEndString = PhCreateString(value);
         sectionNode->RawSize = PvMappedImage.Sections[i].SizeOfRawData;
         sectionNode->RawSizeString = PhFormatSize(sectionNode->RawSize, ULONG_MAX);
+        if (PvMappedImage.Sections[i].SizeOfRawData > PvMappedImage.Sections[i].Misc.VirtualSize)
+            sectionNode->SlackSize = PvMappedImage.Sections[i].SizeOfRawData - PvMappedImage.Sections[i].Misc.VirtualSize;
+        sectionNode->SlackSizeString = PhFormatSize(sectionNode->SlackSize, ULONG_MAX);
         // RVA
         sectionNode->RvaStart = UlongToPtr(PvMappedImage.Sections[i].VirtualAddress);
         PhPrintPointer(value, sectionNode->RvaStart);
@@ -994,6 +1000,12 @@ BEGIN_SORT_FUNCTION(Tlsh)
 }
 END_SORT_FUNCTION
 
+BEGIN_SORT_FUNCTION(SlackSize)
+{
+    sortResult = uintcmp(node1->SlackSize, node2->SlackSize);
+}
+END_SORT_FUNCTION
+
 BOOLEAN NTAPI PvSectionTreeNewCallback(
     _In_ HWND hwnd,
     _In_ PH_TREENEW_MESSAGE Message,
@@ -1036,6 +1048,7 @@ BOOLEAN NTAPI PvSectionTreeNewCallback(
                     SORT_FUNCTION(Entropy),
                     SORT_FUNCTION(Ssdeep),
                     SORT_FUNCTION(Tlsh),
+                    SORT_FUNCTION(SlackSize),
                 };
                 _CoreCrtSecureSearchSortCompareFunction sortFunction;
 
@@ -1093,6 +1106,9 @@ BOOLEAN NTAPI PvSectionTreeNewCallback(
                 break;
             case PV_SECTION_TREE_COLUMN_ITEM_RAW_SIZE:
                 getCellText->Text = PhGetStringRef(node->RawSizeString);
+                break;
+            case PV_SECTION_TREE_COLUMN_ITEM_SLACK_SIZE:
+                getCellText->Text = PhGetStringRef(node->SlackSizeString);
                 break;
             case PV_SECTION_TREE_COLUMN_ITEM_RVA_START:
                 getCellText->Text = PhGetStringRef(node->RvaStartString);
@@ -1276,6 +1292,7 @@ VOID PvInitializeSectionTree(
     PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_RAW_START, TRUE, L"RAW (start)", 100, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_RAW_START, 0, 0);
     PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_RAW_END, TRUE, L"RAW (end)", 100, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_RAW_END, 0, 0);
     PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_RAW_SIZE, TRUE, L"RAW (size)", 80, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_RAW_SIZE, 0, 0);
+    PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_SLACK_SIZE, TRUE, L"Slack space", 80, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_SLACK_SIZE, 0, 0);
     PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_RVA_START, TRUE, L"RVA (start)", 100, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_RVA_START, 0, 0);
     PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_RVA_END, TRUE, L"RVA (end)", 100, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_RVA_END, 0, 0);
     PhAddTreeNewColumnEx2(TreeNewHandle, PV_SECTION_TREE_COLUMN_ITEM_RVA_SIZE, TRUE, L"RVA (size)", 80, PH_ALIGN_LEFT, PV_SECTION_TREE_COLUMN_ITEM_RVA_SIZE, 0, 0);
@@ -1342,6 +1359,12 @@ BOOLEAN PvSectionTreeFilterCallback(
     if (!PhIsNullOrEmptyString(node->RawSizeString))
     {
         if (PvSearchControlMatch(context->SearchMatchHandle, &node->RawSizeString->sr))
+            return TRUE;
+    }
+
+    if (!PhIsNullOrEmptyString(node->SlackSizeString))
+    {
+        if (PvSearchControlMatch(context->SearchMatchHandle, &node->SlackSizeString->sr))
             return TRUE;
     }
 

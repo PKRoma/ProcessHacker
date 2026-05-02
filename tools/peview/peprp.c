@@ -39,6 +39,7 @@ typedef enum _PVP_IMAGE_GENERAL_INDEX
     PVP_IMAGE_GENERAL_INDEX_CHECKSUM,
     //PVP_IMAGE_GENERAL_INDEX_CHECKSUMIAT,
     PVP_IMAGE_GENERAL_INDEX_HEADERSPARE,
+    PVP_IMAGE_GENERAL_INDEX_SECTIONSLACK,
     PVP_IMAGE_GENERAL_INDEX_SUBSYSTEM,
     PVP_IMAGE_GENERAL_INDEX_SUBSYSTEMVERSION,
     PVP_IMAGE_GENERAL_INDEX_CHARACTERISTICS,
@@ -1238,6 +1239,23 @@ VOID PvpSetPeImageSpareHeaderBytes(
     }
 }
 
+VOID PvpSetPeImageSectionSlackBytes(
+    _In_ HWND ListViewHandle
+    )
+{
+    ULONG64 slackLength = 0;
+
+    for (ULONG i = 0; i < PvMappedImage.NumberOfSections; i++)
+    {
+        PIMAGE_SECTION_HEADER section = &PvMappedImage.Sections[i];
+
+        if (section->SizeOfRawData > section->Misc.VirtualSize)
+            slackLength += UInt32Sub32To64(section->SizeOfRawData, section->Misc.VirtualSize);
+    }
+
+    PhSetListViewSubItem(ListViewHandle, PVP_IMAGE_GENERAL_INDEX_SECTIONSLACK, 1, PhaFormatSize(slackLength, ULONG_MAX)->Buffer);
+}
+
 VOID PvpSetPeImageSubsystem(
     _In_ HWND ListViewHandle
     )
@@ -1843,6 +1861,7 @@ VOID PvpSetPeImageProperties(
     PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_CHECKSUM, L"Header checksum", NULL);
     //PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_CHECKSUMIAT, L"Import checksum", NULL);
     PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_HEADERSPARE, L"Header spare", NULL);
+    PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_SECTIONSLACK, L"Section slack", NULL);
     PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_SUBSYSTEM, L"Subsystem", NULL);
     PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_SUBSYSTEMVERSION, L"Subsystem version", NULL);
     PhAddListViewGroupItem(Context->ListViewHandle, PVP_IMAGE_GENERAL_CATEGORY_BASICINFO, PVP_IMAGE_GENERAL_INDEX_CHARACTERISTICS, L"Characteristics", NULL);
@@ -1868,6 +1887,7 @@ VOID PvpSetPeImageProperties(
     PvpSetPeImageEntryPoint(Context->ListViewHandle);
     PvpSetPeImageCheckSum(Context->WindowHandle, Context->ListViewHandle);
     PvpSetPeImageSpareHeaderBytes(Context->ListViewHandle);
+    PvpSetPeImageSectionSlackBytes(Context->ListViewHandle);
     PvpSetPeImageSubsystem(Context->ListViewHandle);
     PvpSetPeImageCharacteristics(Context->ListViewHandle);
     // File information
