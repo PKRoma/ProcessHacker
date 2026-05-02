@@ -15287,6 +15287,10 @@ typedef enum _RTL_FEATURE_CONFIGURATION_OPERATION
     FeatureConfigurationOperationResetState   = 4
 } RTL_FEATURE_CONFIGURATION_OPERATION, *PRTL_FEATURE_CONFIGURATION_OPERATION;
 
+#define RTL_FEATURE_VARIANT_MASK              0x000000FF
+#define RTL_FEATURE_CHANGE_TIME_UPGRADE       0x00000100
+#define RTL_FEATURE_HAS_GROUP_BYPASS          0x00000200
+
 // private
 typedef struct _RTL_FEATURE_CONFIGURATION_UPDATE
 {
@@ -15300,15 +15304,21 @@ typedef struct _RTL_FEATURE_CONFIGURATION_UPDATE
         ULONG VariantFlags;
         struct
         {
-            ULONG Variant : 8;
+            UCHAR Variant;
+            UCHAR Flags;
+            USHORT ReservedFlags;
+        } DUMMYSTRUCTNAME;
+        struct
+        {
+            ULONG Variant_ : 8;
             ULONG ChangeTimeUpgrade : 1;
             ULONG HasGroupBypass : 1;
-            ULONG ReservedFlags : 22;
-        } DUMMYSTRUCTNAME;
+            ULONG Reserved_ : 22;
+        } DUMMYSTRUCTNAME2;
     } DUMMYUNIONNAME;
 
-    UCHAR Reserved[3];
     RTL_FEATURE_VARIANT_PAYLOAD_KIND VariantPayloadKind;
+    UCHAR Reserved[3];
     RTL_FEATURE_VARIANT_PAYLOAD VariantPayload;
     RTL_FEATURE_CONFIGURATION_OPERATION Operation;
 } RTL_FEATURE_CONFIGURATION_UPDATE, *PRTL_FEATURE_CONFIGURATION_UPDATE;
