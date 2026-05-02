@@ -206,7 +206,7 @@ INT_PTR CALLBACK EtPoolMonDlgProc(
             context->ParentWindowHandle = (HWND)lParam;
             context->TreeNewHandle = GetDlgItem(WindowHandle, IDC_POOLTREE);
             context->SearchboxHandle = GetDlgItem(WindowHandle, IDC_POOLSEARCH);
-            context->WindowFont = PhDuplicateFont(SystemInformer_GetFont());
+            context->WindowFont = PhCreateApplicationFont(PhGetWindowDpi(WindowHandle));
 
             PhSetApplicationWindowIcon(WindowHandle);
 
@@ -293,7 +293,7 @@ INT_PTR CALLBACK EtPoolMonDlgProc(
         {
             HFONT windowFont;
 
-            if (windowFont = PhDuplicateFont(SystemInformer_GetFont()))
+            if (windowFont = PhCreateApplicationFont(PhGetWindowDpi(WindowHandle)))
                 PhReplaceWindowFont(&context->WindowFont, context->TreeNewHandle, windowFont, TRUE);
 
             PhLayoutManagerUpdate(&context->LayoutManager, LOWORD(wParam));
