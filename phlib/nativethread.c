@@ -678,7 +678,7 @@ NTSTATUS PhGetThreadContainerId(
         ThreadHandle,
         ThreadContainerId,
         &threadContainerId,
-        sizeof(ULONG),
+        sizeof(GUID),
         NULL
         );
 
