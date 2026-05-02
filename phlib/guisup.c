@@ -2964,7 +2964,7 @@ PPH_LAYOUT_ITEM PhAddLayoutItemEx(
 
     PhGetSizeDpiValue(&item->Rect, Manager->WindowDpi, FALSE);
     item->Margin = *Margin;
-    PhGetSizeDpiValue(&item->Margin, Manager->WindowDpi, FALSE);
+    PhGetMarginDpiValue(&item->Margin, Manager->WindowDpi, FALSE);
 
     PhAddItemList(Manager->List, item);
 
