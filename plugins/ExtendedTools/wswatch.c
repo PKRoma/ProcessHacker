@@ -461,7 +461,7 @@ INT_PTR CALLBACK EtpWsWatchDlgProc(
         {
             context->WindowHandle = WindowHandle;
             context->ListViewHandle = GetDlgItem(WindowHandle, IDC_LIST);
-            context->WindowFont = PhDuplicateFont(SystemInformer_GetFont());
+            context->WindowFont = PhCreateApplicationFont(PhGetWindowDpi(WindowHandle));
 
             PhSetApplicationWindowIcon(WindowHandle);
 
@@ -596,7 +596,7 @@ INT_PTR CALLBACK EtpWsWatchDlgProc(
         {
             HFONT windowFont;
 
-            if (windowFont = PhDuplicateFont(SystemInformer_GetFont()))
+            if (windowFont = PhCreateApplicationFont(PhGetWindowDpi(WindowHandle)))
                 PhReplaceWindowFont(&context->WindowFont, context->ListViewHandle, windowFont, TRUE);
 
             PhLayoutManagerUpdate(&context->LayoutManager, LOWORD(wParam));
