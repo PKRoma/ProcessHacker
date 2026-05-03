@@ -386,7 +386,7 @@ VOID ProcessVirusTotal(
             if (httpStatus == 200) // OK
             {
                 WriteNoFence64(&Item->Expiry.QuadPart, expiry.QuadPart);
-                SetScanResult(Item, PhFormatString(L"%llu/%llu", malicious, undetected));
+                SetScanResult(Item, PhFormatString(L"%llu/%llu", malicious, (malicious + undetected)));
             }
             else if (httpStatus == 429) // Too many requests
             {
@@ -417,7 +417,7 @@ VOID ProcessVirusTotal(
         expiry.QuadPart = MakeExpiry(&systemTime, ScanOKExpMin, ScanOKExpMax);
 
         WriteNoFence64(&Item->Expiry.QuadPart, expiry.QuadPart);
-        SetScanResult(Item, PhFormatString(L"%llu/%llu", malicious, undetected));
+        SetScanResult(Item, PhFormatString(L"%llu/%llu", malicious, (malicious + undetected)));
 
         UpdateDBVirusTotal(
             Item->FileHash->Sha256,
