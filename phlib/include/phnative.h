@@ -2708,7 +2708,7 @@ PhGetSaclSecurityDescriptor(
     }
 
     *Sacl = sacl;
-    *DaclDefaulted = defaulted;
+    *SaclDefaulted = defaulted;
     *SaclPresent = present;
 
     return STATUS_SUCCESS;
