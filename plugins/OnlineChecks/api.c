@@ -12,6 +12,16 @@
 
 #include "onlnchk.h"
 
+PPH_STRING ClientIdHeaderString(
+    VOID
+    )
+{
+    static const PH_STRINGREF clientIdHeader = PH_STRINGREF_INIT(L"SystemInformer-Client-Id: ");
+    PPH_STRING clientId = PhGetStringSetting(SETTING_CLIENT_ID);
+    PhMoveReference(&clientId, PhConcatStringRef2(&clientIdHeader, &clientId->sr));
+    return clientId;
+}
+
 PPH_BYTES VirusTotalTimeString(
     _In_ PLARGE_INTEGER LargeInteger
     )
@@ -150,6 +160,7 @@ NTSTATUS VirusTotalRequestFileReport(
     PPH_HTTP_CONTEXT httpContext = NULL;
     PPH_STRING httpPathString = NULL;
     PPH_STRING httpHeaderString = NULL;
+    PPH_STRING httpHeaderClientId = NULL;
     PVOID jsonRootObject = NULL;
     ULONG httpStatus = PH_HTTP_STATUS_OK;
 
@@ -162,6 +173,8 @@ NTSTATUS VirusTotalRequestFileReport(
             return STATUS_UNSUCCESSFUL;
         if (!NT_SUCCESS(status = PhHttpConnect(httpContext, L"systeminformer.io", PH_HTTP_DEFAULT_HTTPS_PORT)))
             goto CleanupExit;
+
+        httpHeaderClientId = ClientIdHeaderString();
     }
     else
     {
@@ -177,6 +190,12 @@ NTSTATUS VirusTotalRequestFileReport(
     if (!PhIsNullOrEmptyString(httpHeaderString))
     {
         if (!NT_SUCCESS(status = PhHttpAddRequestHeadersSR(httpContext, &httpHeaderString->sr)))
+            goto CleanupExit;
+    }
+
+    if (!PhIsNullOrEmptyString(httpHeaderClientId))
+    {
+        if (!NT_SUCCESS(status = PhHttpAddRequestHeadersSR(httpContext, &httpHeaderClientId->sr)))
             goto CleanupExit;
     }
 
@@ -216,6 +235,7 @@ NTSTATUS VirusTotalRequestFileReport(
 CleanupExit:
     PhHttpDestroy(httpContext);
 
+    PhClearReference(&httpHeaderClientId);
     PhClearReference(&httpHeaderString);
     PhClearReference(&httpPathString);
     PhClearReference(&jsonString);
@@ -325,6 +345,7 @@ NTSTATUS HybridAnalysisRequestFileReport(
     PPH_HTTP_CONTEXT httpContext = NULL;
     PPH_STRING httpPathString = NULL;
     PPH_STRING httpHeaderString = NULL;
+    PPH_STRING httpHeaderClientId = NULL;
     PVOID jsonRootObject = NULL;
     ULONG httpStatus = PH_HTTP_STATUS_OK;
 
@@ -337,6 +358,8 @@ NTSTATUS HybridAnalysisRequestFileReport(
             return STATUS_UNSUCCESSFUL;
         if (!NT_SUCCESS(status = PhHttpConnect(httpContext, L"systeminformer.io", PH_HTTP_DEFAULT_HTTPS_PORT)))
             goto CleanupExit;
+
+        httpHeaderClientId = ClientIdHeaderString();
     }
     else
     {
@@ -352,6 +375,12 @@ NTSTATUS HybridAnalysisRequestFileReport(
     if (!PhIsNullOrEmptyString(httpHeaderString))
     {
         if (!NT_SUCCESS(status = PhHttpAddRequestHeadersSR(httpContext, &httpHeaderString->sr)))
+            goto CleanupExit;
+    }
+
+    if (!PhIsNullOrEmptyString(httpHeaderClientId))
+    {
+        if (!NT_SUCCESS(status = PhHttpAddRequestHeadersSR(httpContext, &httpHeaderClientId->sr)))
             goto CleanupExit;
     }
 
@@ -390,6 +419,7 @@ NTSTATUS HybridAnalysisRequestFileReport(
 CleanupExit:
     PhHttpDestroy(httpContext);
 
+    PhClearReference(&httpHeaderClientId);
     PhClearReference(&httpHeaderString);
     PhClearReference(&httpPathString);
     PhClearReference(&jsonString);
@@ -475,7 +505,14 @@ NTSTATUS HybridAnalysisSubmitFile(
     buildersInitialized = TRUE;
 
     PhAppendStringBuilder2(&httpRequestHeaders, L"accept: application/json\r\n");
-    if (!PhIsNullOrEmptyString(ApiKey))
+    if (PhIsNullOrEmptyString(ApiKey))
+    {
+        PPH_STRING clientIdHeader = ClientIdHeaderString();
+        PhAppendStringBuilder(&httpRequestHeaders, &clientIdHeader->sr);
+        PhAppendStringBuilder2(&httpRequestHeaders, L"\r\n");
+        PhDereferenceObject(clientIdHeader);
+    }
+    else
     {
         PhAppendStringBuilder2(&httpRequestHeaders, L"api-key: ");
         PhAppendStringBuilder(&httpRequestHeaders, &ApiKey->sr);
@@ -661,7 +698,13 @@ NTSTATUS HybridAnalysisSubmitFinished(
     if (!NT_SUCCESS(status = PhHttpBeginRequest(httpContext, NULL, PhGetString(httpPathString), PH_HTTP_FLAG_SECURE)))
         goto CleanupExit;
 
-    if (!PhIsNullOrEmptyString(ApiKey))
+    if (PhIsNullOrEmptyString(ApiKey))
+    {
+        httpHeaderString = ClientIdHeaderString();
+        if (!NT_SUCCESS(status = PhHttpAddRequestHeadersSR(httpContext, &httpHeaderString->sr)))
+            goto CleanupExit;
+    }
+    else
     {
         httpHeaderString = PhConcatStrings(2, L"api-key: ", PhGetString(ApiKey));
         if (!NT_SUCCESS(status = PhHttpAddRequestHeadersSR(httpContext, &httpHeaderString->sr)))

@@ -5847,7 +5847,7 @@ NTSTATUS PhGetSystemProcessorPerformanceDistribution(
  * Retrieves the processor performance distribution information for a specified processor group.
  *
  * \param ProcessorGroup The processor group number for which to retrieve performance distribution information.
- * \param Buffer A pointer to a variable that receives a pointer to a SYSTEM_PROCESSOR_PERFORMANCE_DISTRIBUTION 
+ * \param Buffer A pointer to a variable that receives a pointer to a SYSTEM_PROCESSOR_PERFORMANCE_DISTRIBUTION
  * structure containing the performance distribution data.
  * \return NTSTATUS Successful or errant status.
  */
@@ -5983,7 +5983,7 @@ NTSTATUS PhGetSystemLogicalProcessorInformation(
 /**
  * Retrieves information about the logical processor relationships in the system.
  *
- * \param LogicalProcessorInformation A pointer to a PH_LOGICAL_PROCESSOR_INFORMATION structure 
+ * \param LogicalProcessorInformation A pointer to a PH_LOGICAL_PROCESSOR_INFORMATION structure
  * that receives the logical processor relationship information.
  * \return NTSTATUS Successful or errant status.
  */

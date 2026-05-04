@@ -419,6 +419,7 @@ EXT ULONG PhCsProcessMonitorCacheLimit;
 #define SETTING_PROGRAM_INSPECT_EXECUTABLES                         L"ProgramInspectExecutables"
 #define SETTING_PROPAGATE_CPU_USAGE                                 L"PropagateCpuUsage"
 #define SETTING_RELEASE_CHANNEL                                     L"ReleaseChannel"
+#define SETTING_CLIENT_ID                                           L"ClientId"
 #define SETTING_RUN_AS_ENABLE_AUTO_COMPLETE                         L"RunAsEnableAutoComplete"
 #define SETTING_RUN_AS_PROGRAM                                      L"RunAsProgram"
 #define SETTING_RUN_AS_USER_NAME                                    L"RunAsUserName"

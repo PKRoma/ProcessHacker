@@ -289,6 +289,16 @@ PPH_STRING UpdateVersionString(
     }
 }
 
+PPH_STRING UpdateClientIdString(
+    VOID
+    )
+{
+    static const PH_STRINGREF clientIdHeader = PH_STRINGREF_INIT(L"SystemInformer-Client-Id: ");
+    PPH_STRING clientId = PhGetStringSetting(SETTING_CLIENT_ID);
+    PhMoveReference(&clientId, PhConcatStringRef2(&clientIdHeader, &clientId->sr));
+    return clientId;
+}
+
 NTSTATUS UpdatePlatformSupportInformation(
     _In_ PCPH_STRINGREF FileName,
     _Out_ PUSHORT ImageMachine,
@@ -640,6 +650,7 @@ BOOLEAN QueryUpdateData(
         PPH_STRING versionHeader;
         PPH_STRING windowsHeader;
         PPH_STRING platformHeader;
+        PPH_STRING clientIdHeader;
 
         if (versionHeader = UpdateVersionString())
         {
@@ -657,6 +668,12 @@ BOOLEAN QueryUpdateData(
         {
             PhHttpAddRequestHeaders(httpContext, platformHeader->Buffer, (ULONG)platformHeader->Length / sizeof(WCHAR));
             PhDereferenceObject(platformHeader);
+        }
+
+        if (clientIdHeader = UpdateClientIdString())
+        {
+            PhHttpAddRequestHeaders(httpContext, clientIdHeader->Buffer, (ULONG)clientIdHeader->Length / sizeof(WCHAR));
+            PhDereferenceObject(clientIdHeader);
         }
     }
 

@@ -1420,7 +1420,7 @@ NTSTATUS PhInitializeTimerPolicy(
 
 /**
  * Initializes the application system.
- * 
+ *
  * This function performs the necessary initialization of the System Informer
  * application system, setting up core components and resources required for
  * the application to function properly.
@@ -1731,6 +1731,27 @@ VOID PhInitializeAppSettings(
             sampleCount = 4096;
 
         PhSetIntegerSetting(SETTING_SAMPLE_COUNT, sampleCount);
+    }
+
+    {
+        PPH_STRING clientId = PhGetStringSetting(SETTING_CLIENT_ID);
+        if (PhIsNullOrEmptyString(clientId))
+        {
+            static const PH_STRINGREF trimSet = PH_STRINGREF_INIT(L"{}");
+            GUID guid;
+            PH_STRINGREF trimmed;
+
+            PhGenerateGuid(&guid);
+            PhMoveReference(&clientId, PhFormatGuid(&guid));
+
+            trimmed = clientId->sr;
+            PhTrimStringRef(&trimmed, &trimSet, 0);
+            PhLowerStringRef(&trimmed);
+
+            PhSetStringSetting2(SETTING_CLIENT_ID, &trimmed);
+        }
+
+        PhClearReference(&clientId);
     }
 
     if (PhStartupParameters.UpdateChannel != PhInvalidChannel)

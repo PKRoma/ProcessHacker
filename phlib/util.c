@@ -1403,16 +1403,31 @@ VOID PhGenerateGuid(
     _Out_ PGUID Guid
     )
 {
+    static PH_INITONCE initOnce = PH_INITONCE_INIT;
+    static BOOL(WINAPI *ProcessPrng_I)(PBYTE, SIZE_T) = NULL;
     ULARGE_INTEGER seed;
     // The top/sign bit is always unusable for RtlRandomEx (the result is always unsigned), so we'll
     // take the bottom 24 bits. We need 128 bits in total, so we'll call the function 6 times.
     ULONG random[6];
     ULONG i;
 
-    seed.QuadPart = PhReadPerformanceCounter();
+    if (PhBeginInitOnce(&initOnce))
+    {
+        PVOID baseAddress;
 
-    for (i = 0; i < 6; i++)
-        random[i] = RtlRandomEx(&seed.LowPart);
+        if (baseAddress = PhLoadLibrary(L"bcryptprimitives.dll"))
+            ProcessPrng_I = PhGetDllBaseProcedureAddress(baseAddress, "ProcessPrng", 0);
+
+        PhEndInitOnce(&initOnce);
+    }
+
+    if (!ProcessPrng_I || !ProcessPrng_I((PBYTE)&random[0], sizeof(random)))
+    {
+        seed.QuadPart = PhReadPerformanceCounter();
+
+        for (i = 0; i < 6; i++)
+            random[i] = RtlRandomEx(&seed.LowPart);
+    }
 
     // random[0] is usable
     *(PUSHORT)&Guid->Data1 = (USHORT)random[0];
