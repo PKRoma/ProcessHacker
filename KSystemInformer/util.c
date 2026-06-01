@@ -41,6 +41,16 @@ PVOID KphBinarySearch(
 {
     KPH_NPAGED_CODE_HIGH_MAX();
 
+    if (!Key || !Base || !NumberOfElements || !SizeOfElement)
+    {
+        return NULL;
+    }
+
+    if (SizeOfElement > (ULONG_MAX / NumberOfElements))
+    {
+        return NULL;
+    }
+
     return bsearch_s(Key,
                      Base,
                      NumberOfElements,
